@@ -1,51 +1,23 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
+
 <title>Products | Concept Solid</title>
-<link rel="stylesheet" href="css/style.css">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="js/store.js" defer></script>
+
 </head>
 
-<body>
+<body class="bg-gray-50">
 
-<header>
-<h1>Concept Solid</h1>
-<nav>
-<a href="index.html">Home</a>
-<a href="products.html">Products</a>
-<a href="sapem.html">SapEM Systems</a>
-<a href="resources.html">Resources</a>
-<a href="store.html">Store</a>
-</nav>
-</header>
+<div class="max-w-7xl mx-auto p-10">
 
-<section>
-<h2>Products</h2>
+<h1 class="text-3xl font-bold mb-8">Products</h1>
 
-<div class="grid">
-
-<div class="card">
-<h3>Mountain Bike Products</h3>
-<p>Bike components, accessories, and tools.</p>
-</div>
-
-<div class="card">
-<h3>Sensor Systems</h3>
-<p>Monitoring hardware and telemetry devices.</p>
-</div>
-
-<div class="card">
-<h3>Engineering Tools</h3>
-<p>Practical tools designed for workshops and field work.</p>
-</div>
+<div id="productGrid" class="grid md:grid-cols-3 gap-8"></div>
 
 </div>
-
-</section>
-
-<footer>
-<p>© Concept Solid</p>
-</footer>
 
 </body>
 </html>
