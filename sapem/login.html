@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <title>SapEM Login</title>
 
@@ -11,30 +11,51 @@
 
 </head>
 
-<body class="bg-green-50 flex items-center justify-center h-screen">
+<body class="bg-green-50">
 
-<div class="bg-white p-8 shadow rounded-xl w-96">
+<header class="bg-white shadow-lg">
+
+<div class="max-w-7xl mx-auto px-6 py-4 flex justify-between">
+
+<a href="index.html" class="text-4xl font-extrabold text-green-700">
+SapEM Systems
+</a>
+
+<nav class="space-x-8">
+
+<a href="products.html">Products</a>
+<a href="resources.html">Resources</a>
+<a href="cart.html">Cart</a>
+
+</nav>
+
+</div>
+
+</header>
+
+<section class="flex items-center justify-center min-h-screen">
+
+<div class="bg-white shadow-xl rounded-xl p-10 w-96">
 
 <h2 class="text-2xl font-bold mb-6 text-center">
-
-SapEM Login
-
+Customer Login
 </h2>
 
-<input placeholder="Email"
-class="w-full border p-2 mb-4">
+<input type="email" placeholder="Email"
+class="w-full border p-3 mb-4 rounded">
 
 <input type="password" placeholder="Password"
-class="w-full border p-2 mb-4">
+class="w-full border p-3 mb-6 rounded">
 
-<button onclick="location='dashboard.html'"
-class="w-full bg-green-600 text-white py-2 rounded">
+<button class="bg-green-600 hover:bg-green-700 text-white w-full py-3 rounded">
 
 Login
 
 </button>
 
 </div>
+
+</section>
 
 </body>
 </html>
