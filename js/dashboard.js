@@ -1,29 +1,32 @@
 async function loadSensors(){
 
-let response = await fetch(
-"https://api.conceptsolid.com/sensors"
+const response = await fetch(
+"https://api.sapemsystems.com/user-sensors"
 )
 
-let sensors = await response.json()
+const sensors = await response.json()
 
-let container=document.getElementById("sensorData")
+let html=""
 
-sensors.forEach(s=>{
+sensors.forEach(sensor => {
 
-container.innerHTML += `
-<div class="p-6 bg-white shadow mb-4">
+html += `
+<tr>
 
-<h3>${s.name}</h3>
+<td>${sensor.name}</td>
 
-<p>Pressure: ${s.pressure}</p>
+<td>${sensor.pressure}</td>
 
-<p>Battery: ${s.battery}</p>
+<td>${sensor.battery}V</td>
 
-</div>
+</tr>
 `
 
 })
 
+document.getElementById("sensor-table").innerHTML = html
+
 }
 
 loadSensors()
+setInterval(loadSensors,5000)
