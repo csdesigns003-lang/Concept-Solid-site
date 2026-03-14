@@ -1,44 +1,30 @@
 <!DOCTYPE html>
 <html>
 <head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-
 <title>Concept Solid Products</title>
-
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="js/cart.js"></script>
-
 </head>
+<body>
 
-<body class="bg-gray-50">
-
-<header class="bg-white shadow p-4 flex justify-between">
-
-<h1 class="font-bold">Concept Solid</h1>
-
-<a href="cart.html">Cart (<span class="cart-count">0</span>)</a>
-
+<header class="bg-white shadow p-6 flex justify-between">
+<a href="index.html" class="text-3xl font-bold">Concept Solid</a>
+<div class="space-x-6">
+<a href="products.html">Products</a>
+<a href="projects.html">Projects</a>
+<a href="sapem/index.html">SapEM</a>
+<a href="cart.html">Cart</a>
+</div>
 </header>
 
-<section class="max-w-7xl mx-auto px-6 py-20 grid md:grid-cols-3 gap-10">
-
-<div class="bg-white shadow p-6 rounded-xl cursor-pointer"
-onclick="location='product.html?id=biketool'">
-
-<h3 class="font-bold mb-2">Bike Tool</h3>
-
-<button onclick="event.stopPropagation(); addToCart('Bike Tool',49)"
-class="bg-green-600 text-white px-4 py-2 rounded">
-
-Add to Cart
-
-</button>
-
-</div>
-
+<section class="max-w-7xl mx-auto px-6 py-20">
+<h1 class="text-4xl font-bold mb-12">Products</h1>
+<div id="product-grid" class="grid md:grid-cols-3 gap-10"></div>
 </section>
+
+<script src="js/products.js"></script>
+<script>
+loadProducts("data/concept-products.json","product-grid")
+</script>
 
 </body>
 </html>
