@@ -1,46 +1,40 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Products | Concept Solid</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<script>
+
+function addToCart(product){
+
+alert(product+" added to cart")
+
+}
+
+</script>
+
+</head>
+
+<body class="bg-gray-50">
 
 <header class="bg-white shadow sticky top-0 z-50">
 
 <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
 
-<h1 class="text-xl font-bold">
-Concept Solid
-</h1>
+<h1 class="text-xl font-bold">Concept Solid</h1>
 
-<nav class="flex items-center space-x-6">
+<nav class="space-x-6">
 
 <a href="index.html">Home</a>
 <a href="products.html">Products</a>
 <a href="projects.html">Projects</a>
 <a href="sapem.html">SapEM</a>
-
-<div class="relative">
-
-<button id="cartButton"
-class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-
-Cart 🛒
-
-</button>
-
-<div id="cartPreview"
-class="hidden absolute right-0 mt-2 w-64 bg-white shadow-lg rounded p-4">
-
-<p class="text-sm text-gray-600">
-Your cart is empty
-</p>
-
-<a href="checkout.html"
-class="block mt-3 bg-green-600 text-white text-center py-2 rounded">
-Checkout
-</a>
-
-</div>
-
-</div>
 
 </nav>
 
@@ -48,22 +42,59 @@ Checkout
 
 </header>
 
-<title>Products | Concept Solid</title>
+<section class="max-w-7xl mx-auto px-6 py-20">
 
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="js/store.js" defer></script>
+<h1 class="text-4xl font-bold text-center mb-16">
+Products
+</h1>
 
-</head>
+<div class="grid md:grid-cols-3 gap-10">
 
-<body class="bg-gray-50">
+<div class="bg-white rounded-xl shadow p-6 cursor-pointer"
+onclick="window.location='product.html?id=biketool'">
 
-<div class="max-w-7xl mx-auto p-10">
+<img src="images/biketool.jpg" class="rounded mb-4">
 
-<h1 class="text-3xl font-bold mb-8">Products</h1>
+<h3 class="font-bold mb-2">Bike Tool</h3>
 
-<div id="productGrid" class="grid md:grid-cols-3 gap-8"></div>
+<p class="text-gray-600 mb-4">
+Trail repair multi-tool.
+</p>
+
+<button onclick="event.stopPropagation(); addToCart('Bike Tool')"
+class="bg-green-600 text-white px-4 py-2 rounded">
+
+Add to Cart
+
+</button>
 
 </div>
+
+<div class="bg-white rounded-xl shadow p-6 cursor-pointer"
+onclick="window.location='product.html?id=sensor'">
+
+<img src="images/sensor.jpg" class="rounded mb-4">
+
+<h3 class="font-bold mb-2">
+SapEM Pressure Sensor
+</h3>
+
+<p class="text-gray-600 mb-4">
+Remote pressure monitoring node.
+</p>
+
+<button onclick="event.stopPropagation(); addToCart('SapEM Sensor')"
+class="bg-green-600 text-white px-4 py-2 rounded">
+
+Add to Cart
+
+</button>
+
+</div>
+
+</div>
+
+</section>
 
 </body>
 </html>
