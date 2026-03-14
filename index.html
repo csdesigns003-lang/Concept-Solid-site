@@ -4,7 +4,7 @@
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Concept Solid</title>
 
@@ -53,30 +53,70 @@ display:block;
 
 <body>
 
+
+<!-- HEADER -->
+
 <header class="bg-white shadow sticky top-0 z-50">
 
 <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
 
-<div class="flex space-x-8">
+<div class="flex space-x-8 text-lg">
 
-<a href="products.html">Products</a>
-<a href="projects.html">Projects</a>
+<a href="/products.html" class="hover:text-blue-700">
+Products
+</a>
+
+<a href="/projects.html" class="hover:text-blue-700">
+Projects
+</a>
 
 </div>
 
-<a href="index.html" class="text-4xl font-extrabold hover:text-blue-700">
+
+<a href="/index.html"
+class="text-4xl font-extrabold tracking-tight hover:text-blue-700">
+
 Concept Solid
+
 </a>
 
-<div class="flex space-x-8 items-center">
 
-<a href="sapem/index.html" class="text-green-700 font-semibold">
+<div class="flex items-center space-x-8">
+
+<a href="/sapem/index.html"
+class="text-green-700 font-semibold hover:text-green-800">
+
 SapEM Systems
+
+a>
+
+
+<div class="cart-hover relative">
+
+<a href="/cart.html" class="font-semibold">
+
+Cart (<span class="cart-count">0</span>)
+
 </a>
 
-<a href="cart.html">
-Cart (<span class="cart-count">0</span>)
+<div class="cart-preview">
+
+<p class="text-sm text-gray-500 mb-2">
+Cart Preview
+</p>
+
+<div id="cart-preview-items"></div>
+
+<a href="/cart.html"
+class="block text-center mt-3 bg-blue-700 text-white py-2 rounded hover:bg-blue-800">
+
+Checkout
+
 </a>
+
+</div>
+
+</div>
 
 </div>
 
@@ -85,22 +125,175 @@ Cart (<span class="cart-count">0</span>)
 </header>
 
 
+
+<!-- HERO -->
+
 <section class="hero text-white py-32">
 
-<div class="max-w-6xl mx-auto text-center px-6">
+<div class="max-w-6xl mx-auto px-6 text-center">
 
-<h1 class="text-6xl font-bold mb-6">
-Engineering Hardware & Monitoring Systems
+<h1 class="text-5xl md:text-6xl font-bold mb-6">
+
+Engineering Hardware  
+& Monitoring Systems
+
 </h1>
 
-<p class="text-xl mb-10 opacity-90">
+<p class="text-xl opacity-90 mb-10">
+
 Concept Solid develops mechanical tools, sensor systems,
-and engineering hardware.
+and engineering solutions across multiple industries.
+
 </p>
 
-<a href="products.html"
-class="bg-white text-blue-700 px-8 py-4 rounded-lg font-semibold">
+<div class="flex justify-center space-x-6">
+
+<a href="/products.html"
+class="bg-white text-blue-700 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100">
+
 Browse Products
+
+</a>
+
+<a href="/projects.html"
+class="bg-blue-900 px-8 py-4 rounded-lg font-semibold hover:bg-blue-950">
+
+Explore Projects
+
+</a>
+
+</div>
+
+</div>
+
+</section>
+
+
+
+<!-- FEATURED PRODUCTS -->
+
+<section class="max-w-7xl mx-auto px-6 py-24">
+
+<h2 class="text-4xl font-bold text-center mb-16">
+
+Featured Products
+
+</h2>
+
+<div id="featured-products"
+class="grid md:grid-cols-3 gap-12">
+
+<!-- dynamic products appear here -->
+
+</div>
+
+</section>
+
+
+
+<!-- PROJECTS / RESOURCES -->
+
+<section class="bg-white py-24">
+
+<div class="max-w-7xl mx-auto px-6">
+
+<h2 class="text-4xl font-bold text-center mb-16">
+
+Projects & Resources
+
+</h2>
+
+<div class="grid md:grid-cols-3 gap-12">
+
+<a href="/projects/skeeball.html"
+class="product-card bg-gray-50 p-10 rounded-xl">
+
+<h3 class="text-2xl font-bold mb-4">
+
+Arduino Skee Ball
+
+</h3>
+
+<p class="text-gray-600">
+
+DIY arcade skee ball build with firmware,
+electronics and mechanical plans.
+
+</p>
+
+</a>
+
+
+<a href="/projects/lora.html"
+class="product-card bg-gray-50 p-10 rounded-xl">
+
+<h3 class="text-2xl font-bold mb-4">
+
+LoRa Sensor Network
+
+</h3>
+
+<p class="text-gray-600">
+
+Low-power long range sensor communication
+systems used in SapEM monitoring.
+
+</p>
+
+</a>
+
+
+<a href="/projects/bike-tools.html"
+class="product-card bg-gray-50 p-10 rounded-xl">
+
+<h3 class="text-2xl font-bold mb-4">
+
+Bike Tools
+
+</h3>
+
+<p class="text-gray-600">
+
+Engineering tools and hardware designed
+for mountain bike maintenance.
+
+</p>
+
+</a>
+
+</div>
+
+</div>
+
+</section>
+
+
+
+<!-- SAPEM SECTION -->
+
+<section class="py-28">
+
+<div class="max-w-6xl mx-auto px-6 text-center">
+
+<h2 class="text-4xl font-bold mb-6">
+
+SapEM Systems
+
+</h2>
+
+<p class="text-lg text-gray-600 mb-10">
+
+SapEM Systems is a wireless monitoring
+platform created by Concept Solid for
+industrial pressure sensing and remote diagnostics.
+
+</p>
+
+<a href="/sapem/index.html"
+class="bg-green-700 text-white px-10 py-4 rounded-lg hover:bg-green-800">
+
+Explore SapEM Systems
+
 </a>
 
 </div>
@@ -108,66 +301,120 @@ Browse Products
 </section>
 
 
-<section class="max-w-7xl mx-auto px-6 py-24">
 
-<h2 class="text-4xl font-bold text-center mb-16">
-Featured Products
+<!-- YOUTUBE / MEDIA -->
+
+<section class="bg-gray-100 py-24">
+
+<div class="max-w-6xl mx-auto px-6 text-center">
+
+<h2 class="text-4xl font-bold mb-16">
+
+Build Guides & Videos
+
 </h2>
 
-<div id="featured-products"
-class="grid md:grid-cols-3 gap-12"></div>
+<div class="grid md:grid-cols-2 gap-16">
 
-</section>
+<iframe width="100%" height="315"
+src="https://www.youtube.com/embed/"
+frameborder="0"
+allowfullscreen></iframe>
 
+<div class="text-left">
 
-<section class="py-24 text-center">
+<h3 class="text-2xl font-bold mb-4">
 
-<h2 class="text-4xl font-bold mb-8">
-SapEM Systems
-</h2>
+Open Engineering
 
-<p class="text-gray-600 mb-8">
-Wireless industrial pressure monitoring platform.
+</h3>
+
+<p class="text-gray-600 mb-6">
+
+Many Concept Solid projects include
+free CAD downloads, firmware,
+and full documentation.
+
 </p>
 
-<a href="sapem/index.html"
-class="bg-green-700 text-white px-10 py-4 rounded-lg">
-Explore SapEM
+<a href="/projects.html"
+class="text-blue-700 font-semibold">
+
+Browse Project Library →
+
 </a>
+
+</div>
+
+</div>
+
+</div>
 
 </section>
 
+
+
+<!-- FOOTER -->
 
 <footer class="bg-gray-900 text-gray-300 py-16">
 
 <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-3 gap-10">
 
 <div>
-<h3 class="text-xl font-bold mb-4">Concept Solid</h3>
-<p>Engineering hardware and monitoring systems.</p>
+
+<h3 class="text-xl font-bold mb-4">
+Concept Solid
+</h3>
+
+<p>
+
+Engineering hardware, monitoring
+systems, and open development projects.
+
+</p>
+
 </div>
 
 <div>
-<h3 class="font-semibold mb-3">Contact</h3>
+
+<h3 class="font-semibold mb-3">
+Contact
+</h3>
+
 <p>Email: contact@conceptsolid.com</p>
+<p>Support: support@conceptsolid.com</p>
+
 </div>
 
 <div>
-<h3 class="font-semibold mb-3">Links</h3>
-<p><a href="products.html">Products</a></p>
-<p><a href="projects.html">Projects</a></p>
-<p><a href="sapem/index.html">SapEM Systems</a></p>
+
+<h3 class="font-semibold mb-3">
+Links
+</h3>
+
+<p><a href="/products.html">Products</a></p>
+<p><a href="/projects.html">Projects</a></p>
+<p><a href="/sapem/index.html">SapEM Systems</a></p>
+
 </div>
 
 </div>
 
 </footer>
 
-<script src="js/products.js"></script>
+
+
+<!-- SCRIPTS -->
+
+<script src="/js/products.js"></script>
+<script src="/js/cart.js"></script>
 
 <script>
-loadProducts("data/concept-products.json","featured-products")
+
+loadProducts("/data/concept-products.json","featured-products")
+
 </script>
+
 
 </body>
 </html>
