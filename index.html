@@ -16,23 +16,45 @@
 
 <!-- NAVBAR -->
 
-<header class="bg-white shadow">
+<header class="bg-white shadow sticky top-0 z-50">
 
 <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
 
-<h1 class="text-xl font-bold">Concept Solid</h1>
+<h1 class="text-xl font-bold">
+Concept Solid
+</h1>
 
-<button onclick="toggleMenu()" class="md:hidden text-2xl">
-☰
+<nav class="flex items-center space-x-6">
+
+<a href="index.html">Home</a>
+<a href="products.html">Products</a>
+<a href="projects.html">Projects</a>
+<a href="sapem.html">SapEM</a>
+
+<div class="relative">
+
+<button id="cartButton"
+class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+
+Cart 🛒
+
 </button>
 
-<nav id="menu" class="hidden md:flex space-x-6">
+<div id="cartPreview"
+class="hidden absolute right-0 mt-2 w-64 bg-white shadow-lg rounded p-4">
 
-<a href="index.html" class="hover:text-blue-600">Home</a>
-<a href="products.html" class="hover:text-blue-600">Products</a>
-<a href="sapem.html" class="hover:text-blue-600">SapEM</a>
-<a href="resources.html" class="hover:text-blue-600">Resources</a>
-<a href="store.html" class="hover:text-blue-600">Store</a>
+<p class="text-sm text-gray-600">
+Your cart is empty
+</p>
+
+<a href="checkout.html"
+class="block mt-3 bg-green-600 text-white text-center py-2 rounded">
+Checkout
+</a>
+
+</div>
+
+</div>
 
 </nav>
 
