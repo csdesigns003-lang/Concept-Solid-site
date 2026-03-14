@@ -1,51 +1,100 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>SapEM Products</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="../js/cart.js"></script>
+
+<script>
+
+let cart = JSON.parse(localStorage.getItem("cart")) || []
+
+function updateCart(){
+document.querySelectorAll(".cart-count").forEach(el=>{
+el.textContent = cart.length
+})
+}
+
+function addToCart(name,price){
+
+cart.push({name,price})
+
+localStorage.setItem("cart",JSON.stringify(cart))
+
+updateCart()
+
+alert(name + " added to cart")
+
+}
+
+document.addEventListener("DOMContentLoaded",updateCart)
+
+</script>
 
 </head>
 
-<body class="bg-green-50">
+<body class="bg-green-50 text-gray-900">
 
-<header class="bg-white shadow p-4 flex justify-between">
+<header class="bg-white shadow-lg sticky top-0">
 
-<h1 class="text-green-700 font-bold">
+<div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+
+<a href="index.html"
+class="text-4xl font-extrabold text-green-700">
 
 SapEM Systems
-
-</h1>
-
-<a href="../cart.html">
-
-Cart (<span class="cart-count">0</span>)
-
 </a>
+
+<nav class="flex space-x-8 text-lg">
+
+<a href="products.html">Products</a>
+<a href="resources.html">Resources</a>
+<a href="login.html">Login</a>
+
+<a href="cart.html">
+Cart (<span class="cart-count">0</span>)
+</a>
+
+<a href="../index.html" class="text-gray-500">
+Concept Solid
+</a>
+
+</nav>
+
+</div>
 
 </header>
 
-<section class="max-w-7xl mx-auto px-6 py-20 grid md:grid-cols-3 gap-10">
+<section class="max-w-7xl mx-auto px-6 py-24">
 
-<div class="bg-white shadow p-6 rounded-xl">
+<h1 class="text-4xl font-bold mb-16 text-center">
+SapEM Sensors
+</h1>
 
-<h3 class="font-bold mb-3">
+<div class="grid md:grid-cols-3 gap-12">
 
-SapEM Pressure Sensor
+<div class="bg-white shadow-xl rounded-xl p-8">
 
+<h3 class="text-2xl font-bold mb-4">
+SapEM Sensor Node
 </h3>
 
+<p class="text-gray-600 mb-6">
+Wireless LoRa pressure sensor node.
+</p>
+
 <button onclick="addToCart('SapEM Sensor',199)"
-class="bg-green-600 text-white px-4 py-2 rounded">
+class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded">
 
 Add to Cart
 
 </button>
+
+</div>
 
 </div>
 
