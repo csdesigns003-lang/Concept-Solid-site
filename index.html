@@ -8,6 +8,7 @@
 <title>Concept Solid</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="js/menu.js" defer></script>
 
 </head>
 
@@ -21,11 +22,15 @@
 
 <h1 class="text-xl font-bold">Concept Solid</h1>
 
-<nav class="space-x-6">
+<button onclick="toggleMenu()" class="md:hidden text-2xl">
+☰
+</button>
 
-<a href="#" class="hover:text-blue-600">Home</a>
+<nav id="menu" class="hidden md:flex space-x-6">
+
+<a href="index.html" class="hover:text-blue-600">Home</a>
 <a href="products.html" class="hover:text-blue-600">Products</a>
-<a href="sapem.html" class="hover:text-blue-600">SapEM Systems</a>
+<a href="sapem.html" class="hover:text-blue-600">SapEM</a>
 <a href="resources.html" class="hover:text-blue-600">Resources</a>
 <a href="store.html" class="hover:text-blue-600">Store</a>
 
@@ -39,19 +44,19 @@
 
 <section class="bg-gray-900 text-white">
 
-<div class="max-w-7xl mx-auto px-6 py-24 text-center">
+<div class="max-w-7xl mx-auto px-6 py-28 text-center">
 
-<h2 class="text-4xl font-bold mb-6">
-Engineering Systems Built for the Real World
+<h2 class="text-5xl font-bold mb-6">
+Engineering Systems That Solve Real Problems
 </h2>
 
-<p class="text-lg mb-8 text-gray-300">
-Concept Solid develops durable products, monitoring systems, and
-practical tools designed for real environments.
+<p class="text-xl text-gray-300 mb-10">
+Concept Solid develops durable tools, monitoring systems, and
+products built for real environments.
 </p>
 
 <a href="products.html"
-class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg">
+class="bg-blue-600 hover:bg-blue-700 px-8 py-4 rounded-lg text-lg">
 Explore Products
 </a>
 
@@ -59,35 +64,65 @@ Explore Products
 
 </section>
 
-<!-- PRODUCT CATEGORIES -->
+<!-- FEATURED PRODUCTS -->
 
 <section class="max-w-7xl mx-auto px-6 py-20">
 
-<h2 class="text-3xl font-bold mb-10 text-center">
-Product Categories
+<h2 class="text-3xl font-bold text-center mb-12">
+Featured Products
 </h2>
 
-<div class="grid md:grid-cols-3 gap-8">
+<div class="grid md:grid-cols-3 gap-10">
 
-<div class="bg-white shadow rounded-xl p-6">
-<h3 class="text-xl font-semibold mb-3">Bike Products</h3>
-<p class="text-gray-600">
-Hardware and tools designed for mountain bike riders and builders.
+<div class="bg-white rounded-xl shadow hover:shadow-lg transition p-6">
+
+<div class="h-40 bg-gray-200 rounded mb-4"></div>
+
+<h3 class="text-lg font-semibold mb-2">SapEM Pressure Sensor</h3>
+
+<p class="text-gray-600 mb-4">
+Long-life remote pressure monitoring sensor.
 </p>
+
+<a href="store.html"
+class="bg-blue-600 text-white px-4 py-2 rounded">
+Buy
+</a>
+
 </div>
 
-<div class="bg-white shadow rounded-xl p-6">
-<h3 class="text-xl font-semibold mb-3">Sensor Systems</h3>
-<p class="text-gray-600">
-Long-life monitoring systems and LoRa telemetry networks.
+<div class="bg-white rounded-xl shadow hover:shadow-lg transition p-6">
+
+<div class="h-40 bg-gray-200 rounded mb-4"></div>
+
+<h3 class="text-lg font-semibold mb-2">LoRa Gateway</h3>
+
+<p class="text-gray-600 mb-4">
+Gateway for SapEM sensor networks.
 </p>
+
+<a href="store.html"
+class="bg-blue-600 text-white px-4 py-2 rounded">
+Buy
+</a>
+
 </div>
 
-<div class="bg-white shadow rounded-xl p-6">
-<h3 class="text-xl font-semibold mb-3">Tools & Equipment</h3>
-<p class="text-gray-600">
-Practical tools built for repairability and durability.
+<div class="bg-white rounded-xl shadow hover:shadow-lg transition p-6">
+
+<div class="h-40 bg-gray-200 rounded mb-4"></div>
+
+<h3 class="text-lg font-semibold mb-2">Bike Tool</h3>
+
+<p class="text-gray-600 mb-4">
+Durable tool designed for riders and mechanics.
 </p>
+
+<a href="store.html"
+class="bg-blue-600 text-white px-4 py-2 rounded">
+Buy
+</a>
+
 </div>
 
 </div>
@@ -98,7 +133,7 @@ Practical tools built for repairability and durability.
 
 <section class="bg-gray-100">
 
-<div class="max-w-7xl mx-auto px-6 py-20 grid md:grid-cols-2 gap-12 items-center">
+<div class="max-w-7xl mx-auto px-6 py-20 grid md:grid-cols-2 gap-12">
 
 <div>
 
@@ -107,22 +142,20 @@ SapEM Systems
 </h2>
 
 <p class="text-gray-700 mb-6">
-SapEM Systems provides remote pressure monitoring and sensor networks
-designed for industrial reliability and multi-year battery life.
+Remote pressure monitoring and sensor networks built
+for reliability and multi-year battery life.
 </p>
 
 <a href="sapem.html"
-class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg">
-Learn More
+class="bg-blue-600 text-white px-6 py-3 rounded">
+View SapEM
 </a>
 
 </div>
 
-<div class="bg-gray-300 h-64 rounded-lg flex items-center justify-center">
+<div class="bg-gray-300 rounded-lg h-64 flex items-center justify-center">
 
-<span class="text-gray-600">
-SapEM Product Image
-</span>
+Sensor System Image
 
 </div>
 
@@ -134,31 +167,37 @@ SapEM Product Image
 
 <section class="max-w-7xl mx-auto px-6 py-20">
 
-<h2 class="text-3xl font-bold text-center mb-10">
+<h2 class="text-3xl font-bold text-center mb-12">
 Resources
 </h2>
 
 <div class="grid md:grid-cols-3 gap-8">
 
-<div class="bg-white shadow rounded-xl p-6">
-<h3 class="font-semibold text-lg mb-2">Tutorials</h3>
+<div class="bg-white rounded-xl shadow p-6">
+
+<h3 class="font-semibold mb-2">Tutorials</h3>
 <p class="text-gray-600">
-Build guides and product walkthroughs.
+Build guides and engineering tutorials.
 </p>
+
 </div>
 
-<div class="bg-white shadow rounded-xl p-6">
-<h3 class="font-semibold text-lg mb-2">Downloads</h3>
+<div class="bg-white rounded-xl shadow p-6">
+
+<h3 class="font-semibold mb-2">Downloads</h3>
 <p class="text-gray-600">
-Firmware, manuals, and open project files.
+Firmware, manuals, and CAD files.
 </p>
+
 </div>
 
-<div class="bg-white shadow rounded-xl p-6">
-<h3 class="font-semibold text-lg mb-2">YouTube</h3>
+<div class="bg-white rounded-xl shadow p-6">
+
+<h3 class="font-semibold mb-2">YouTube</h3>
 <p class="text-gray-600">
-Videos and demonstrations from our channel.
+Videos and demonstrations.
 </p>
+
 </div>
 
 </div>
@@ -169,15 +208,15 @@ Videos and demonstrations from our channel.
 
 <footer class="bg-gray-900 text-gray-300">
 
-<div class="max-w-7xl mx-auto px-6 py-10 text-center">
+<div class="max-w-7xl mx-auto px-6 py-12 text-center">
 
-<p class="mb-3 font-semibold">Concept Solid</p>
+<h3 class="font-bold mb-4">Concept Solid</h3>
 
-<p class="text-sm">
-Engineering systems and durable tools.
+<p class="text-sm mb-4">
+Engineering durable products and monitoring systems.
 </p>
 
-<p class="text-sm mt-4">
+<p class="text-sm">
 © 2026 Concept Solid
 </p>
 
