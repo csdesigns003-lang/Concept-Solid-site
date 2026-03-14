@@ -1,68 +1,188 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Concept Solid</title>
-<link rel="stylesheet" href="css/style.css">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<script src="https://cdn.tailwindcss.com"></script>
+
 </head>
 
-<body>
+<body class="bg-gray-50 text-gray-900">
 
-<header>
-<h1>Concept Solid</h1>
-<nav>
-<a href="index.html">Home</a>
-<a href="products.html">Products</a>
-<a href="sapem.html">SapEM Systems</a>
-<a href="resources.html">Resources</a>
-<a href="store.html">Store</a>
+<!-- NAVBAR -->
+
+<header class="bg-white shadow">
+
+<div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+
+<h1 class="text-xl font-bold">Concept Solid</h1>
+
+<nav class="space-x-6">
+
+<a href="#" class="hover:text-blue-600">Home</a>
+<a href="products.html" class="hover:text-blue-600">Products</a>
+<a href="sapem.html" class="hover:text-blue-600">SapEM Systems</a>
+<a href="resources.html" class="hover:text-blue-600">Resources</a>
+<a href="store.html" class="hover:text-blue-600">Store</a>
+
 </nav>
+
+</div>
+
 </header>
 
-<section class="hero">
-<h2>Engineering Systems Built for the Real World</h2>
-<p>Concept Solid develops hardware, sensor systems, and durable tools designed for real environments.</p>
-<a class="button" href="products.html">Explore Products</a>
-</section>
+<!-- HERO -->
 
-<section>
-<h2>Our Systems</h2>
+<section class="bg-gray-900 text-white">
 
-<div class="card">
-<h3>SapEM Systems</h3>
-<p>Remote monitoring sensors and long-life LoRa networks for industrial environments.</p>
-<a href="sapem.html">Learn More</a>
-</div>
+<div class="max-w-7xl mx-auto px-6 py-24 text-center">
 
-</section>
+<h2 class="text-4xl font-bold mb-6">
+Engineering Systems Built for the Real World
+</h2>
 
-<section>
-<h2>Product Categories</h2>
+<p class="text-lg mb-8 text-gray-300">
+Concept Solid develops durable products, monitoring systems, and
+practical tools designed for real environments.
+</p>
 
-<div class="grid">
-
-<div class="card">
-<h3>Mountain Bike Products</h3>
-<p>Innovative hardware and tools designed for riders and builders.</p>
-</div>
-
-<div class="card">
-<h3>Sensors & Electronics</h3>
-<p>Long-life monitoring systems and remote telemetry devices.</p>
-</div>
-
-<div class="card">
-<h3>Tools & Equipment</h3>
-<p>Practical tools designed for durability and repairability.</p>
-</div>
+<a href="products.html"
+class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg">
+Explore Products
+</a>
 
 </div>
 
 </section>
 
-<footer>
-<p>© Concept Solid</p>
+<!-- PRODUCT CATEGORIES -->
+
+<section class="max-w-7xl mx-auto px-6 py-20">
+
+<h2 class="text-3xl font-bold mb-10 text-center">
+Product Categories
+</h2>
+
+<div class="grid md:grid-cols-3 gap-8">
+
+<div class="bg-white shadow rounded-xl p-6">
+<h3 class="text-xl font-semibold mb-3">Bike Products</h3>
+<p class="text-gray-600">
+Hardware and tools designed for mountain bike riders and builders.
+</p>
+</div>
+
+<div class="bg-white shadow rounded-xl p-6">
+<h3 class="text-xl font-semibold mb-3">Sensor Systems</h3>
+<p class="text-gray-600">
+Long-life monitoring systems and LoRa telemetry networks.
+</p>
+</div>
+
+<div class="bg-white shadow rounded-xl p-6">
+<h3 class="text-xl font-semibold mb-3">Tools & Equipment</h3>
+<p class="text-gray-600">
+Practical tools built for repairability and durability.
+</p>
+</div>
+
+</div>
+
+</section>
+
+<!-- SAPEM SECTION -->
+
+<section class="bg-gray-100">
+
+<div class="max-w-7xl mx-auto px-6 py-20 grid md:grid-cols-2 gap-12 items-center">
+
+<div>
+
+<h2 class="text-3xl font-bold mb-4">
+SapEM Systems
+</h2>
+
+<p class="text-gray-700 mb-6">
+SapEM Systems provides remote pressure monitoring and sensor networks
+designed for industrial reliability and multi-year battery life.
+</p>
+
+<a href="sapem.html"
+class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg">
+Learn More
+</a>
+
+</div>
+
+<div class="bg-gray-300 h-64 rounded-lg flex items-center justify-center">
+
+<span class="text-gray-600">
+SapEM Product Image
+</span>
+
+</div>
+
+</div>
+
+</section>
+
+<!-- RESOURCES -->
+
+<section class="max-w-7xl mx-auto px-6 py-20">
+
+<h2 class="text-3xl font-bold text-center mb-10">
+Resources
+</h2>
+
+<div class="grid md:grid-cols-3 gap-8">
+
+<div class="bg-white shadow rounded-xl p-6">
+<h3 class="font-semibold text-lg mb-2">Tutorials</h3>
+<p class="text-gray-600">
+Build guides and product walkthroughs.
+</p>
+</div>
+
+<div class="bg-white shadow rounded-xl p-6">
+<h3 class="font-semibold text-lg mb-2">Downloads</h3>
+<p class="text-gray-600">
+Firmware, manuals, and open project files.
+</p>
+</div>
+
+<div class="bg-white shadow rounded-xl p-6">
+<h3 class="font-semibold text-lg mb-2">YouTube</h3>
+<p class="text-gray-600">
+Videos and demonstrations from our channel.
+</p>
+</div>
+
+</div>
+
+</section>
+
+<!-- FOOTER -->
+
+<footer class="bg-gray-900 text-gray-300">
+
+<div class="max-w-7xl mx-auto px-6 py-10 text-center">
+
+<p class="mb-3 font-semibold">Concept Solid</p>
+
+<p class="text-sm">
+Engineering systems and durable tools.
+</p>
+
+<p class="text-sm mt-4">
+© 2026 Concept Solid
+</p>
+
+</div>
+
 </footer>
 
 </body>
