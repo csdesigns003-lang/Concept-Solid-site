@@ -1,0 +1,64 @@
+```html
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Cart</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<script>
+
+let cart = JSON.parse(localStorage.getItem("cart")) || []
+
+function renderCart(){
+
+let list = document.getElementById("cart")
+
+list.innerHTML=""
+
+let total=0
+
+cart.forEach(item=>{
+
+total+=item.price
+
+list.innerHTML+=`<li>${item.name} - $${item.price}</li>`
+
+})
+
+document.getElementById("total").textContent=total
+
+}
+
+document.addEventListener("DOMContentLoaded",renderCart)
+
+</script>
+
+</head>
+
+<body class="bg-green-50">
+
+<div class="max-w-4xl mx-auto py-20">
+
+<h1 class="text-4xl font-bold mb-10">
+Shopping Cart
+</h1>
+
+<ul id="cart" class="mb-10"></ul>
+
+<h2 class="text-2xl font-bold mb-6">
+Total: $<span id="total"></span>
+</h2>
+
+<button class="bg-green-600 text-white px-6 py-3 rounded">
+
+Checkout
+
+</button>
+
+</div>
+
+</body>
+</html>
+```
