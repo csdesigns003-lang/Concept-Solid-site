@@ -1,0 +1,8 @@
+{
+"name":"SapEM Systems",
+"short_name":"SapEM",
+"display":"standalone",
+"start_url":"/sapem/dashboard.html",
+"background_color":"#0f6a3a",
+"theme_color":"#0f6a3a"
+}
