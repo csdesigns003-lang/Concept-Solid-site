@@ -15,20 +15,45 @@
 <body class="bg-gray-50 text-gray-900">
 
 <!-- HEADER -->
-
-<header class="bg-white shadow">
+<header class="bg-white shadow sticky top-0 z-50">
 
 <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
 
-<h1 class="text-xl font-bold">Concept Solid</h1>
+<h1 class="text-xl font-bold">
+Concept Solid
+</h1>
 
-<nav class="space-x-6">
+<nav class="flex items-center space-x-6">
 
 <a href="index.html">Home</a>
 <a href="products.html">Products</a>
-<a href="sapem.html" class="font-semibold">SapEM</a>
-<a href="resources.html">Resources</a>
-<a href="store.html">Store</a>
+<a href="projects.html">Projects</a>
+<a href="sapem.html">SapEM</a>
+
+<div class="relative">
+
+<button id="cartButton"
+class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+
+Cart 🛒
+
+</button>
+
+<div id="cartPreview"
+class="hidden absolute right-0 mt-2 w-64 bg-white shadow-lg rounded p-4">
+
+<p class="text-sm text-gray-600">
+Your cart is empty
+</p>
+
+<a href="checkout.html"
+class="block mt-3 bg-green-600 text-white text-center py-2 rounded">
+Checkout
+</a>
+
+</div>
+
+</div>
 
 </nav>
 
