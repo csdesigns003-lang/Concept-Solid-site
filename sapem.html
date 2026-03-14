@@ -1,57 +1,192 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
+
 <meta charset="UTF-8">
-<title>SapEM Systems</title>
-<link rel="stylesheet" href="css/style.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>SapEM Systems | Concept Solid</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
 </head>
 
-<body>
+<body class="bg-gray-50 text-gray-900">
 
-<header>
-<h1>Concept Solid</h1>
-<nav>
+<!-- HEADER -->
+
+<header class="bg-white shadow">
+
+<div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+
+<h1 class="text-xl font-bold">Concept Solid</h1>
+
+<nav class="space-x-6">
+
 <a href="index.html">Home</a>
 <a href="products.html">Products</a>
-<a href="sapem.html">SapEM Systems</a>
+<a href="sapem.html" class="font-semibold">SapEM</a>
 <a href="resources.html">Resources</a>
 <a href="store.html">Store</a>
+
 </nav>
+
+</div>
+
 </header>
 
-<section class="hero">
-<h2>SapEM Systems</h2>
-<p>Remote pressure monitoring and long-life sensor networks.</p>
-</section>
+<!-- HERO -->
 
-<section>
+<section class="bg-gray-900 text-white">
 
-<h3>Features</h3>
+<div class="max-w-6xl mx-auto px-6 py-24 text-center">
 
-<ul>
-<li>LoRa wireless sensors</li>
-<li>Multi-year battery life</li>
-<li>Remote data dashboards</li>
-<li>Industrial reliability</li>
-</ul>
+<h1 class="text-4xl font-bold mb-6">
+SapEM Remote Monitoring Systems
+</h1>
 
-</section>
+<p class="text-xl text-gray-300">
+Industrial pressure monitoring with long-life wireless sensors
+and real-time cloud dashboards.
+</p>
 
-<section>
-
-<h3>Applications</h3>
-
-<ul>
-<li>Well monitoring</li>
-<li>Industrial pressure systems</li>
-<li>Environmental monitoring</li>
-</ul>
+</div>
 
 </section>
 
-<footer>
-<p>© Concept Solid</p>
+<!-- SYSTEM DIAGRAM -->
+
+<section class="max-w-7xl mx-auto px-6 py-20">
+
+<h2 class="text-3xl font-bold text-center mb-12">
+How SapEM Works
+</h2>
+
+<div class="grid md:grid-cols-4 gap-8 text-center">
+
+<div class="bg-white shadow rounded-xl p-6">
+
+<h3 class="font-bold mb-3">1. Sensor Node</h3>
+
+<p class="text-gray-600">
+Battery powered pressure sensors measure system pressure
+and transmit data using LoRa wireless.
+</p>
+
+</div>
+
+<div class="bg-white shadow rounded-xl p-6">
+
+<h3 class="font-bold mb-3">2. Gateway</h3>
+
+<p class="text-gray-600">
+A gateway collects sensor transmissions and uploads data
+to the cloud via internet connection.
+</p>
+
+</div>
+
+<div class="bg-white shadow rounded-xl p-6">
+
+<h3 class="font-bold mb-3">3. Cloud Processing</h3>
+
+<p class="text-gray-600">
+Data is stored securely and processed for visualization,
+alerts, and long-term history.
+</p>
+
+</div>
+
+<div class="bg-white shadow rounded-xl p-6">
+
+<h3 class="font-bold mb-3">4. Customer Dashboard</h3>
+
+<p class="text-gray-600">
+Customers log in to monitor pressure, battery status,
+and historical system data.
+</p>
+
+</div>
+
+</div>
+
+</section>
+
+<!-- TECH DETAILS -->
+
+<section class="bg-gray-100">
+
+<div class="max-w-6xl mx-auto px-6 py-20">
+
+<h2 class="text-3xl font-bold text-center mb-12">
+System Architecture
+</h2>
+
+<div class="bg-white shadow rounded-xl p-8">
+
+<pre class="text-sm text-gray-700">
+
+LoRa Sensor Node
+        ↓
+SapEM Gateway (Raspberry Pi)
+        ↓
+Secure API
+        ↓
+Cloud Database
+        ↓
+Customer Dashboard
+        ↓
+Alerts / Data History
+
+</pre>
+
+</div>
+
+</div>
+
+</section>
+
+<!-- DASHBOARD ACCESS -->
+
+<section class="max-w-6xl mx-auto px-6 py-20 text-center">
+
+<h2 class="text-3xl font-bold mb-6">
+Customer Dashboard
+</h2>
+
+<p class="text-gray-600 mb-8">
+SapEM customers can access their pressure monitoring data
+through the online dashboard.
+</p>
+
+<a href="login.html"
+class="bg-blue-600 text-white px-8 py-3 rounded-lg">
+Login to Dashboard
+</a>
+
+</section>
+
+<!-- FOOTER -->
+
+<footer class="bg-gray-900 text-gray-300">
+
+<div class="max-w-6xl mx-auto px-6 py-12 text-center">
+
+<p class="font-bold mb-3">Concept Solid</p>
+
+<p class="text-sm">
+SapEM Systems – Industrial Monitoring Solutions
+</p>
+
+<p class="text-sm mt-4">
+© 2026 Concept Solid
+</p>
+
+</div>
+
 </footer>
 
 </body>
+
 </html>
