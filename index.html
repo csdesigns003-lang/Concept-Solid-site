@@ -3,28 +3,7 @@
 
 <head>
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Concept Solid</title>
-
-<script src="https://cdn.tailwindcss.com"></script>
-
-<script>
-
-let cart = JSON.parse(localStorage.getItem("cart")) || []
-
-function updateCart(){
-
-document.querySelectorAll(".cart-count").forEach(el=>{
-el.textContent = cart.length
-})
-
-}
-
-document.addEventListener("DOMContentLoaded",updateCart)
-
-</script>
+<script src="/js/components.js"></script>
 
 </head>
 
