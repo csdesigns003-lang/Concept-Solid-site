@@ -60,3 +60,8 @@ await supabase.auth.signOut()
 window.location.href="login.html"
 
 }
+
+async function getUser(){
+    const { data } = await supabase.auth.getUser();
+    return data.user;
+}
