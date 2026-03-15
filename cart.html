@@ -1,28 +1,336 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
 
-<title>Your Cart</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Shopping Cart | Concept Solid</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="js/store.js"></script>
+
+<style>
+
+body{
+font-family:"Microsoft Sans Serif", Arial, sans-serif;
+background:#f5f7fb;
+}
+
+.cart-item{
+transition:all .2s ease;
+}
+
+.cart-item:hover{
+box-shadow:0 10px 25px rgba(0,0,0,0.1);
+}
+
+.qty-btn{
+background:#e5e7eb;
+padding:6px 12px;
+border-radius:6px;
+cursor:pointer;
+}
+
+.qty-btn:hover{
+background:#d1d5db;
+}
+
+.checkout-btn{
+background:#2563eb;
+color:white;
+padding:14px 30px;
+border-radius:10px;
+font-weight:bold;
+}
+
+.checkout-btn:hover{
+background:#1e40af;
+}
+
+</style>
 
 </head>
 
-<body class="bg-gray-50">
+<body>
 
-<div class="max-w-5xl mx-auto p-10">
 
-<h1 class="text-3xl font-bold mb-8">Shopping Cart</h1>
+<!-- HEADER -->
 
-<div id="cartItems"></div>
+<header class="bg-white shadow sticky top-0 z-50">
 
-<a href="checkout.html"
-class="bg-green-600 text-white px-6 py-3 rounded">
-Checkout
+<div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+
+<div class="flex space-x-8 text-lg">
+
+<a href="products.html" class="hover:text-blue-700">
+Products
+</a>
+
+<a href="projects.html" class="hover:text-blue-700">
+Projects
 </a>
 
 </div>
+
+
+<a href="index.html"
+class="text-4xl font-extrabold tracking-tight hover:text-blue-700">
+
+Concept Solid
+
+</a>
+
+
+<div class="flex items-center space-x-8">
+
+<a href="sapem/index.html"
+class="text-green-700 font-semibold hover:text-green-800">
+
+SapEM Systems
+
+</a>
+
+<a href="cart.html" class="font-semibold">
+
+Cart (<span class="cart-count">0</span>)
+
+</a>
+
+</div>
+
+</div>
+
+</header>
+
+
+
+<!-- CART -->
+
+<section class="max-w-7xl mx-auto px-6 py-20">
+
+<h1 class="text-4xl font-bold mb-12">
+
+Your Cart
+
+</h1>
+
+
+<div class="grid md:grid-cols-3 gap-10">
+
+
+<!-- ITEMS -->
+
+<div class="md:col-span-2 space-y-6" id="cart-items">
+
+<!-- items inserted dynamically -->
+
+</div>
+
+
+<!-- SUMMARY -->
+
+<div class="bg-white p-8 rounded-xl shadow h-fit">
+
+<h2 class="text-2xl font-bold mb-6">
+
+Order Summary
+
+</h2>
+
+<div class="flex justify-between mb-4">
+
+<span>Subtotal</span>
+<span id="cart-subtotal">$0.00</span>
+
+</div>
+
+<div class="flex justify-between mb-6">
+
+<span>Shipping</span>
+<span>Calculated at checkout</span>
+
+</div>
+
+<hr class="mb-6">
+
+
+<div class="flex justify-between text-xl font-bold mb-6">
+
+<span>Total</span>
+<span id="cart-total">$0.00</span>
+
+</div>
+
+
+<button class="checkout-btn w-full">
+
+Proceed to Checkout
+
+</button>
+
+<p class="text-sm text-gray-500 mt-4 text-center">
+
+Secure checkout coming soon
+
+</p>
+
+</div>
+
+</div>
+
+</section>
+
+
+
+<!-- FOOTER -->
+
+<footer class="bg-gray-900 text-gray-300 py-16 mt-20">
+
+<div class="max-w-7xl mx-auto px-6 grid md:grid-cols-3 gap-10">
+
+<div>
+
+<h3 class="text-xl font-bold mb-4">
+Concept Solid
+</h3>
+
+<p>
+
+Engineering hardware, monitoring
+systems, and open development projects.
+
+</p>
+
+</div>
+
+<div>
+
+<h3 class="font-semibold mb-3">
+Contact
+</h3>
+
+<p>Email: contact@conceptsolid.com</p>
+<p>Support: support@conceptsolid.com</p>
+
+</div>
+
+<div>
+
+<h3 class="font-semibold mb-3">
+Links
+</h3>
+
+<p><a href="products.html">Products</a></p>
+<p><a href="projects.html">Projects</a></p>
+<p><a href="sapem/index.html">SapEM Systems</a></p>
+
+</div>
+
+</div>
+
+</footer>
+
+
+
+<script src="js/cart.js"></script>
+
+<script>
+
+
+function renderCart(){
+
+const cart = JSON.parse(localStorage.getItem("cart")) || []
+
+const container = document.getElementById("cart-items")
+
+const subtotalElement = document.getElementById("cart-subtotal")
+const totalElement = document.getElementById("cart-total")
+
+container.innerHTML = ""
+
+let subtotal = 0
+
+cart.forEach((item,index)=>{
+
+subtotal += item.price * item.qty
+
+container.innerHTML += `
+
+<div class="cart-item bg-white p-6 rounded-xl flex justify-between items-center">
+
+<div>
+
+<h3 class="font-bold text-lg">${item.name}</h3>
+
+<p class="text-gray-500">$${item.price}</p>
+
+</div>
+
+<div class="flex items-center space-x-4">
+
+<button class="qty-btn" onclick="updateQty(${index},-1)">-</button>
+
+<span>${item.qty}</span>
+
+<button class="qty-btn" onclick="updateQty(${index},1)">+</button>
+
+<button onclick="removeItem(${index})" class="text-red-500 ml-4">
+Remove
+</button>
+
+</div>
+
+</div>
+
+`
+
+})
+
+subtotalElement.innerText = "$"+subtotal.toFixed(2)
+totalElement.innerText = "$"+subtotal.toFixed(2)
+
+}
+
+
+
+function updateQty(index,change){
+
+let cart = JSON.parse(localStorage.getItem("cart")) || []
+
+cart[index].qty += change
+
+if(cart[index].qty <=0){
+
+cart.splice(index,1)
+
+}
+
+localStorage.setItem("cart",JSON.stringify(cart))
+
+renderCart()
+
+}
+
+
+
+function removeItem(index){
+
+let cart = JSON.parse(localStorage.getItem("cart")) || []
+
+cart.splice(index,1)
+
+localStorage.setItem("cart",JSON.stringify(cart))
+
+renderCart()
+
+}
+
+
+renderCart()
+
+</script>
+
 
 </body>
 </html>
