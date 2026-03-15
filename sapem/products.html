@@ -1,104 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>SapEM Products</title>
-
 <script src="https://cdn.tailwindcss.com"></script>
-
-<script>
-
-let cart = JSON.parse(localStorage.getItem("cart")) || []
-
-function updateCart(){
-document.querySelectorAll(".cart-count").forEach(el=>{
-el.textContent = cart.length
-})
-}
-
-function addToCart(name,price){
-
-cart.push({name,price})
-
-localStorage.setItem("cart",JSON.stringify(cart))
-
-updateCart()
-
-alert(name + " added to cart")
-
-}
-
-document.addEventListener("DOMContentLoaded",updateCart)
-
-</script>
-
+<style>
+body { font-family:sans-serif; background:#f0fdf4; }
+.product-card{transition:all .25s ease; cursor:pointer; background:#ecfdf5; padding:2rem; border-radius:1rem;}
+.product-card:hover{transform:translateY(-6px); box-shadow:0 20px 35px rgba(0,0,0,0.15);}
+.cart-preview{display:none; position:absolute; right:0; top:40px; width:250px; background:white; border-radius:10px; box-shadow:0 15px 30px rgba(0,0,0,.15); padding:15px;}
+.cart-hover:hover .cart-preview{display:block;}
+</style>
 </head>
+<body>
 
-<body class="bg-green-50 text-gray-900">
-
-<header class="bg-white shadow-lg sticky top-0">
-
-<div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-
-<a href="index.html"
-class="text-4xl font-extrabold text-green-700">
-
-SapEM Systems
-</a>
-
-<nav class="flex space-x-8 text-lg">
-
-<a href="products.html">Products</a>
-<a href="resources.html">Resources</a>
-<a href="login.html">Login</a>
-
-<a href="cart.html">
-Cart (<span class="cart-count">0</span>)
-</a>
-
-<a href="../index.html" class="text-gray-500">
-Concept Solid
-</a>
-
-</nav>
-
+<!-- HEADER -->
+<header class="bg-white shadow sticky top-0 z-50 flex justify-between px-6 py-4 items-center">
+<a href="index.html" class="text-4xl font-bold text-green-700">SapEM Systems</a>
+<div class="flex space-x-6 text-lg">
+<a href="products.html" class="hover:text-green-800">Products</a>
+<a href="resources.html" class="hover:text-green-800">Resources</a>
+<a href="../index.html" class="hover:text-blue-700">Concept Solid</a>
+<div class="cart-hover relative">
+<a href="cart.html" class="font-semibold">Cart (<span class="cart-count">0</span>)</a>
+<div class="cart-preview">
+<p class="text-sm text-gray-500 mb-2">Cart Preview</p>
+<div id="cart-preview-items"></div>
+<a href="cart.html" class="block text-center mt-3 bg-green-700 text-white py-2 rounded hover:bg-green-800">Checkout</a>
 </div>
-
+</div>
+</div>
 </header>
 
 <section class="max-w-7xl mx-auto px-6 py-24">
-
-<h1 class="text-4xl font-bold mb-16 text-center">
-SapEM Sensors
-</h1>
-
-<div class="grid md:grid-cols-3 gap-12">
-
-<div class="bg-white shadow-xl rounded-xl p-8">
-
-<h3 class="text-2xl font-bold mb-4">
-SapEM Sensor Node
-</h3>
-
-<p class="text-gray-600 mb-6">
-Wireless LoRa pressure sensor node.
-</p>
-
-<button onclick="addToCart('SapEM Sensor',199)"
-class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded">
-
-Add to Cart
-
-</button>
-
+<h1 class="text-4xl font-bold mb-12 text-center">SapEM Products</h1>
+<div id="product-grid" class="grid md:grid-cols-3 gap-10">
+<!-- Dynamic product cards -->
 </div>
-
-</div>
-
 </section>
+
+<script src="../js/products.js"></script>
+<script>
+loadProducts("../data/sapem-products.json","product-grid");
+</script>
 
 </body>
 </html>
