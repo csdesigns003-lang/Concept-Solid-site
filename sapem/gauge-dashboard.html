@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>SapEM Pressure Dashboard</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+
+body{
+font-family:"Microsoft Sans Serif", Arial, sans-serif;
+background:#f3f4f6;
+}
+
+/* header gradient */
+
+.hero{
+background:linear-gradient(120deg,#004b00,#006400,#228B22);
+}
+
+/* gauge container */
+
+.gauge-wrapper{
+position:relative;
+width:650px;
+margin:auto;
+}
+
+/* gauge image */
+
+.gauge-bg{
+width:100%;
+}
+
+/* needle */
+
+.needle{
+position:absolute;
+bottom:50%;
+left:50%;
+width:6px;
+height:260px;
+background:red;
+transform-origin:bottom center;
+transform:translateX(-50%) rotate(0deg);
+transition:transform 1.5s ease;
+border-radius:3px;
+}
+
+/* center cap */
+
+.center-cap{
+position:absolute;
+bottom:50%;
+left:50%;
+width:24px;
+height:24px;
+background:black;
+border-radius:50%;
+transform:translate(-50%,50%);
+}
+
+/* outlier labels */
+
+.outlier{
+position:absolute;
+font-size:14px;
+font-weight:bold;
+color:#b91c1c;
+}
+
+</style>
+
+</head>
+
+<body>
+
+
+<!-- HEADER -->
+
+<header class="bg-white shadow sticky top-0 z-50">
+
+<div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+
+<div class="flex space-x-8 text-lg">
+
+<a href="products.html" class="hover:text-[#006400]">Products</a>
+<a href="resources.html" class="hover:text-[#006400]">Resources</a>
+
+</div>
+
+<a href="index.html"
+class="text-4xl font-extrabold tracking-tight hover:text-[#006400]">
+
+SapEM Systems
+
+</a>
+
+<div class="flex items-center space-x-8">
+
+<a href="../index.html">Concept Solid</a>
+<a href="devices.html">Devices</a>
+<a href="dashboard.html">Dashboard</a>
+
+</div>
+
+</div>
+
+</header>
+
+
+<!-- HERO -->
+
+<section class="hero text-white py-16 text-center">
+
+<h1 class="text-5xl font-bold mb-4">
+
+System Pressure Overview
+
+</h1>
+
+<p class="opacity-90">
+
+Average system pressure with outlier detection
+
+</p>
+
+</section>
+
+
+
+<!-- GAUGE -->
+
+<section class="py-20">
+
+<div class="gauge-wrapper">
+
+<img src="assets/gauge.png" class="gauge-bg">
+
+<div id="needle" class="needle"></div>
+
+<div class="center-cap"></div>
+
+<div id="outliers"></div>
+
+</div>
+
+<div class="text-center mt-10">
+
+<p class="text-2xl font-bold">
+
+Average System Pressure
+
+</p>
+
+<p id="avg-pressure" class="text-4xl font-bold text-[#006400]">
+
+0 PSI
+
+</p>
+
+</div>
+
+</section>
+
+
+
+<script>
+
+/* Example sensor data */
+
+const sensors = [
+
+{name:"Boiler Room",pressure:112},
+{name:"Pump Station",pressure:109},
+{name:"Tank Monitor",pressure:115},
+{name:"Remote Line",pressure:150}
+
+]
+
+/* calculate average */
+
+function average(arr){
+
+return arr.reduce((a,b)=>a+b,0)/arr.length
+
+}
+
+/* detect outliers */
+
+function processSensors(){
+
+const values = sensors.map(s=>s.pressure)
+
+let avg = average(values)
+
+let filtered = sensors.filter(s=>Math.abs(s.pressure-avg)<=15)
+
+let outliers = sensors.filter(s=>Math.abs(s.pressure-avg)>15)
+
+let finalAvg = average(filtered.map(s=>s.pressure))
+
+return {finalAvg,outliers}
+
+}
+
+const result = processSensors()
+
+document.getElementById("avg-pressure").innerText =
+Math.round(result.finalAvg)+" PSI"
+
+
+/* rotate needle */
+
+const minPSI = 0
+const maxPSI = 200
+
+const minAngle = -120
+const maxAngle = 120
+
+function psiToAngle(psi){
+
+return minAngle + (psi-minPSI)*(maxAngle-minAngle)/(maxPSI-minPSI)
+
+}
+
+const angle = psiToAngle(result.finalAvg)
+
+document.getElementById("needle").style.transform =
+"translateX(-50%) rotate("+angle+"deg)"
+
+
+/* render outliers */
+
+const outlierContainer = document.getElementById("outliers")
+
+result.outliers.forEach((o,i)=>{
+
+let label = document.createElement("div")
+
+label.className="outlier"
+
+label.innerText=o.name+" ("+o.pressure+" PSI)"
+
+label.style.top = (20 + i*30)+"px"
+label.style.left = "50%"
+
+outlierContainer.appendChild(label)
+
+})
+
+</script>
+
+
+</body>
+</html>
