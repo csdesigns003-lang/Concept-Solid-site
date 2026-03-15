@@ -1,0 +1,257 @@
+<!-- Generated with ChatGPT 3/15/26, right now it stores changes in browser local data, but can later it can connect to the raspberry pi or database -->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>SapEM Device Manager</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+
+body{
+font-family:"Microsoft Sans Serif", Arial, sans-serif;
+background:#f3f4f6;
+}
+
+.hero{
+background:linear-gradient(120deg,#004b00,#006400,#228B22);
+}
+
+.device-card{
+transition:.25s;
+}
+
+.device-card:hover{
+transform:translateY(-4px);
+box-shadow:0 20px 40px rgba(0,0,0,.12);
+}
+
+</style>
+
+</head>
+
+<body>
+
+
+<!-- HEADER -->
+
+<header class="bg-white shadow sticky top-0 z-50">
+
+<div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+
+<div class="flex space-x-8 text-lg">
+
+<a href="products.html" class="hover:text-[#006400]">Products</a>
+<a href="resources.html" class="hover:text-[#006400]">Resources</a>
+
+</div>
+
+<a href="index.html"
+class="text-4xl font-extrabold tracking-tight hover:text-[#006400]">
+
+SapEM Systems
+
+</a>
+
+<div class="flex items-center space-x-8">
+
+<a href="../index.html" class="hover:text-[#006400]">Concept Solid</a>
+
+<a href="dashboard.html" class="hover:text-[#006400]">Dashboard</a>
+
+<a href="devices.html" class="font-semibold text-[#006400]">
+Devices
+</a>
+
+<a href="../cart.html">Cart</a>
+
+</div>
+
+</div>
+
+</header>
+
+
+<!-- HERO -->
+
+<section class="hero text-white py-20">
+
+<div class="max-w-7xl mx-auto px-6">
+
+<h1 class="text-5xl font-bold mb-4">
+Device Management
+</h1>
+
+<p class="text-lg opacity-90">
+Manage SapEM sensors, configure alerts, and organize monitoring nodes.
+</p>
+
+</div>
+
+</section>
+
+
+<!-- ADD DEVICE -->
+
+<section class="max-w-7xl mx-auto px-6 py-16">
+
+<div class="bg-white p-8 rounded-xl shadow mb-16">
+
+<h2 class="text-2xl font-bold mb-6">
+Register New Sensor
+</h2>
+
+<div class="grid md:grid-cols-3 gap-6">
+
+<input id="device-name"
+placeholder="Sensor Name"
+class="border p-3 rounded-lg">
+
+<input id="device-id"
+placeholder="Node ID"
+class="border p-3 rounded-lg">
+
+<input id="device-threshold"
+placeholder="Pressure Alert PSI"
+class="border p-3 rounded-lg">
+
+</div>
+
+<button onclick="addDevice()"
+class="mt-6 bg-[#006400] text-white px-6 py-3 rounded-lg hover:bg-[#004b00]">
+
+Add Device
+
+</button>
+
+</div>
+
+</section>
+
+
+
+<!-- DEVICE LIST -->
+
+<section class="max-w-7xl mx-auto px-6 pb-20">
+
+<h2 class="text-3xl font-bold mb-10">
+
+Registered Sensors
+
+</h2>
+
+<div id="device-grid"
+class="grid md:grid-cols-3 gap-10">
+
+</div>
+
+</section>
+
+
+
+<script>
+
+
+let devices = JSON.parse(localStorage.getItem("sapemDevices")) || [
+
+{
+name:"Boiler Room Sensor",
+id:"NODE-01",
+threshold:120
+},
+
+{
+name:"Pump Station",
+id:"NODE-02",
+threshold:110
+}
+
+]
+
+
+function saveDevices(){
+localStorage.setItem("sapemDevices",JSON.stringify(devices))
+renderDevices()
+}
+
+
+function addDevice(){
+
+const name=document.getElementById("device-name").value
+const id=document.getElementById("device-id").value
+const threshold=document.getElementById("device-threshold").value
+
+if(!name || !id) return
+
+devices.push({name,id,threshold})
+
+saveDevices()
+
+document.getElementById("device-name").value=""
+document.getElementById("device-id").value=""
+document.getElementById("device-threshold").value=""
+
+}
+
+
+function removeDevice(index){
+
+devices.splice(index,1)
+
+saveDevices()
+
+}
+
+
+function renderDevices(){
+
+const grid=document.getElementById("device-grid")
+
+grid.innerHTML=""
+
+devices.forEach((d,index)=>{
+
+grid.innerHTML +=`
+
+<div class="device-card bg-white p-8 rounded-xl shadow">
+
+<h3 class="text-xl font-bold mb-2">
+${d.name}
+</h3>
+
+<p class="text-gray-600 mb-2">
+Node ID: ${d.id}
+</p>
+
+<p class="text-gray-600 mb-6">
+Alert Threshold: ${d.threshold} PSI
+</p>
+
+<button onclick="removeDevice(${index})"
+class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+
+Remove
+
+</button>
+
+</div>
+
+`
+
+})
+
+}
+
+renderDevices()
+
+</script>
+
+
+</body>
+</html>
