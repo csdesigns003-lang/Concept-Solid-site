@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SapEM Product Name</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+body { font-family:sans-serif; background:#f0fdf4; }
+.product-main{max-width:6xl; margin:auto; padding:2rem;}
+img{border-radius:1rem;}
+.add-to-cart{background:#10b981; color:white; padding:1rem 2rem; border-radius:0.75rem; font-weight:bold; cursor:pointer;}
+.add-to-cart:hover{background:#047857;}
+</style>
+</head>
+<body>
+
+<header class="bg-white shadow sticky top-0 z-50 flex justify-between px-6 py-4 items-center">
+<a href="index.html" class="text-4xl font-bold text-green-700">SapEM Systems</a>
+<div class="flex space-x-6 text-lg">
+<a href="products.html" class="hover:text-green-800">Products</a>
+<a href="resources.html" class="hover:text-green-800">Resources</a>
+<a href="../index.html" class="hover:text-blue-700">Concept Solid</a>
+<div class="cart-hover relative">
+<a href="cart.html" class="font-semibold">Cart (<span class="cart-count">0</span>)</a>
+<div class="cart-preview">
+<p class="text-sm text-gray-500 mb-2">Cart Preview</p>
+<div id="cart-preview-items"></div>
+<a href="cart.html" class="block text-center mt-3 bg-green-700 text-white py-2 rounded hover:bg-green-800">Checkout</a>
+</div>
+</div>
+</div>
+</header>
+
+<section class="product-main">
+<div class="grid md:grid-cols-2 gap-12">
+<img src="../images/product-id.jpg" alt="SapEM Product Name">
+<div>
+<h1 class="text-4xl font-bold mb-4">SapEM Product Name</h1>
+<p class="text-gray-700 mb-6">Full product description, including specs, sensor info, and monitoring features.</p>
+<p class="text-2xl font-bold mb-4">$199.99</p>
+<button class="add-to-cart" onclick="addToCart('sapem-prod-id')">Add to Cart</button>
+</div>
+</div>
+</section>
+
+<script src="../js/cart.js"></script>
+</body>
+</html>
