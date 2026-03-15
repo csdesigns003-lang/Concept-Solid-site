@@ -182,6 +182,7 @@ Email
 </label>
 
 <input
+id="email"
 type="email"
 placeholder="user@example.com"
 class="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#006400]"
@@ -197,21 +198,21 @@ Password
 </label>
 
 <input
+id="password"
 type="password"
 placeholder="Enter password"
 class="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#006400]"
 >
 
 </div>
-______________________________________________________________________________________________
+
 <button
 type="submit"
 class="w-full bg-[#006400] text-white py-3 rounded-lg font-semibold hover:bg-[#004b00]">
 
 Login
 </button>
-<script>
-_______________________________________________________________________________________________
+
 </form>
 
 
@@ -235,14 +236,20 @@ Create Account
 
 </section>
 
+
+<script src="js/auth.js"></script>
+<script>
 function loginUser(){
-
-const email=document.getElementById("email").value
-const password=document.getElementById("password").value
-
-login(email,password)
-
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  login(email, password);
 }
+
+document.querySelector("form").addEventListener("submit", function(e){
+  e.preventDefault(); // Prevent page refresh
+  loginUser();
+});
+</script>
 
 
 <!-- DASHBOARD PREVIEW -->
