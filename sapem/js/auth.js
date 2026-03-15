@@ -34,6 +34,13 @@ window.location.href="dashboard.html"
 
 }
 
+async function initDashboard(){
+  const session = await requireAuth();
+  console.log("Logged in as:", session.user.email);
+  loadUserSensors();
+}
+initDashboard();
+
 async function requireAuth(){
 
 const { data } = await supabase.auth.getSession()
