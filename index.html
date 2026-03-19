@@ -21,6 +21,8 @@ body { font-family:"Microsoft Sans Serif", Arial, sans-serif; background:#f5f7fb
 <!-- HEADER -->
 <header class="bg-white shadow sticky top-0 z-50">
 
+<header class="bg-white/80 backdrop-blur shadow sticky top-0 z-50">
+
 <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
 
 <!-- LEFT (Desktop Nav) -->
@@ -156,6 +158,13 @@ Concept Solid
 <script src="js/cart.js"></script>
 <script>
 loadProducts("data/concept-products.json","featured-products")
+</script>
+
+<script>
+function toggleMenu(){
+  const menu = document.getElementById("mobileMenu");
+  menu.classList.toggle("hidden");
+}
 </script>
 
 </body>
