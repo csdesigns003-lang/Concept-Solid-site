@@ -1,62 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 
-
-  
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>SapEM Login</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/auth.js"></script>
-  
+<title>SapEM Dashboard</title>
+
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 
 body{
 font-family:"Microsoft Sans Serif", Arial, sans-serif;
-background:#f5f7fb;
+background:#f3f4f6;
 }
-
-/* SapEM green gradient */
 
 .hero{
 background:linear-gradient(120deg,#004b00,#006400,#228B22);
 }
 
-.login-card{
-transition:all .25s ease;
+.sensor-card{
+transition:.25s;
 }
 
-.login-card:hover{
-box-shadow:0 20px 40px rgba(0,0,0,.15);
-}
-
-.cart-preview{
-display:none;
-position:absolute;
-right:0;
-top:40px;
-width:250px;
-background:white;
-border-radius:10px;
-box-shadow:0 15px 30px rgba(0,0,0,.15);
-padding:15px;
-}
-
-.cart-hover:hover .cart-preview{
-display:block;
+.sensor-card:hover{
+transform:translateY(-4px);
+box-shadow:0 20px 40px rgba(0,0,0,.12);
 }
 
 </style>
 
 </head>
 
-
 <body>
-
 
 <!-- HEADER -->
 
@@ -65,71 +44,21 @@ display:block;
 <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
 
 <div class="flex space-x-8 text-lg">
-
-<a href="products.html" class="hover:text-[#006400]">
-Products
-</a>
-
-<a href="resources.html" class="hover:text-[#006400]">
-Resources
-</a>
-
+<a href="products.html" class="hover:text-[#006400]">Products</a>
+<a href="resources.html" class="hover:text-[#006400]">Resources</a>
 </div>
 
-
-<a href="index.html"
-class="text-4xl font-extrabold tracking-tight hover:text-[#006400]">
-
+<a href="index.html" class="text-4xl font-extrabold tracking-tight hover:text-[#006400]">
 SapEM Systems
-
 </a>
-
 
 <div class="flex items-center space-x-8">
+<a href="../index.html" class="hover:text-[#006400]">Concept Solid</a>
+<a href="devices.html" class="hover:text-[#006400]">Devices</a>
 
-<a href="../index.html"
-class="text-gray-700 hover:text-[#006400]">
-
-Concept Solid
-
-</a>
-
-
-<a href="login.html"
-class="font-semibold text-[#006400]">
-
-Login
-
-</a>
-
-
-<div class="cart-hover relative">
-
-<a href="../cart.html" class="font-semibold">
-
-Cart (<span class="cart-count">0</span>)
-
-</a>
-
-<div class="cart-preview">
-
-<p class="text-sm text-gray-500 mb-2">
-Cart Preview
-</p>
-
-<div id="cart-preview-items"></div>
-
-<a href="../cart.html"
-class="block text-center mt-3 bg-[#006400] text-white py-2 rounded hover:bg-[#004b00]">
-
-Checkout
-
-</a>
-
-</div>
-
-</div>
-
+<button onclick="logout()" class="bg-[#006400] text-white px-4 py-2 rounded hover:bg-[#004b00]">
+Logout
+</button>
 </div>
 
 </div>
@@ -139,224 +68,117 @@ Checkout
 
 <!-- HERO -->
 
-<section class="hero text-white py-24">
+<section class="hero text-white py-20 text-center">
 
-<div class="max-w-5xl mx-auto px-6 text-center">
-
-<h1 class="text-5xl font-bold mb-6">
-
-SapEM System Login
-
+<h1 class="text-5xl font-bold mb-4">
+SapEM Monitoring Dashboard
 </h1>
 
-<p class="text-xl opacity-90">
-
-Access your wireless monitoring dashboard and device data.
-
+<p class="opacity-90">
+Live system pressure and sensor status
 </p>
-
-</div>
 
 </section>
 
 
+<!-- GAUGE PLACEHOLDER -->
 
-<!-- LOGIN SECTION -->
+<section class="py-16 text-center">
 
-<section class="max-w-4xl mx-auto px-6 py-24">
-
-<div class="login-card bg-white rounded-xl shadow p-12 max-w-md mx-auto">
-
-
-<h2 class="text-3xl font-bold mb-8 text-center">
-
-Account Login
-
+<h2 class="text-3xl font-bold mb-6">
+Average System Pressure
 </h2>
 
+<div class="w-72 h-72 mx-auto rounded-full border-4 border-[#006400] flex items-center justify-center bg-white shadow">
 
-<form class="space-y-6">
-
-<div>
-
-<label class="block text-sm font-semibold mb-2">
-Email
-</label>
-
-<input
-type="email"
-placeholder="user@example.com"
-class="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#006400]"
->
-
-</div>
-
-
-<div>
-
-<label class="block text-sm font-semibold mb-2">
-Password
-</label>
-
-<input
-type="password"
-placeholder="Enter password"
-class="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#006400]"
->
-
-</div>
-
-
-<button
-type="submit"
-class="w-full bg-[#006400] text-white py-3 rounded-lg font-semibold hover:bg-[#004b00]">
-
-Login
-
-</button>
-
-
-</form>
-
-
-<div class="text-center mt-6 text-sm text-gray-600">
-
-<p>
-
-Don't have an account?
-
-<a href="#" class="text-[#006400] font-semibold">
-Create Account
-</a>
-
+<p id="avg-pressure" class="text-3xl font-bold text-[#006400]">
+-- PSI
 </p>
-
-</div>
-
 
 </div>
 
 </section>
 
 
+<!-- SENSOR LIST -->
 
-<!-- DASHBOARD PREVIEW -->
+<section class="max-w-6xl mx-auto px-6 pb-20">
 
-<section class="bg-gray-100 py-24">
-
-<div class="max-w-6xl mx-auto px-6 text-center">
-
-<h2 class="text-4xl font-bold mb-16">
-
-SapEM Monitoring Platform
-
+<h2 class="text-3xl font-bold mb-10">
+Your Sensors
 </h2>
 
-<div class="grid md:grid-cols-3 gap-12">
-
-<div class="bg-white p-10 rounded-xl shadow">
-
-<h3 class="text-xl font-bold mb-4">
-Sensor Status
-</h3>
-
-<p class="text-gray-600">
-View connected sensor nodes, battery levels, and signal strength.
-</p>
-
-</div>
-
-<div class="bg-white p-10 rounded-xl shadow">
-
-<h3 class="text-xl font-bold mb-4">
-Pressure Monitoring
-</h3>
-
-<p class="text-gray-600">
-Track real-time pressure readings from remote systems.
-</p>
-
-</div>
-
-<div class="bg-white p-10 rounded-xl shadow">
-
-<h3 class="text-xl font-bold mb-4">
-Alerts & Diagnostics
-</h3>
-
-<p class="text-gray-600">
-Receive alerts when pressure thresholds or system faults occur.
-</p>
-
-</div>
-
-</div>
+<div id="sensor-grid" class="grid md:grid-cols-3 gap-10">
 
 </div>
 
 </section>
 
 
+<!-- SCRIPTS -->
 
-<!-- FOOTER -->
+<script src="js/auth.js"></script>
 
-<footer class="bg-gray-900 text-gray-300 py-16">
+<script>
 
-<div class="max-w-7xl mx-auto px-6 grid md:grid-cols-3 gap-10">
+async function init(){
 
-<div>
+// 🔒 Require login
+await requireAuth()
 
-<h3 class="text-xl font-bold mb-4">
+// 👤 Get user
+const { data: { user } } = await supabase.auth.getUser()
 
-SapEM Systems
+// 📡 Load sensors
+const { data: sensors } = await supabase
+.from("sensors")
+.select("*")
+.eq("user_id", user.id)
 
+// 🧮 Calculate average pressure (fake for now)
+let pressures = sensors.map(s => s.threshold || 100)
+
+let avg = pressures.length
+? Math.round(pressures.reduce((a,b)=>a+b,0)/pressures.length)
+: 0
+
+document.getElementById("avg-pressure").innerText = avg + " PSI"
+
+
+// 📦 Render sensors
+const grid = document.getElementById("sensor-grid")
+grid.innerHTML = ""
+
+sensors.forEach(sensor => {
+
+grid.innerHTML += `
+
+<div class="sensor-card bg-white p-6 rounded-xl shadow">
+
+<h3 class="text-xl font-bold mb-2">
+${sensor.sensor_name}
 </h3>
 
-<p>
+<p class="text-gray-600">
+Node ID: ${sensor.node_id}
+</p>
 
-Wireless industrial monitoring solutions
-for pressure sensing and remote diagnostics.
-
+<p class="text-gray-600">
+Threshold: ${sensor.threshold} PSI
 </p>
 
 </div>
 
+`
 
-<div>
+})
 
-<h3 class="font-semibold mb-3">
+}
 
-Contact
+init()
 
-</h3>
+</script>
 
-<p>Email: contact@sapemsystems.com</p>
-<p>Support: support@sapemsystems.com</p>
-
-</div>
-
-
-<div>
-
-<h3 class="font-semibold mb-3">
-
-Links
-
-</h3>
-
-<p><a href="products.html">Products</a></p>
-<p><a href="resources.html">Resources</a></p>
-<p><a href="../index.html">Concept Solid</a></p>
-
-</div>
-
-</div>
-
-</footer>
-
-
-
-<script src="../js/cart.js"></script>
 
 </body>
 </html>
