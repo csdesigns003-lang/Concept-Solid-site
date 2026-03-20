@@ -6,16 +6,57 @@
 </head>
 <body>
 
-<header class="bg-white shadow p-6 flex justify-between">
-<a href="index.html" class="text-3xl font-bold">Concept Solid</a>
-<div class="space-x-6">
-<a href="products.html">Products</a>
-<a href="projects.html">Projects</a>
-<a href="sapem/index.html">SapEM</a>
-<a href="cart.html">Cart</a>
-</div>
-</header>
+<header class="bg-white shadow sticky top-0 z-50">
 
+<header class="bg-white/80 backdrop-blur shadow sticky top-0 z-50">
+
+<div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+
+<!-- LEFT (Desktop Nav) -->
+<div class="hidden md:flex space-x-6 text-lg">
+  <a href="products.html" class="hover:text-blue-700">Products</a>
+  <a href="projects.html" class="hover:text-blue-700">Projects</a>
+</div>
+
+<!-- LOGO -->
+<a href="index.html"
+class="text-2xl md:text-4xl font-extrabold tracking-tight hover:text-blue-700">
+
+Concept Solid
+
+</a>
+
+<!-- RIGHT (Desktop Nav) -->
+<div class="hidden md:flex items-center space-x-6">
+
+  <a href="sapem/index.html" class="text-green-700 font-semibold">
+    SapEM
+  </a>
+
+  <a href="cart.html" class="font-semibold">
+    Cart (<span class="cart-count">0</span>)
+  </a>
+
+</div>
+
+<!-- MOBILE MENU BUTTON -->
+<button onclick="toggleMenu()" class="md:hidden text-3xl">
+☰
+</button>
+
+</div>
+
+<!-- MOBILE DROPDOWN -->
+<div id="mobileMenu" class="hidden md:hidden bg-white border-t">
+
+<a href="products.html" class="block px-6 py-4 border-b">Products</a>
+<a href="projects.html" class="block px-6 py-4 border-b">Projects</a>
+<a href="sapem/index.html" class="block px-6 py-4 border-b text-green-700">SapEM</a>
+<a href="cart.html" class="block px-6 py-4">Cart</a>
+
+</div>
+
+</header>
 <section class="max-w-7xl mx-auto px-6 py-20">
 <h1 class="text-4xl font-bold mb-12">Products</h1>
 <div id="product-grid" class="grid md:grid-cols-3 gap-10"></div>
@@ -24,6 +65,13 @@
 <script src="js/products.js"></script>
 <script>
 loadProducts("data/concept-products.json","product-grid")
+</script>
+
+<script>
+function toggleMenu(){
+  const menu = document.getElementById("mobileMenu");
+  menu.classList.toggle("hidden");
+}
 </script>
 
 </body>
