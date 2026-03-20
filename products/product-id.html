@@ -15,14 +15,56 @@ img{border-radius:1rem;}
 </head>
 <body>
 
-<header class="bg-white shadow sticky top-0 z-50 flex justify-between px-6 py-4 items-center">
-<a href="../index.html" class="text-4xl font-extrabold hover:text-blue-700">Concept Solid</a>
-<div class="flex space-x-6 text-lg">
-<a href="../products.html" class="hover:text-blue-700">Products</a>
-<a href="../projects.html" class="hover:text-blue-700">Projects</a>
-<a href="../sapem/index.html" class="text-green-700 font-semibold hover:text-green-800">SapEM Systems</a>
-<a href="../cart.html" class="font-semibold">Cart (<span class="cart-count">0</span>)</a>
+<header class="bg-white shadow sticky top-0 z-50">
+
+<header class="bg-white/80 backdrop-blur shadow sticky top-0 z-50">
+
+<div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+
+<!-- LEFT (Desktop Nav) -->
+<div class="hidden md:flex space-x-6 text-lg">
+  <a href="products.html" class="hover:text-blue-700">Products</a>
+  <a href="projects.html" class="hover:text-blue-700">Projects</a>
 </div>
+
+<!-- LOGO -->
+<a href="index.html"
+class="text-2xl md:text-4xl font-extrabold tracking-tight hover:text-blue-700">
+
+Concept Solid
+
+</a>
+
+<!-- RIGHT (Desktop Nav) -->
+<div class="hidden md:flex items-center space-x-6">
+
+  <a href="sapem/index.html" class="text-green-700 font-semibold">
+    SapEM
+  </a>
+
+  <a href="cart.html" class="font-semibold">
+    Cart (<span class="cart-count">0</span>)
+  </a>
+
+</div>
+
+<!-- MOBILE MENU BUTTON -->
+<button onclick="toggleMenu()" class="md:hidden text-3xl">
+☰
+</button>
+
+</div>
+
+<!-- MOBILE DROPDOWN -->
+<div id="mobileMenu" class="hidden md:hidden bg-white border-t">
+
+<a href="products.html" class="block px-6 py-4 border-b">Products</a>
+<a href="projects.html" class="block px-6 py-4 border-b">Projects</a>
+<a href="sapem/index.html" class="block px-6 py-4 border-b text-green-700">SapEM</a>
+<a href="cart.html" class="block px-6 py-4">Cart</a>
+
+</div>
+
 </header>
 
 <section class="product-main">
@@ -38,5 +80,13 @@ img{border-radius:1rem;}
 </section>
 
 <script src="../js/cart.js"></script>
+
+<script>
+function toggleMenu(){
+  const menu = document.getElementById("mobileMenu");
+  menu.classList.toggle("hidden");
+}
+</script>
+  
 </body>
 </html>
