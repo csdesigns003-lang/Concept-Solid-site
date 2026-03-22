@@ -52,14 +52,13 @@ display:block;
 
 <!-- HEADER -->
 
-<header class="bg-white shadow sticky top-0 z-50">
-
-<header class="bg-white/80 backdrop-blur shadow sticky top-0 z-50">
+<header class="bg-white/90 backdrop-blur shadow sticky top-0 z-50">
 
 <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
 
-<!-- LEFT (Desktop Nav) -->
+<!-- LEFT NAV (Desktop) -->
 <div class="hidden md:flex space-x-6 text-lg">
+
 <a href="products.html" class="hover:text-[#006400]">
 Products
 </a>
@@ -67,17 +66,22 @@ Products
 <a href="resources.html" class="hover:text-[#006400]">
 Resources
 </a>
+
 </div>
 
+
 <!-- LOGO -->
+
 <a href="index.html"
-class="text-4xl font-extrabold tracking-tight hover:text-[#006400]">
+class="text-2xl md:text-4xl font-extrabold tracking-tight hover:text-[#006400]">
 
 SapEM Systems
 
 </a>
 
-<!-- RIGHT (Desktop Nav) -->
+
+<!-- RIGHT NAV (Desktop) -->
+
 <div class="hidden md:flex items-center space-x-6">
 
 <a href="../index.html"
@@ -87,63 +91,57 @@ Concept Solid
 
 </a>
 
-
 <a href="login.html"
-class="font-semibold hover:text-[#006400]">
+class="hover:text-[#006400]">
 
 Login
 
 </a>
 
-<div class="cart-hover relative">
-
-<a href="../cart.html" class="font-semibold">
+<a href="../cart.html"
+class="font-semibold">
 
 Cart (<span class="cart-count">0</span>)
 
 </a>
 
-<div class="cart-preview">
-
-<p class="text-sm text-gray-500 mb-2">
-Cart Preview
-</p>
-
-<div id="cart-preview-items"></div>
-
-<a href="../cart.html"
-class="block text-center mt-3 bg-[#006400] text-white py-2 rounded hover:bg-[#004b00]">
-
-Checkout
-
-</a>
-
 </div>
 
-</div>
-
-</div>
-
-</div>
-
-</header>
-
-</div>
 
 <!-- MOBILE MENU BUTTON -->
+
 <button onclick="toggleMenu()" class="md:hidden text-3xl">
+
 ☰
+
 </button>
 
 </div>
 
+
 <!-- MOBILE DROPDOWN -->
+
 <div id="mobileMenu" class="hidden md:hidden bg-white border-t">
 
-<a href="sapem/products.html" class="block px-6 py-4 border-b">Products</a>
-<a href="sapem/projects.html" class="block px-6 py-4 border-b">Projects</a>
-<a href="index.html" class="block px-6 py-4 border-b text-blue-700">SapEM</a>
-<a href="sapem/cart.html" class="block px-6 py-4">Cart</a>
+<a href="products.html" class="block px-6 py-4 border-b">
+Products
+</a>
+
+<a href="resources.html" class="block px-6 py-4 border-b">
+Resources
+</a>
+
+<a href="../index.html" class="block px-6 py-4 border-b">
+Concept Solid
+</a>
+
+<a href="login.html" class="block px-6 py-4 border-b">
+Login
+</a>
+
+<a href="../cart.html" class="block px-6 py-4">
+Cart
+</a>
 
 </div>
 
@@ -439,5 +437,12 @@ loadProducts("../data/sapem-products.json","featured-products")
 
 </script>
 
+<script>
+function toggleMenu(){
+const menu = document.getElementById("mobileMenu");
+menu.classList.toggle("hidden");
+}
+</script>
+  
 </body>
 </html>
