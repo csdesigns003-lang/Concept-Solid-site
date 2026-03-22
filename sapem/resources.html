@@ -6,13 +6,99 @@
 </head>
 <body>
 
-<header class="bg-white shadow p-6 flex justify-between">
-<a href="index.html" class="text-3xl font-bold text-green-700">SapEM Systems</a>
-<div class="space-x-6">
-<a href="products.html">Products</a>
-<a href="resources.html">Resources</a>
-<a href="../index.html">Concept Solid</a>
+<header class="bg-white/90 backdrop-blur shadow sticky top-0 z-50">
+
+<div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+
+<!-- LEFT NAV (Desktop) -->
+<div class="hidden md:flex space-x-6 text-lg">
+
+<a href="products.html" class="hover:text-[#006400]">
+Products
+</a>
+
+<a href="resources.html" class="hover:text-[#006400]">
+Resources
+</a>
+
 </div>
+
+
+<!-- LOGO -->
+
+<a href="index.html"
+class="text-2xl md:text-4xl font-extrabold tracking-tight hover:text-[#006400]">
+
+SapEM Systems
+
+</a>
+
+
+<!-- RIGHT NAV (Desktop) -->
+
+<div class="hidden md:flex items-center space-x-6">
+
+<a href="../index.html"
+class="text-gray-700 hover:text-[#006400]">
+
+Concept Solid
+
+</a>
+
+<a href="login.html"
+class="hover:text-[#006400]">
+
+Login
+
+</a>
+
+<a href="../cart.html"
+class="font-semibold">
+
+Cart (<span class="cart-count">0</span>)
+
+</a>
+
+</div>
+
+
+<!-- MOBILE MENU BUTTON -->
+
+<button onclick="toggleMenu()" class="md:hidden text-3xl">
+
+☰
+
+</button>
+
+</div>
+
+
+<!-- MOBILE DROPDOWN -->
+
+<div id="mobileMenu" class="hidden md:hidden bg-white border-t">
+
+<a href="products.html" class="block px-6 py-4 border-b">
+Products
+</a>
+
+<a href="resources.html" class="block px-6 py-4 border-b">
+Resources
+</a>
+
+<a href="../index.html" class="block px-6 py-4 border-b">
+Concept Solid
+</a>
+
+<a href="login.html" class="block px-6 py-4 border-b">
+Login
+</a>
+
+<a href="../cart.html" class="block px-6 py-4">
+Cart
+</a>
+
+</div>
+
 </header>
 
 <section class="max-w-7xl mx-auto px-6 py-20">
@@ -24,5 +110,70 @@
 </div>
 </section>
 
+<!-- FOOTER -->
+
+<footer class="bg-gray-900 text-gray-300 py-16">
+
+<div class="max-w-7xl mx-auto px-6 grid md:grid-cols-3 gap-10">
+
+<div>
+
+<h3 class="text-xl font-bold mb-4">
+
+SapEM Systems
+
+</h3>
+
+<p>
+
+Wireless industrial monitoring solutions
+designed for pressure sensing and
+remote diagnostics.
+
+</p>
+
+</div>
+
+<div>
+
+<h3 class="font-semibold mb-3">
+
+Contact
+
+</h3>
+
+<p>Email: contact@sapemsystems.com</p>
+<p>Support: support@sapemsystems.com</p>
+
+</div>
+
+<div>
+
+<h3 class="font-semibold mb-3">
+
+Links
+
+</h3>
+
+<p><a href="products.html">Products</a></p>
+<p><a href="resources.html">Resources</a></p>
+<p><a href="../index.html">Concept Solid</a></p>
+
+</div>
+
+</div>
+
+</footer>
+
+<script src="../js/products.js"></script>
+<script src="../js/cart.js"></script>
+  
+<script>
+function toggleMenu(){
+const menu = document.getElementById("mobileMenu");
+menu.classList.toggle("hidden");
+}
+</script>
+  
 </body>
 </html>
