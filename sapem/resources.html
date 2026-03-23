@@ -1,10 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>SapEM Resources</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resources</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<style>
+body { font-family:sans-serif; background:#f0fdf4; }
+.product-card{transition:all .25s ease; cursor:pointer; background:#ecfdf5; padding:2rem; border-radius:1rem;}
+.product-card:hover{transform:translateY(-6px); box-shadow:0 20px 35px rgba(0,0,0,0.15);}
+.cart-preview{display:none; position:absolute; right:0; top:40px; width:250px; background:white; border-radius:10px; box-shadow:0 15px 30px rgba(0,0,0,.15); padding:15px;}
+.cart-hover:hover .cart-preview{display:block;}
+</style>
 </head>
 <body>
+
 
 <header class="bg-white/90 backdrop-blur shadow sticky top-0 z-50">
 
