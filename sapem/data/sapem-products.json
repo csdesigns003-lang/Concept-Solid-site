@@ -1,0 +1,35 @@
+[
+  {
+    "id": "hub",
+    "name": "Receiving Hub",
+    "price": 299.99,
+    "description": "Receiving Hub Node for SapEM Systems.",
+    "images": [
+      "sapem/images/bike1.jpg",
+      "sapem/images/bike2.jpg",
+      "sapem/images/bike3.jpg"
+    ]
+  },
+
+  {
+    "id": "single",
+    "name": "Single Port Pressure Node",
+    "price": 199.99,
+    "description": "Single pressure reading pressure node.",
+    "images": [
+      "sapem/images/torque1.jpg",
+      "sapem/images/torque2.jpg"
+    ]
+  }
+
+  {
+    "id": "dual",
+    "name": "Double Port Pressure Node",
+    "price": 249.99,
+    "description": "Double pressure reading pressure node.",
+    "images": [
+      "sapem/images/torque1.jpg",
+      "sapem/images/torque2.jpg"
+    ]
+  }
+]
