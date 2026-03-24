@@ -1,9 +1,25 @@
 [
-  {
-    "id": "prod1",
-    "name": "Product Name",
-    "description": "Short description here",
-    "image": "images/prod1.jpg",
-    "price": 49.99
-  }
+{
+"id":"skee-ball",
+"name":"Arduino Skee Ball Arcade",
+"difficulty":"Intermediate",
+"time":"6 hours",
+"cost":"$80",
+"tools":"3D Printer, Soldering Iron, Basic Hand Tools",
+"description":"Full Arduino powered skee ball arcade machine with scoring sensors and LED display.",
+"image":"images/skeeball.jpg",
+"zip":"projects/files/skee-ball.zip"
+},
+
+{
+"id":"lora-node",
+"name":"LoRa Sensor Node",
+"difficulty":"Advanced",
+"time":"3 hours",
+"cost":"$35",
+"tools":"Soldering Iron, Multimeter",
+"description":"Low power LoRa environmental sensor node for long range wireless monitoring.",
+"image":"images/lora-node.jpg",
+"zip":"projects/files/lora-node.zip"
+}
 ]
