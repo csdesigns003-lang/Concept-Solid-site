@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Concept Solid Project</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+
+body{
+font-family:"Microsoft Sans Serif", Arial;
+background:#f5f7fb;
+}
+
+</style>
+
+</head>
+
+<body>
+
+
+<header class="bg-white shadow p-6 flex justify-between">
+
+<a href="index.html" class="text-3xl font-bold">
+Concept Solid
+</a>
+
+<a href="projects.html">
+Projects
+</a>
+
+</header>
+
+
+<section class="max-w-7xl mx-auto px-6 py-20">
+
+<div class="grid md:grid-cols-2 gap-16">
+
+
+<div>
+
+<img id="project-image" class="rounded-xl shadow">
+
+</div>
+
+
+<div>
+
+<h1 id="project-name" class="text-4xl font-bold mb-6"></h1>
+
+<div class="space-y-2 mb-8">
+
+<p><b>Difficulty:</b> <span id="project-difficulty"></span></p>
+
+<p><b>Build Time:</b> <span id="project-time"></span></p>
+
+<p><b>Cost:</b> <span id="project-cost"></span></p>
+
+<p><b>Tools Required:</b> <span id="project-tools"></span></p>
+
+</div>
+
+<p id="project-description" class="text-gray-600 mb-10"></p>
+
+<a id="download-btn"
+class="block text-center bg-blue-700 text-white py-4 rounded-lg hover:bg-blue-800">
+
+Download Project Files
+
+</a>
+
+</div>
+
+</div>
+
+</section>
+
+
+<section class="max-w-5xl mx-auto px-6 py-20">
+
+<h2 class="text-3xl font-bold mb-10">
+Project Discussion
+</h2>
+
+
+<div id="giscus"></div>
+
+</section>
+
+
+<script src="js/project-loader.js"></script>
+
+<script>
+
+const params = new URLSearchParams(window.location.search)
+const projectID = params.get("id")
+
+loadProject(projectID)
+
+</script>
+
+
+<script src="https://giscus.app/client.js"
+data-repo="YOUR_GITHUB_USERNAME/YOUR_REPO"
+data-repo-id="REPO_ID"
+data-category="General"
+data-category-id="CATEGORY_ID"
+data-mapping="pathname"
+data-reactions-enabled="1"
+data-theme="light"
+crossorigin="anonymous"
+async>
+</script>
+
+</body>
+</html>
