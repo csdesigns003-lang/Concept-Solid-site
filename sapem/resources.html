@@ -6,31 +6,46 @@
 <title>Resources</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-body { font-family:sans-serif; background:#f0fdf4; }
-<style>
+
+body{
+font-family:sans-serif;
+background:#f0fdf4;
+}
+
+/* RESOURCE CARDS */
 
 .resource-card{
 transition:all .25s ease;
 cursor:pointer;
+
 background:#ecfdf5;
-padding:2rem;
+padding:2.2rem;
 border-radius:1rem;
 
-/* NEW BASE SHADOW */
+border:1px solid transparent;
+
+/* base shadow */
 box-shadow:0 6px 15px rgba(0,0,0,0.12);
 }
+
 
 /* HOVER EFFECT */
 
 .resource-card:hover{
-transform:translateY(-6px);
-box-shadow:0 20px 40px rgba(0,0,0,0.2);
+
+transform:translateY(-8px);
+
+/* stronger shadow */
+box-shadow:0 25px 45px rgba(0,0,0,0.18);
+
+/* green highlight */
 border:1px solid #22c55e;
+
+/* slight brightness change */
+background:#f0fdf4;
+
 }
 
-/* STRONGER SHADOW */
-box-shadow:0 20px 40px rgba(0,0,0,0.2);
-}
 
 .product-card{transition:all .25s ease; cursor:pointer; background:#ecfdf5; padding:2rem; border-radius:1rem;}
 .product-card:hover{transform:translateY(-6px); box-shadow:0 20px 35px rgba(0,0,0,0.15);}
@@ -144,65 +159,58 @@ SapEM Resources
 
 <div class="grid md:grid-cols-3 gap-12">
 
-<a href="setup-guide.html" class="resource-card">
+
+<a href="setup-guide.html" class="resource-card block">
 
 <h3 class="text-xl font-bold mb-4">
 Setup Guide →
 </h3>
 
 <p class="text-gray-600">
-Step-by-step instructions for installing
-and connecting SapEM monitoring systems.
+Step-by-step instructions for installing and configuring
+SapEM monitoring systems.
 </p>
 
 </a>
 
 
-<a href="maintenance.html" class="resource-card">
+<a href="maintenance.html" class="resource-card block">
 
 <h3 class="text-xl font-bold mb-4">
 Maintenance →
 </h3>
 
 <p class="text-gray-600">
-Routine inspection procedures,
-battery replacement, and troubleshooting.
+Routine inspection, battery replacement,
+and troubleshooting procedures.
 </p>
 
 </a>
 
 
-<a href="downloads.html" class="resource-card">
+<a href="downloads.html" class="resource-card block">
 
 <h3 class="text-xl font-bold mb-4">
 Downloads →
 </h3>
 
 <p class="text-gray-600">
-Manuals, firmware, CAD models,
-and system documentation.
+Manuals, firmware updates, CAD models,
+and technical documentation.
 </p>
 
 </a>
 
-</div>
-
-</section>
 
 </div>
 
 </section>
+
+</div>
+
+</section>
+
   
-<!--
-<section class="max-w-7xl mx-auto px-6 py-20">
-<h1 class="text-4xl font-bold mb-12">Resources</h1>
-<div class="grid md:grid-cols-3 gap-10">
-<div class="bg-white p-10 shadow rounded cursor-pointer">Setup Guide</div>
-<div class="bg-white p-10 shadow rounded cursor-pointer">Maintenance</div>
-<div class="bg-white p-10 shadow rounded cursor-pointer">Downloads</div>
-</div>
-</section>
--->
 <!-- FOOTER -->
 
 <footer class="bg-gray-900 text-gray-300 py-16">
