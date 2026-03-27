@@ -23,18 +23,107 @@ background:#f5f7fb;
 
 <body>
 
-<header class="bg-white shadow p-6 flex justify-between">
+<!-- HEADER -->
 
-<a href="index.html" class="text-3xl font-bold">
-SapEM Systems
+<header class="bg-white/90 backdrop-blur shadow sticky top-0 z-50">
+
+<div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+
+<!-- LEFT NAV (Desktop) -->
+<div class="hidden md:flex space-x-6 text-lg">
+
+<a href="products.html" class="hover:text-[#006400]">
+Products
 </a>
 
-<a href="cart.html">
+<a href="resources.html" class="hover:text-[#006400]">
+Resources
+</a>
+
+</div>
+
+
+<!-- LOGO -->
+<a href="index.html"
+class="flex items-center gap-3 hover:opacity-90">
+
+<img src="../images/sapemlogo.png"
+class="h-10 md:h-12">
+
+<span class="text-2xl md:text-4xl font-extrabold tracking-tight">
+SapEM Systems
+</span>
+
+</a>
+
+
+
+<!-- RIGHT NAV (Desktop) -->
+
+<div class="hidden md:flex items-center space-x-6">
+
+<a href="../index.html"
+class="text-gray-700 hover:text-[#006400]">
+
+Concept Solid
+
+</a>
+
+<a href="login.html"
+class="hover:text-[#006400]">
+
+Login
+
+</a>
+
+<a href="../cart.html"
+class="font-semibold">
+
+Cart (<span class="cart-count">0</span>)
+
+</a>
+
+</div>
+
+
+<!-- MOBILE MENU BUTTON -->
+
+<button onclick="toggleMenu()" class="md:hidden text-3xl">
+
+☰
+
+</button>
+
+</div>
+
+
+<!-- MOBILE DROPDOWN -->
+
+<div id="mobileMenu" class="hidden md:hidden bg-white border-t">
+
+<a href="products.html" class="block px-6 py-4 border-b">
+Products
+</a>
+
+<a href="resources.html" class="block px-6 py-4 border-b">
+Resources
+</a>
+
+<a href="../index.html" class="block px-6 py-4 border-b">
+Concept Solid
+</a>
+
+<a href="login.html" class="block px-6 py-4 border-b">
+Login
+</a>
+
+<a href="../cart.html" class="block px-6 py-4">
 Cart
 </a>
 
-</header>
+</div>
 
+</header>
 
 <section class="max-w-7xl mx-auto px-6 py-20">
 
@@ -118,11 +207,12 @@ Submit Review
 <script src="js/product-page.js"></script>
 <script src="js/cart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+<!--
 const supabase = window.supabase.createClient(
 "https://odantloiqtucdqoqwjnl.supabase.co",
 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kYW50bG9pcXR1Y2Rxb3F3am5sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1ODc2NjMsImV4cCI6MjA4OTE2MzY2M30._NFnGZ2GlRSPrB37cRn5mVdvCdMe1MuGbI6SPSa44BU"
 )
-
+-->
+  
 </body>
 </html>
