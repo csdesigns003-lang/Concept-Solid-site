@@ -7,18 +7,29 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
 body { font-family:sans-serif; background:#f0fdf4; }
+<style>
+
 .resource-card{
 transition:all .25s ease;
 cursor:pointer;
 background:#ecfdf5;
 padding:2rem;
 border-radius:1rem;
+
+/* NEW BASE SHADOW */
+box-shadow:0 6px 15px rgba(0,0,0,0.12);
 }
+
+/* HOVER EFFECT */
 
 .resource-card:hover{
 transform:translateY(-6px);
-box-shadow:0 20px 35px rgba(0,0,0,0.15);
+
+/* STRONGER SHADOW */
+box-shadow:0 20px 40px rgba(0,0,0,0.2);
 }
+
+</style>
 .product-card{transition:all .25s ease; cursor:pointer; background:#ecfdf5; padding:2rem; border-radius:1rem;}
 .product-card:hover{transform:translateY(-6px); box-shadow:0 20px 35px rgba(0,0,0,0.15);}
 .cart-preview{display:none; position:absolute; right:0; top:40px; width:250px; background:white; border-radius:10px; box-shadow:0 15px 30px rgba(0,0,0,.15); padding:15px;}
