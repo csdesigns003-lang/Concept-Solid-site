@@ -7,6 +7,18 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
 body { font-family:sans-serif; background:#f0fdf4; }
+.resource-card{
+transition:all .25s ease;
+cursor:pointer;
+background:#ecfdf5;
+padding:2rem;
+border-radius:1rem;
+}
+
+.resource-card:hover{
+transform:translateY(-6px);
+box-shadow:0 20px 35px rgba(0,0,0,0.15);
+}
 .product-card{transition:all .25s ease; cursor:pointer; background:#ecfdf5; padding:2rem; border-radius:1rem;}
 .product-card:hover{transform:translateY(-6px); box-shadow:0 20px 35px rgba(0,0,0,0.15);}
 .cart-preview{display:none; position:absolute; right:0; top:40px; width:250px; background:white; border-radius:10px; box-shadow:0 15px 30px rgba(0,0,0,.15); padding:15px;}
@@ -119,55 +131,50 @@ SapEM Resources
 
 <div class="grid md:grid-cols-3 gap-12">
 
-<!-- SETUP GUIDE -->
-
-<a href="setup-guide.html"
-class="resource-card bg-white p-10 rounded-xl shadow block">
+<a href="setup-guide.html" class="resource-card">
 
 <h3 class="text-xl font-bold mb-4">
 Setup Guide
 </h3>
 
 <p class="text-gray-600">
-Learn how to install your SapEM sensors, connect the hub,
-and start monitoring pressure data.
+Step-by-step instructions for installing
+and connecting SapEM monitoring systems.
 </p>
 
 </a>
 
 
-<!-- MAINTENANCE -->
-
-<a href="maintenance.html"
-class="resource-card bg-white p-10 rounded-xl shadow block">
+<a href="maintenance.html" class="resource-card">
 
 <h3 class="text-xl font-bold mb-4">
 Maintenance
 </h3>
 
 <p class="text-gray-600">
-Guidelines for maintaining sensors, replacing batteries,
-and troubleshooting common issues.
+Routine inspection procedures,
+battery replacement, and troubleshooting.
 </p>
 
 </a>
 
 
-<!-- DOWNLOADS -->
-
-<a href="downloads.html"
-class="resource-card bg-white p-10 rounded-xl shadow block">
+<a href="downloads.html" class="resource-card">
 
 <h3 class="text-xl font-bold mb-4">
 Downloads
 </h3>
 
 <p class="text-gray-600">
-Firmware, manuals, CAD models, and software tools
-for the SapEM system.
+Manuals, firmware, CAD models,
+and system documentation.
 </p>
 
 </a>
+
+</div>
+
+</section>
 
 </div>
 
