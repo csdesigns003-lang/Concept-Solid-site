@@ -6,56 +6,62 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>SapEM Dashboard</title>
+<title>SapEM Monitoring Dashboard</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 
 body{
-font-family:"Microsoft Sans Serif", Arial;
-background:#f5f7fb;
+background:#0f172a;
+color:white;
+font-family:Arial;
+}
+
+.card{
+background:#1e293b;
+border-radius:14px;
+padding:20px;
 }
 
 .gauge{
-width:250px;
-height:250px;
+width:260px;
+height:260px;
 border-radius:50%;
-background:conic-gradient(#006400 0deg,#006400 120deg,#ddd 120deg);
 display:flex;
 align-items:center;
 justify-content:center;
-font-size:48px;
+font-size:44px;
 font-weight:bold;
-color:#004b00;
+background:conic-gradient(#16a34a 0deg,#16a34a 120deg,#334155 120deg);
+}
+
+.rssi-bar{
+width:6px;
+margin-right:2px;
+background:#22c55e;
 }
 
 </style>
 
 </head>
 
-
 <body>
 
 <!-- HEADER -->
 
-<header class="bg-white shadow sticky top-0 z-50">
+<header class="bg-slate-900 border-b border-slate-700">
 
-<div class="max-w-7xl mx-auto px-6 py-4 flex justify-between">
+<div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
 
-<h1 class="text-2xl font-bold text-green-800">
-SapEM Monitoring
+<h1 class="text-xl font-bold">
+SapEM Monitoring System
 </h1>
 
-<button onclick="logout()"
-class="text-sm bg-gray-200 px-4 py-2 rounded-lg">
-
+<button onclick="logout()" class="bg-slate-700 px-4 py-2 rounded">
 Logout
-
 </button>
 
 </div>
@@ -63,61 +69,57 @@ Logout
 </header>
 
 
-
-<!-- DASHBOARD -->
-
-<section class="max-w-7xl mx-auto px-6 py-12">
-
-<div class="grid md:grid-cols-3 gap-10">
+<div class="max-w-7xl mx-auto p-6 grid md:grid-cols-3 gap-6">
 
 <!-- VACUUM GAUGE -->
 
-<div class="bg-white p-8 rounded-xl shadow text-center">
+<div class="card text-center">
 
-<h2 class="text-xl font-bold mb-6">
+<h2 class="text-lg mb-4">
 System Vacuum
 </h2>
 
-<div id="vacuumGauge" class="gauge">
+<div id="vacuumGauge" class="gauge mx-auto">
 0
 </div>
 
-<p class="mt-4 text-gray-600">
+<p class="text-slate-400 mt-3">
 inHg
 </p>
 
 </div>
 
 
-<!-- SENSOR STATUS -->
+<!-- SYSTEM STATUS -->
 
-<div class="bg-white p-8 rounded-xl shadow md:col-span-2">
+<div class="card">
 
-<h2 class="text-xl font-bold mb-6">
-Sensor Status
+<h2 class="text-lg mb-4">
+System Status
 </h2>
 
-<table class="w-full text-left">
+<div id="systemStats" class="space-y-3 text-sm">
 
-<thead class="border-b">
+<div>Total Sensors: <span id="sensorCount">0</span></div>
 
-<tr>
+<div>Online Sensors: <span id="onlineCount">0</span></div>
 
-<th class="py-2">Sensor</th>
-<th>Pressure</th>
-<th>Temperature</th>
-<th>Battery</th>
-<th>Status</th>
+<div>Avg Temperature: <span id="avgTemp">0</span> °C</div>
 
-</tr>
+</div>
 
-</thead>
+</div>
 
-<tbody id="sensorTable">
 
-</tbody>
+<!-- SENSOR HEALTH -->
 
-</table>
+<div class="card">
+
+<h2 class="text-lg mb-4">
+Sensor Health
+</h2>
+
+<div id="sensorHealth"></div>
 
 </div>
 
@@ -127,23 +129,28 @@ Sensor Status
 
 <!-- PRESSURE CHART -->
 
-<div class="bg-white p-8 rounded-xl shadow mt-10">
+<div class="max-w-7xl mx-auto p-6">
 
-<h2 class="text-xl font-bold mb-6">
-Vacuum History
+<div class="card">
+
+<h2 class="text-lg mb-4">
+Vacuum Pressure History
 </h2>
 
 <canvas id="pressureChart"></canvas>
 
 </div>
 
+</div>
 
 
 <!-- TEMPERATURE CHART -->
 
-<div class="bg-white p-8 rounded-xl shadow mt-10">
+<div class="max-w-7xl mx-auto p-6">
 
-<h2 class="text-xl font-bold mb-6">
+<div class="card">
+
+<h2 class="text-lg mb-4">
 Temperature History
 </h2>
 
@@ -151,8 +158,44 @@ Temperature History
 
 </div>
 
+</div>
 
-</section>
+
+
+<!-- SENSOR TABLE -->
+
+<div class="max-w-7xl mx-auto p-6">
+
+<div class="card">
+
+<h2 class="text-lg mb-4">
+Sensor Nodes
+</h2>
+
+<table class="w-full text-sm">
+
+<thead class="text-slate-400 border-b border-slate-700">
+
+<tr>
+
+<th class="py-2 text-left">Sensor</th>
+<th>Pressure</th>
+<th>Temp</th>
+<th>Battery</th>
+<th>Signal</th>
+<th>Status</th>
+
+</tr>
+
+</thead>
+
+<tbody id="sensorTable"></tbody>
+
+</table>
+
+</div>
+
+</div>
 
 
 
@@ -162,22 +205,6 @@ const supabaseClient = supabase.createClient(
 "https://odantloiqtucdqoqwjnl.supabase.co",
 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kYW50bG9pcXR1Y2Rxb3F3am5sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1ODc2NjMsImV4cCI6MjA4OTE2MzY2M30._NFnGZ2GlRSPrB37cRn5mVdvCdMe1MuGbI6SPSa44BU"
 )
-
-async function checkUser(){
-
-const { data:{user} } = await supabaseClient.auth.getUser()
-
-if(!user){
-
-window.location.href="login.html"
-
-}
-
-}
-
-checkUser()
-
-
 
 async function logout(){
 
@@ -194,52 +221,69 @@ window.location.href="login.html"
 <script>
 
 const pressureChart = new Chart(
-
 document.getElementById("pressureChart"),
-
 {
-
 type:"line",
-
 data:{
 labels:[],
 datasets:[{
 label:"Vacuum (inHg)",
 data:[],
+borderColor:"#22c55e",
 borderWidth:3
 }]
-},
-
-options:{
-responsive:true
 }
-
 })
 
-
-
 const tempChart = new Chart(
-
 document.getElementById("tempChart"),
-
 {
-
 type:"line",
-
 data:{
 labels:[],
 datasets:[{
-label:"Temperature (°C)",
+label:"Temperature °C",
 data:[],
+borderColor:"#3b82f6",
 borderWidth:3
 }]
-},
+}
+})
 
-options:{
-responsive:true
+</script>
+
+
+
+<script>
+
+function updateGauge(value){
+
+const gauge = document.getElementById("vacuumGauge")
+
+gauge.innerText = value
+
+const deg = value * 10
+
+gauge.style.background =
+`conic-gradient(#16a34a ${deg}deg,#334155 ${deg}deg)`
+
 }
 
-})
+function rssiBars(rssi){
+
+let strength = Math.max(0,Math.min(5,Math.floor((rssi+120)/10)))
+
+let bars=""
+
+for(let i=0;i<5;i++){
+
+bars+=`<div class="rssi-bar" style="height:${(i+1)*6}px;opacity:${i<strength?1:0.2}"></div>`
+
+}
+
+return `<div style="display:flex;align-items:flex-end;height:30px">${bars}</div>`
+
+}
 
 </script>
 
@@ -253,28 +297,22 @@ const {data,error} = await supabaseClient
 .from("sensors")
 .select("*")
 
-if(error){
+if(error) return
 
-console.log(error)
-
-return
-
-}
-
-const table = document.getElementById("sensorTable")
-
+const table=document.getElementById("sensorTable")
 table.innerHTML=""
 
-let vacuumSum = 0
-let sensorCount = 0
+let vacuumSum=0
+let tempSum=0
 
 data.forEach(sensor=>{
 
-vacuumSum += sensor.pressure
-sensorCount++
+vacuumSum+=sensor.pressure
+tempSum+=sensor.temperature
 
-table.innerHTML += `
-<tr class="border-b">
+table.innerHTML+=`
+
+<tr class="border-b border-slate-700">
 
 <td class="py-2">${sensor.sensor_name}</td>
 
@@ -284,9 +322,12 @@ table.innerHTML += `
 
 <td>${sensor.battery}%</td>
 
-<td class="text-green-700 font-semibold">Online</td>
+<td>${rssiBars(sensor.rssi)}</td>
+
+<td class="text-green-400">Online</td>
 
 </tr>
+
 `
 
 pressureChart.data.labels.push(new Date(sensor.last_update).toLocaleTimeString())
@@ -300,33 +341,38 @@ tempChart.data.datasets[0].data.push(sensor.temperature)
 pressureChart.update()
 tempChart.update()
 
-const avgVacuum = (vacuumSum/sensorCount).toFixed(2)
+updateGauge((vacuumSum/data.length).toFixed(2))
 
-updateGauge(avgVacuum)
-
-}
-
-
-
-function updateGauge(value){
-
-document.getElementById("vacuumGauge").innerText = value
-
-const deg = value * 10
-
-document.getElementById("vacuumGauge").style.background =
-`conic-gradient(#006400 ${deg}deg,#ddd ${deg}deg)`
+document.getElementById("sensorCount").innerText=data.length
+document.getElementById("onlineCount").innerText=data.length
+document.getElementById("avgTemp").innerText=(tempSum/data.length).toFixed(1)
 
 }
-
-
 
 loadSensors()
 
-setInterval(loadSensors,10000)
-
 </script>
 
+
+
+<script>
+
+/* LIVE REALTIME UPDATES */
+
+supabaseClient
+.channel("sensor-stream")
+.on(
+"postgres_changes",
+{event:"INSERT",schema:"public",table:"sensors"},
+payload=>{
+
+loadSensors()
+
+}
+)
+.subscribe()
+
+</script>
 
 </body>
 </html>
