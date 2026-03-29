@@ -58,3 +58,19 @@ await recordDownload()
 window.location.href = "files/project-files.zip"
 
 }
+
+
+async function loadDownloads(){
+
+let {data} = await supabase
+.from("project_downloads")
+.select("download_count")
+.eq("project_slug",projectSlug)
+.single()
+
+document.getElementById("downloadCount").innerText =
+data.download_count
+
+}
+
+loadDownloads()
