@@ -129,6 +129,12 @@ await requireAuth()
 // 👤 Get user
 const { data: { user } } = await supabase.auth.getUser()
 
+if(!user){
+
+window.location.href="login.html"
+
+}
+
 // 📡 Load sensors
 const { data: sensors } = await supabase
 .from("sensors")
@@ -136,11 +142,15 @@ const { data: sensors } = await supabase
 .eq("user_id", user.id)
 
 // 🧮 Calculate average pressure (fake for now)
-let pressures = sensors.map(s => s.threshold || 100)
+function averagePressure(sensorData){
 
-let avg = pressures.length
-? Math.round(pressures.reduce((a,b)=>a+b,0)/pressures.length)
-: 0
+let values = sensorData.map(s => s.pressure)
+
+let avg = values.reduce((a,b)=>a+b)/values.length
+
+return avg
+
+}
 
 document.getElementById("avg-pressure").innerText = avg + " PSI"
 
