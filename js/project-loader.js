@@ -49,3 +49,12 @@ document.getElementById("project-image").src = p.image
 document.getElementById("download-btn").href = p.zip
 
 }
+
+
+async function downloadProject(){
+
+await recordDownload()
+
+window.location.href = "files/project-files.zip"
+
+}
