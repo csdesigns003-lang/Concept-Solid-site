@@ -407,5 +407,40 @@ menu.classList.toggle("hidden");
 }
 </script>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+<script>
+
+const supabase = supabase.createClient(
+"https://odantloiqtucdqoqwjnl.supabase.co",
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kYW50bG9pcXR1Y2Rxb3F3am5sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1ODc2NjMsImV4cCI6MjA4OTE2MzY2M30._NFnGZ2GlRSPrB37cRn5mVdvCdMe1MuGbI6SPSa44BU"
+)
+
+async function login(){
+
+const email = document.getElementById("email").value
+const password = document.getElementById("password").value
+
+const {data,error} = await supabase.auth.signInWithPassword({
+
+email: email,
+password: password
+
+})
+
+if(error){
+
+alert(error.message)
+
+}else{
+
+window.location.href="dashboard.html"
+
+}
+
+}
+
+</script>
+  
 </body>
 </html>
