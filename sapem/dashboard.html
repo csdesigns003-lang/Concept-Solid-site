@@ -9,32 +9,35 @@
 <title>SapEM Dashboard</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 
 body{
-font-family:"Microsoft Sans Serif", Arial, sans-serif;
-background:#f3f4f6;
+font-family:"Microsoft Sans Serif", Arial;
+background:#f5f7fb;
 }
 
-.hero{
-background:linear-gradient(120deg,#004b00,#006400,#228B22);
-}
-
-.sensor-card{
-transition:.25s;
-}
-
-.sensor-card:hover{
-transform:translateY(-4px);
-box-shadow:0 20px 40px rgba(0,0,0,.12);
+.gauge{
+width:250px;
+height:250px;
+border-radius:50%;
+background:conic-gradient(#006400 0deg,#006400 120deg,#ddd 120deg);
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:48px;
+font-weight:bold;
+color:#004b00;
 }
 
 </style>
 
 </head>
+
 
 <body>
 
@@ -42,82 +45,116 @@ box-shadow:0 20px 40px rgba(0,0,0,.12);
 
 <header class="bg-white shadow sticky top-0 z-50">
 
-<div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+<div class="max-w-7xl mx-auto px-6 py-4 flex justify-between">
 
-<div class="flex space-x-8 text-lg">
-<a href="products.html" class="hover:text-[#006400]">Products</a>
-<a href="resources.html" class="hover:text-[#006400]">Resources</a>
-</div>
+<h1 class="text-2xl font-bold text-green-800">
+SapEM Monitoring
+</h1>
 
-<a href="index.html" class="text-4xl font-extrabold tracking-tight hover:text-[#006400]">
-SapEM Systems
-</a>
+<button onclick="logout()"
+class="text-sm bg-gray-200 px-4 py-2 rounded-lg">
 
-<div class="flex items-center space-x-8">
-<a href="../index.html" class="hover:text-[#006400]">Concept Solid</a>
-<a href="devices.html" class="hover:text-[#006400]">Devices</a>
-
-<button onclick="logout()" class="bg-[#006400] text-white px-4 py-2 rounded hover:bg-[#004b00]">
 Logout
+
 </button>
-</div>
 
 </div>
 
 </header>
 
 
-<!-- HERO -->
 
-<section class="hero text-white py-20 text-center">
+<!-- DASHBOARD -->
 
-<h1 class="text-5xl font-bold mb-4">
-SapEM Monitoring Dashboard
-</h1>
+<section class="max-w-7xl mx-auto px-6 py-12">
 
-<p class="opacity-90">
-Live system pressure and sensor status
-</p>
+<div class="grid md:grid-cols-3 gap-10">
 
-</section>
+<!-- VACUUM GAUGE -->
 
+<div class="bg-white p-8 rounded-xl shadow text-center">
 
-<!-- GAUGE PLACEHOLDER -->
-
-<section class="py-16 text-center">
-
-<h2 class="text-3xl font-bold mb-6">
-Average System Pressure
+<h2 class="text-xl font-bold mb-6">
+System Vacuum
 </h2>
 
-<div class="w-72 h-72 mx-auto rounded-full border-4 border-[#006400] flex items-center justify-center bg-white shadow">
+<div id="vacuumGauge" class="gauge">
+0
+</div>
 
-<p id="avg-pressure" class="text-3xl font-bold text-[#006400]">
--- PSI
+<p class="mt-4 text-gray-600">
+inHg
 </p>
 
 </div>
 
-</section>
 
+<!-- SENSOR STATUS -->
 
-<!-- SENSOR LIST -->
+<div class="bg-white p-8 rounded-xl shadow md:col-span-2">
 
-<section class="max-w-6xl mx-auto px-6 pb-20">
-
-<h2 class="text-3xl font-bold mb-10">
-Your Sensors
+<h2 class="text-xl font-bold mb-6">
+Sensor Status
 </h2>
 
-<div id="sensor-grid" class="grid md:grid-cols-3 gap-10">
+<table class="w-full text-left">
+
+<thead class="border-b">
+
+<tr>
+
+<th class="py-2">Sensor</th>
+<th>Pressure</th>
+<th>Temperature</th>
+<th>Battery</th>
+<th>Status</th>
+
+</tr>
+
+</thead>
+
+<tbody id="sensorTable">
+
+</tbody>
+
+</table>
 
 </div>
 
+</div>
+
+
+
+<!-- PRESSURE CHART -->
+
+<div class="bg-white p-8 rounded-xl shadow mt-10">
+
+<h2 class="text-xl font-bold mb-6">
+Vacuum History
+</h2>
+
+<canvas id="pressureChart"></canvas>
+
+</div>
+
+
+
+<!-- TEMPERATURE CHART -->
+
+<div class="bg-white p-8 rounded-xl shadow mt-10">
+
+<h2 class="text-xl font-bold mb-6">
+Temperature History
+</h2>
+
+<canvas id="tempChart"></canvas>
+
+</div>
+
+
 </section>
 
 
-<!-- SCRIPTS -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
 
@@ -140,98 +177,153 @@ window.location.href="login.html"
 
 checkUser()
 
-</script>
 
 
-<script src="js/auth.js"></script>
+async function logout(){
 
-<script>
-
-async function init(){
-
-// 🔒 Require login
-await requireAuth()
-
-// 👤 Get user
-const { data: { user } } = await supabase.auth.getUser()
-
-if(!user){
+await supabaseClient.auth.signOut()
 
 window.location.href="login.html"
 
 }
 
-// 📡 Load sensors
-const { data: sensors } = await supabase
-.from("sensors")
-.select("*")
-.eq("user_id", user.id)
-
-// 🧮 Calculate average pressure (fake for now)
-function averagePressure(sensorData){
-
-let values = sensorData.map(s => s.pressure)
-
-let avg = values.reduce((a,b)=>a+b)/values.length
-
-return avg
-
-}
-
-document.getElementById("avg-pressure").innerText = avg + " PSI"
-
-
-// 📦 Render sensors
-const grid = document.getElementById("sensor-grid")
-grid.innerHTML = ""
-
-sensors.forEach(sensor => {
-
-grid.innerHTML += `
-
-<div class="sensor-card bg-white p-6 rounded-xl shadow">
-
-<h3 class="text-xl font-bold mb-2">
-${sensor.sensor_name}
-</h3>
-
-<p class="text-gray-600">
-Node ID: ${sensor.node_id}
-</p>
-
-<p class="text-gray-600">
-Threshold: ${sensor.threshold} PSI
-</p>
-
-</div>
-
-`
-
-})
-
-}
-
-
-const labels = sensors.map(s=>s.sensor_name)
-const pressures = sensors.map(s=>s.pressure)
+</script>
 
 
 
-new Chart(document.getElementById("pressureChart"),{
+<script>
 
-type:"bar",
+const pressureChart = new Chart(
+
+document.getElementById("pressureChart"),
+
+{
+
+type:"line",
 
 data:{
-labels:labels,
+labels:[],
 datasets:[{
-label:"Pressure",
-data:pressures
+label:"Vacuum (inHg)",
+data:[],
+borderWidth:3
 }]
+},
+
+options:{
+responsive:true
 }
 
 })
 
-init()
+
+
+const tempChart = new Chart(
+
+document.getElementById("tempChart"),
+
+{
+
+type:"line",
+
+data:{
+labels:[],
+datasets:[{
+label:"Temperature (°C)",
+data:[],
+borderWidth:3
+}]
+},
+
+options:{
+responsive:true
+}
+
+})
+
+</script>
+
+
+
+<script>
+
+async function loadSensors(){
+
+const {data,error} = await supabaseClient
+.from("sensors")
+.select("*")
+
+if(error){
+
+console.log(error)
+
+return
+
+}
+
+const table = document.getElementById("sensorTable")
+
+table.innerHTML=""
+
+let vacuumSum = 0
+let sensorCount = 0
+
+data.forEach(sensor=>{
+
+vacuumSum += sensor.pressure
+sensorCount++
+
+table.innerHTML += `
+<tr class="border-b">
+
+<td class="py-2">${sensor.sensor_name}</td>
+
+<td>${sensor.pressure}</td>
+
+<td>${sensor.temperature}</td>
+
+<td>${sensor.battery}%</td>
+
+<td class="text-green-700 font-semibold">Online</td>
+
+</tr>
+`
+
+pressureChart.data.labels.push(new Date(sensor.last_update).toLocaleTimeString())
+pressureChart.data.datasets[0].data.push(sensor.pressure)
+
+tempChart.data.labels.push(new Date(sensor.last_update).toLocaleTimeString())
+tempChart.data.datasets[0].data.push(sensor.temperature)
+
+})
+
+pressureChart.update()
+tempChart.update()
+
+const avgVacuum = (vacuumSum/sensorCount).toFixed(2)
+
+updateGauge(avgVacuum)
+
+}
+
+
+
+function updateGauge(value){
+
+document.getElementById("vacuumGauge").innerText = value
+
+const deg = value * 10
+
+document.getElementById("vacuumGauge").style.background =
+`conic-gradient(#006400 ${deg}deg,#ddd ${deg}deg)`
+
+}
+
+
+
+loadSensors()
+
+setInterval(loadSensors,10000)
 
 </script>
 
