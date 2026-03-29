@@ -184,6 +184,26 @@ crossorigin="anonymous"
 async>
 </script>
 -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
+<script>
+
+const supabase = supabase.createClient(
+"https://YOURPROJECT.supabase.co",
+"PUBLIC_ANON_KEY"
+)
+
+const projectSlug = "sapem-sensor-node"
+
+async function recordDownload(){
+
+await supabase.rpc("increment_download",{
+slug: projectSlug
+})
+
+}
+
+</script>
+  
 </body>
 </html>
