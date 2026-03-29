@@ -4,67 +4,41 @@
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Create SapEM Account</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<style>
-
-body{
-font-family:Microsoft Sans Serif, Arial;
-background:#f3f4f6;
-}
-
-.hero{
-background:linear-gradient(120deg,#004b00,#006400,#228B22);
-}
-
-</style>
 
 </head>
 
-<body>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
 
+<div class="bg-white p-10 rounded-xl shadow w-96">
 
-<header class="bg-white shadow p-4 text-center font-bold text-2xl">
-SapEM Systems
-</header>
-
-
-<section class="hero text-white text-center py-16">
-
-<h1 class="text-5xl font-bold">
+<h2 class="text-2xl font-bold mb-6 text-center">
 Create Account
-</h1>
+</h2>
 
-<p class="mt-3">
-Register to monitor your SapEM sensors
-</p>
+<input id="email"
+type="email"
+placeholder="Email"
+class="w-full border rounded-lg px-4 py-3 mb-4">
 
-</section>
+<input id="password"
+type="password"
+placeholder="Password"
+class="w-full border rounded-lg px-4 py-3 mb-6">
 
-
-<section class="max-w-md mx-auto bg-white shadow rounded-xl p-10 -mt-12">
-
-<input id="email" placeholder="Email"
-class="w-full border p-3 rounded mb-4">
-
-<input id="password" type="password" placeholder="Password"
-class="w-full border p-3 rounded mb-6">
-
-<button onclick="signupUser()">Create Account</button>
-<script src="js/auth.js"></script>
-<script>
-class="w-full bg-[#006400] text-white py-3 rounded hover:bg-[#004b00]">
+<button
+onclick="signup()"
+class="w-full bg-green-700 text-white py-3 rounded-lg">
 
 Create Account
 
 </button>
 
-<p class="text-center mt-4">
+<p class="text-center text-sm mt-6">
 
 Already have an account?
 
@@ -74,17 +48,39 @@ Login
 
 </p>
 
-</section>
+</div>
 
-
-<script src="js/auth.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
 
-function signupUser(){
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-  signup(email,password);
+const supabaseClient = supabase.createClient(
+"https://odantloiqtucdqoqwjnl.supabase.co",
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kYW50bG9pcXR1Y2Rxb3F3am5sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1ODc2NjMsImV4cCI6MjA4OTE2MzY2M30._NFnGZ2GlRSPrB37cRn5mVdvCdMe1MuGbI6SPSa44BU"
+)
+
+async function signup(){
+
+const email = document.getElementById("email").value
+const password = document.getElementById("password").value
+
+const { data, error } = await supabaseClient.auth.signUp({
+email: email,
+password: password
+})
+
+if(error){
+
+alert(error.message)
+
+}else{
+
+alert("Account created! Please log in.")
+
+window.location.href="login.html"
+
+}
+
 }
 
 </script>
