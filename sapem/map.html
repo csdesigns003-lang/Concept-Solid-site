@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>SapEM Sensor Map</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+
+body{
+background:#0f172a;
+color:white;
+font-family:Arial;
+}
+
+.map{
+position:relative;
+width:100%;
+height:600px;
+background:#1e293b;
+border-radius:14px;
+overflow:hidden;
+}
+
+.sensor{
+position:absolute;
+width:22px;
+height:22px;
+border-radius:50%;
+cursor:pointer;
+transform:translate(-50%,-50%);
+border:2px solid white;
+}
+
+.sensor.good{
+background:#22c55e;
+}
+
+.sensor.warning{
+background:#eab308;
+}
+
+.sensor.bad{
+background:#ef4444;
+}
+
+.tooltip{
+position:absolute;
+background:#111827;
+padding:10px;
+border-radius:6px;
+font-size:12px;
+pointer-events:none;
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<header class="bg-slate-900 border-b border-slate-700">
+
+<div class="max-w-7xl mx-auto px-6 py-4 flex justify-between">
+
+<h1 class="text-xl font-bold">
+SapEM Sensor Network
+</h1>
+
+<a href="dashboard.html" class="text-sm bg-slate-700 px-4 py-2 rounded">
+Back to Dashboard
+</a>
+
+</div>
+
+</header>
+
+
+<div class="max-w-7xl mx-auto p-6">
+
+<div class="bg-slate-800 p-6 rounded-xl">
+
+<h2 class="text-lg mb-4">
+Sugar Bush Layout
+</h2>
+
+<div id="map" class="map"></div>
+
+</div>
+
+</div>
+
+
+<script>
+
+const supabaseClient = supabase.createClient(
+"https://odantloiqtucdqoqwjnl.supabase.co",
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kYW50bG9pcXR1Y2Rxb3F3am5sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1ODc2NjMsImV4cCI6MjA4OTE2MzY2M30._NFnGZ2GlRSPrB37cRn5mVdvCdMe1MuGbI6SPSa44BU"
+)
+
+</script>
+
+
+<script>
+
+function vacuumStatus(v){
+
+if(v < -0.32) return "good"
+if(v < -0.28) return "warning"
+
+return "bad"
+
+}
+
+</script>
+
+
+<script>
+
+async function loadSensors(){
+
+const {data,error} = await supabaseClient
+.from("sensors")
+.select("*")
+
+if(error) return
+
+const map=document.getElementById("map")
+
+map.innerHTML=""
+
+data.forEach(sensor=>{
+
+let dot=document.createElement("div")
+
+dot.className="sensor "+vacuumStatus(sensor.pressure)
+
+dot.style.left=sensor.map_x+"%"
+dot.style.top=sensor.map_y+"%"
+
+dot.onmouseenter=(e)=>{
+
+let tip=document.createElement("div")
+
+tip.className="tooltip"
+
+tip.innerHTML=`
+<b>${sensor.sensor_name}</b><br>
+Vacuum: ${sensor.pressure} inHg<br>
+Temp: ${sensor.temperature} °C<br>
+Battery: ${sensor.battery}%<br>
+Signal: ${sensor.rssi} dBm
+`
+
+tip.style.left=e.pageX+"px"
+tip.style.top=(e.pageY-40)+"px"
+
+tip.id="tip"
+
+document.body.appendChild(tip)
+
+}
+
+dot.onmouseleave=()=>{
+
+let t=document.getElementById("tip")
+if(t) t.remove()
+
+}
+
+map.appendChild(dot)
+
+})
+
+}
+
+loadSensors()
+
+</script>
+
+
+<script>
+
+/* realtime updates */
+
+supabaseClient
+.channel("map-stream")
+.on(
+"postgres_changes",
+{event:"INSERT",schema:"public",table:"sensors"},
+payload=>{
+loadSensors()
+}
+)
+.subscribe()
+
+</script>
+
+
+</body>
+</html>
