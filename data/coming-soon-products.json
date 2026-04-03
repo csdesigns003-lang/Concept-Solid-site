@@ -1,13 +1,13 @@
 [
   {
-    "id": "sapem-mini",
-    "name": "SapEM Mini Sensor",
+    "id": "productivity-mouse",
+    "name": "4 Finger Productivity Mouse",
     "price": 0,
     "images": ["images/sapem-mini.png"]
   },
   {
-    "id": "bike-tool",
-    "name": "Universal Bike Tool",
+    "id": "wheel-hanger",
+    "name": "Axle Wheel Hanger",
     "price": 0,
     "images": ["images/bike-tool.png"]
   }
