@@ -1,1 +1,18 @@
-asdf
+[
+  {
+    "id": "bike-tool",
+    "name": "Precision Bike Tool",
+    "description": "Professional grade tool for servicing modern mountain bikes.",
+    ]
+  },
+
+  {
+    "id": "torque-wrench",
+    "name": "Mini Torque Wrench",
+    "description": "Compact torque wrench for precision bolt torque.",
+    "images": [
+      "images/torque1.jpg",
+      "images/torque2.jpg"
+    ]
+  }
+]
