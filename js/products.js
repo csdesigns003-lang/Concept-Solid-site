@@ -1,32 +1,35 @@
 async function loadProducts(dataFile, containerID) {
-  const res = await fetch(dataFile)
-  const products = await res.json()
 
-  const grid = document.getElementById(containerID)
+const res = await fetch(dataFile)
+const products = await res.json()
 
-  products.forEach(product => {
-    grid.innerHTML += `
-      <a href="product.html?id=${product.id}"
-         class="block bg-white rounded-xl shadow hover:shadow-xl p-6">
+const grid = document.getElementById(containerID)
 
-        <img src="${product.images[0]}" class="rounded mb-4">
+products.forEach(product => {
 
-        <h3 class="text-xl font-bold">
-          ${product.name}
-        </h3>
+grid.innerHTML += `
 
-        <p class="text-gray-600 mb-2">
-          ${product.description} <!-- <-- This is where bold <strong> in JSON will render -->
-        </p>
+<a href="product.html?id=${product.id}"
+class="block bg-white rounded-xl shadow hover:shadow-xl p-6">
 
-        <p class="text-blue-700 font-semibold">
-          $${product.price}
-        </p>
+<img src="${product.images[0]}" class="rounded mb-4">
 
-      </a>
-    `
-  })
+<h3 class="text-xl font-bold">
+${product.name}
+</h3>
+
+<p class="text-blue-700 font-semibold">
+$${product.price}
+</p>
+
+</a>
+
+`
+
+})
+
 }
+
 
 
 async function loadComingSoon(dataFile, containerID){
