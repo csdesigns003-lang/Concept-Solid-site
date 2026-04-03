@@ -2,13 +2,19 @@
   {
     "id": "bike-tool",
     "name": "Precision Bike Tool",
+    "price": 39.99,
     "description": "Professional grade tool for servicing modern mountain bikes.",
+    "images": [
+      "images/bike1.jpg",
+      "images/bike2.jpg",
+      "images/bike3.jpg"
     ]
   },
 
   {
     "id": "torque-wrench",
     "name": "Mini Torque Wrench",
+    "price": 59.99,
     "description": "Compact torque wrench for precision bolt torque.",
     "images": [
       "images/torque1.jpg",
