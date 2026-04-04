@@ -10,5 +10,11 @@
     "name": "Axle Wheel Hanger",
     "price": 0,
     "images": ["images/bike-tool.png"]
+  },
+  {
+    "id": "growler-tap",
+    "name": "Growler Tap",
+    "price": 0,
+    "images": ["images/bike-tool.png"]
   }
 ]
