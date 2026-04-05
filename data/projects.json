@@ -6,12 +6,7 @@
 "time":"2 hours",
 "cost":"$30",
 "tools":"3D Printer, Computer, Screw Driver, Soldering Iron",
-"description":"Walk past the ultrasonic distange sensor and the lights turn on, this project is almost entirly made from commonly found eletronics components that come with many beginer arduino kits. The base is an arduino nano or uno with some HC-SR04 ultrasonic distance sensors. The code and 3d printed wall mounts for the distance sensors are included. 
- 
- This project was inspired by a GreatScott video: 
- https://www.youtube.com/watch?v=Dujx3L1Evw8 
- 
- Full schematic and parts list to come!",
+"description":"Walk past the ultrasonic distange sensor and the lights turn on, this project is almost entirly made from commonly found eletronics components that come with many beginer arduino kits. The base is an arduino nano or uno with some HC-SR04 ultrasonic distance sensors. The code and 3d printed wall mounts for the distance sensors are included. \n \n This project was inspired by a GreatScott video: \n https://www.youtube.com/watch?v=Dujx3L1Evw8 \n \n Full schematic and parts list to come!",
 "image":"images/stairlights.jpg",
 "zip":"projects/files/stairlights.zip"
 },
@@ -23,9 +18,7 @@
 "time":"Weekend",
 "cost":"$150",
 "tools":"3D Printer, Soldering Iron, Woodworking Tools",
-"description":"Full Arduino powered skee ball arcade machine with scoring sensors and LCD display. This project takes time and energy, but is worth it. This can be your personalized home skee ball machine with electronic scoring, sounds, and auto ball dispensing. All it takes is a weekend or two to build and you are playing skeeball in your home or garage! 
- 
- Full schematic and parts list to come!",
+"description":"Full Arduino powered skee ball arcade machine with scoring sensors and LCD display. This project takes time and energy, but is worth it. This can be your personalized home skee ball machine with electronic scoring, sounds, and auto ball dispensing. All it takes is a weekend or two to build and you are playing skeeball in your home or garage! \n \n Full schematic and parts list to come!",
 "image":"images/skeeball.jpg",
 "zip":"projects/files/skee-ball.zip"
 },
@@ -37,10 +30,7 @@
 "time":"1 hours",
 "cost":"$10",
 "tools":"3D Printer, Drill, M1.6 Tap",
-"description":"3D printed sunglasses for sunny days, as simple as print, install screw for hinges and snap in the lenses. 
- 
- Print these out of the resin of your choice, I went with Anycubic ABS-Like V2. The files include 2 versions, v14 is designed around installing 1mm stainless steel rods into the frame for added rigidity, v13 is only printed parts. 
- The holes may need to be chased with a drill, the clearance holes are 1/16in while the base holes for the screws are 1.2mm, then that base hole needs to be tapped with an M1.6 tap. When installing the screw add a drop of super glue to keep the screw from backing out.",
+"description":"3D printed sunglasses for sunny days, as simple as print, install screw for hinges and snap in the lenses. \n \n Print these out of the resin of your choice, I went with Anycubic ABS-Like V2. The files include 2 versions, v14 is designed around installing 1mm stainless steel rods into the frame for added rigidity, v13 is only printed parts. \n The holes may need to be chased with a drill, the clearance holes are 1/16in while the base holes for the screws are 1.2mm, then that base hole needs to be tapped with an M1.6 tap. When installing the screw add a drop of super glue to keep the screw from backing out.",
 "image":"images/sunglasses.jpg",
 "zip":"projects/files/sunglsses.zip"
 }
