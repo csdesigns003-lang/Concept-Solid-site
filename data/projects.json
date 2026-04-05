@@ -69,5 +69,29 @@
 "description":"Print your own Yeti holder your the Playmate Mini lunch box. The perfect way to carry in your coffee. Multiple versions included, one designed to use doublesided foam tape to attach to the handle, one designed to accomodate a #6 screw and one that proudly displayes the Concept Solid Logo. \n \n More to come!",
 "image":"images/yeti-holder.jpg",
 "zip":"projects/files/Playmate-Mini-Yeti-Holder.zip"
+},
+
+{
+"id":"bike-hook",
+"name":"Bike Storage Hook",
+"difficulty":"Beginner",
+"time":"1 hours",
+"cost":"$15",
+"tools":"Pliers, Drill, Impact Driver, Mallet",
+"description":"Assemble this simple assortment of galvinized pipe and fittings together along with the plasitic PEX pipe and you have a universal bike storage hook strong enough to hold a bike up to 40 pounds. Drill the correct size holes for your lag bolts and sink into a stud. The plastic pipe over the metal pipe prvents scratches under the seat of any bike. Storage is as simple as lift and set. No need to worry about damage to your rims, scratches in the frame, or complicated hardware.  \n \n More to come!",
+"image":"images/bike-hook.jpg",
+"zip":"projects/files/bike-hook.zip"
+},
+
+{
+"id":"business-card-case",
+"name":"Business Card Case",
+"difficulty":"Beginner",
+"time":"1 hours",
+"cost":"$1",
+"tools":"3D Printer",
+"description":"This business card holder holds about 25 cards at once. The drawer slides out with the slide of your thumb, the angle of the tray keeps the cards stacked at an angle allowing effortless removal of the top card for even the stickiest of cards. And thanks to the slot in the tray getting a finger and thumb in there to pinch out a card is even easier. \n \n More to come!",
+"image":"images/business-card-case.jpg",
+"zip":"projects/files/business-card-case.zip"
 }
 ]
