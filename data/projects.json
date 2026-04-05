@@ -33,5 +33,16 @@
 "description":"3D printed sunglasses for sunny days, as simple as print, install screw for hinges and snap in the lenses. \n \n Print these out of the resin of your choice, I went with Anycubic ABS-Like V2. The files include 2 versions, v14 is designed around installing 1mm stainless steel rods into the frame for added rigidity, v13 is only printed parts. \n The holes may need to be chased with a drill, the clearance holes are 1/16in while the base holes for the screws are 1.2mm, then that base hole needs to be tapped with an M1.6 tap. When installing the screw add a drop of super glue to keep the screw from backing out.",
 "image":"images/sunglasses.jpg",
 "zip":"projects/files/sunglsses.zip"
-}
+},
+  {
+"id":"chair-wheels",
+"name":"Off Road Office Chair Wheels",
+"difficulty":"Intermediate",
+"time":"3 hours",
+"cost":"$50",
+"tools":"3D Printer, Screw Driver, Wrench",
+"description":"Almost Fully 3D printed office chair wheels made for deep carpet and rolling over small objects like cords. These wheels have a hard rubber wheel made out of TPU and frame parts made out of PETG. The bearings used throughout (3 for each wheel) are standard 608 bearings that can be found for cheap online. The center axle is designed around a 5/16in OD by 2in long post screw that can be found at most hardware stores. The screws and washers to hold the bearings are #6. \ n \n This project sounds great until you mount them on your chair and sit down... The bearings explode. The design needs to be improved but is great in theory, this will change in the future to be good in theory as well as in practice. \n \n More to come!",
+"image":"images/office-chair-wheels.jpg",
+"zip":"projects/files/office-chair-wheels.zip"
+},
 ]
