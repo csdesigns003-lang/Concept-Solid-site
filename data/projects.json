@@ -7,7 +7,7 @@
 "cost":"$0 - $50",
 "tools":"3D Printer, Computer",
 "description":"Check out all my 3D printing projects on Printables!",
-"image":"images/printables.jpeg",
+"image":"images/printables.png",
 "zip":"https://www.printables.com/@ConceptSolid_4690221"
 },
 
@@ -24,54 +24,6 @@
 },
 
 {
-"id":"sunglasses",
-"name":"3D Printed Sunglasses",
-"difficulty":"Beginner",
-"time":"1 hours",
-"cost":"$10",
-"tools":"3D Printer, Drill, M1.6 Tap",
-"description":"3D printed sunglasses for sunny days, as simple as print, install screw for hinges and snap in the lenses. \n \n Print these out of the resin of your choice, I went with Anycubic ABS-Like V2. The files include 2 versions, v14 is designed around installing 1mm stainless steel rods into the frame for added rigidity, v13 is only printed parts. \n The holes may need to be chased with a drill, the clearance holes are 1/16in while the base holes for the screws are 1.2mm, then that base hole needs to be tapped with an M1.6 tap. When installing the screw add a drop of super glue to keep the screw from backing out. \n \n Lenses that Fit the frames can be found on ebay, they are replacement lenses for Oakley Holbrook OO9102.",
-"image":"images/sunglasses.jpg",
-"zip":"projects/files/sunglasses.zip"
-},
-
-{
-"id":"chair-wheels",
-"name":"Off Road Office Chair Wheels",
-"difficulty":"Intermediate",
-"time":"3 hours",
-"cost":"$50",
-"tools":"3D Printer, Screw Driver, Wrench",
-"description":"Almost Fully 3D printed office chair wheels made for deep carpet and rolling over small objects like cords. These wheels have a hard rubber wheel made out of TPU and frame parts made out of PETG. The bearings used throughout (3 for each wheel) are standard 608 bearings that can be found for cheap online. The center axle is designed around a 5/16in OD by 2in long post screw that can be found at most hardware stores. The screws and washers to hold the bearings are #6. \n \n This project sounds great until you mount them on your chair and sit down... The bearings explode. The design needs to be improved but is great in theory, this will change in the future to be good in theory as well as in practice. \n \n More to come!",
-"image":"images/office-chair-wheels.jpg",
-"zip":"projects/files/office-chair-wheels.zip"
-},
-
-{
-"id":"phone-stand",
-"name":"Phone Stand",
-"difficulty":"Beginner",
-"time":"0.5 hours",
-"cost":"$1",
-"tools":"3D Printer",
-"description":"This is the Concept Solid take on a simple phone stand. There are two versions, one with a smooth base and one with a bump in the base to be able to move the stand around your desk, your pinkie nestles into place and can better push the phone around. \n \n More to come!",
-"image":"images/phone-stand.jpg",
-"zip":"projects/files/phone-stand.zip"
-},
-
-{
-"id":"yeti-holder",
-"name":"Playmate Mini Yeti Holder",
-"difficulty":"Beginner",
-"time":"1 hours",
-"cost":"$5",
-"tools":"3D Printer, Screw Driver, Wrench",
-"description":"Print your own Yeti holder your the Playmate Mini lunch box. The perfect way to carry in your coffee. Multiple versions included, one designed to use doublesided foam tape to attach to the handle, one designed to accomodate a #6 screw and one that proudly displayes the Concept Solid Logo. \n \n More to come!",
-"image":"images/yeti-holder.jpg",
-"zip":"projects/files/Playmate-Mini-Yeti-Holder.zip"
-},
-
-{
 "id":"bike-hook",
 "name":"Bike Storage Hook",
 "difficulty":"Beginner",
@@ -81,17 +33,6 @@
 "description":"Assemble this simple assortment of galvinized pipe and fittings together along with the plasitic PEX pipe and you have a universal bike storage hook strong enough to hold a bike up to 40 pounds. Drill the correct size holes for your lag bolts and sink into a stud. The plastic pipe over the metal pipe prvents scratches under the seat of any bike. Storage is as simple as lift and set. No need to worry about damage to your rims, scratches in the frame, or complicated hardware.  \n \n More to come!",
 "image":"images/bike-hook.jpg",
 "zip":"projects/files/bike-hook.zip"
-},
-
-{
-"id":"business-card-case",
-"name":"Business Card Case",
-"difficulty":"Beginner",
-"time":"1 hours",
-"cost":"$1",
-"tools":"3D Printer",
-"description":"This business card holder holds about 25 cards at once. The drawer slides out with the slide of your thumb, the angle of the tray keeps the cards stacked at an angle allowing effortless removal of the top card for even the stickiest of cards. And thanks to the slot in the tray getting a finger and thumb in there to pinch out a card is even easier. \n \n More to come!",
-"image":"images/business-card-case.jpg",
-"zip":"projects/files/business-card-case.zip"
 }
+
 ]
