@@ -47,7 +47,7 @@ html += `
 
 <div class="bg-white rounded-xl shadow p-6 text-center opacity-80">
 
-// <img src="${product.images[0]}" class="rounded mb-4">
+
 
 
 <h3 class="text-xl font-bold">
