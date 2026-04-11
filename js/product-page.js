@@ -49,11 +49,6 @@ onclick="document.getElementById('main-image').src='${img}'">
 
 })
 
-document.getElementById("add-cart-btn").onclick = function(){
-
-//addToCart(product.id, product.price)
-
-}
 
 }
 
