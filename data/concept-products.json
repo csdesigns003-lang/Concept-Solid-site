@@ -43,14 +43,14 @@
 ],
     
     "images": [
-      "images/rackstop1.25packaging.jpg",
-      "images/rackstop1.25installednopin.jpg",
-      "images/rackstopinstalledfar.jpg",
-      "images/rackstop1.25installedtop.jpg",
-      "images/rackstop2.0bike.jpg",
-      "images/rackstopinstructions.jpg",
-      "images/rackstop1.25rack.jpg",
-      "images/rackstopboth.jpg"
+      "images/rackstop1.25packaging.jpeg",
+      "images/rackstop1.25installednopin.jpeg",
+      "images/rackstopinstalledfar.jpeg",
+      "images/rackstop1.25installedtop.jpeg",
+      "images/rackstop2.0bike.jpeg",
+      "images/rackstopinstructions.jpeg",
+      "images/rackstop1.25rack.jpeg",
+      "images/rackstopboth.jpeg"
     ]
   },
 
@@ -98,14 +98,14 @@
 ],
 
     "images": [
-      "images/rackstop2.0packaging.jpg",
-      "images/rackstop1.25installednopin.jpg",
-      "images/rackstopinstalledfar.jpg",
-      "images/rackstop1.25installedtop.jpg",
-      "images/rackstop2.0bike.jpg",
-      "images/rackstopinstructions.jpg",
-      "images/rackstop1.25rack.jpg",
-      "images/rackstopboth.jpg"
+      "images/rackstop2.0packaging.jpeg",
+      "images/rackstop1.25installednopin.jpeg",
+      "images/rackstopinstalledfar.jpeg",
+      "images/rackstop1.25installedtop.jpeg",
+      "images/rackstop2.0bike.jpeg",
+      "images/rackstopinstructions.jpeg",
+      "images/rackstop1.25rack.jpeg",
+      "images/rackstopboth.jpeg"
     ]
   }
 ]
