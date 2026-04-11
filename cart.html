@@ -240,7 +240,7 @@ let subtotal = 0
 
 cart.forEach((item,index)=>{
 
-subtotal += item.price * item.qty
+subtotal += (item.price || 0) * (item.qty || 0);
 
 container.innerHTML += `
 
