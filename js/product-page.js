@@ -7,6 +7,9 @@ const res = await fetch("data/concept-products.json")
 const products = await res.json()
 
 const product = products.find(p => p.id === productID)
+document.getElementById("add-cart-btn").onclick = () => {
+  addToCart(product);
+};
 
 document.getElementById("product-name").innerText = product.name
 document.getElementById("product-price").innerText = "$" + product.price
@@ -48,7 +51,7 @@ onclick="document.getElementById('main-image').src='${img}'">
 
 document.getElementById("add-cart-btn").onclick = function(){
 
-addToCart(product.id, product.price)
+//addToCart(product.id, product.price)
 
 }
 
