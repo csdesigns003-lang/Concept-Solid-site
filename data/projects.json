@@ -1,14 +1,14 @@
 [
 {
-"id":"stair-lights",
-"name":"Under Railing Stair Lights",
-"difficulty":"Intermediate",
-"time":"2 hours",
-"cost":"$30",
-"tools":"3D Printer, Computer, Screw Driver, Soldering Iron",
-"description":"Walk past the ultrasonic distange sensor and the lights turn on, this project is almost entirly made from commonly found eletronics components that come with many beginer arduino kits. The base is an arduino nano or uno with some HC-SR04 ultrasonic distance sensors. The code and 3d printed wall mounts for the distance sensors are included. \n \n This project was inspired by a GreatScott video: \n https://www.youtube.com/watch?v=Dujx3L1Evw8 \n \n Full schematic and parts list to come!",
-"image":"images/stairlights.jpg",
-"zip":"projects/files/stairlights.zip"
+"id":"3d-printing",
+"name":"3D Printing Projects",
+"difficulty":"Beginner - Advanced",
+"time":"0-5 hours",
+"cost":"$0 - $50",
+"tools":"3D Printer, Computer",
+"description":"Check out all my 3D printing projects on Printables!",
+"image":"images/printables.jpeg",
+"zip":"https://www.printables.com/@ConceptSolid_4690221"
 },
 
 {
