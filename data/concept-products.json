@@ -3,12 +3,39 @@
     "id": "rackstop1.25",
     "name": "RackStop 1.25",
     "price": 28.99,
-    "description": "Meet RackStop, the best addition you can make to your biking toolkit. This simple addition to any 1.25in receiver hitch rack will get you to the trails faster with no more frustration. Set it once and enjoy faster, smoother, effortless installation of your bike or cargo rack every time. It is a simple as install the RackStop to any rack stem, install the rack as usual, then set the rackstop against the receiving hitch and tighten the bolt. Never again spend time or energy on aligning the holes to insert your hitch pin. \n \n The RackStop is made of high quality industrial materials that can withstand high temperatures, UV exposure, and will last forever no matter what you put it through. \n \n Install once, enjoy effortless pin allignment every time! \n \n For 1.25in hitch receiver systems.",
+    "description": "Stop fighting your hitch pin.\n\n
+Meet RackStop — the simple upgrade that eliminates the frustration of aligning your hitch pin.\n\n
+If you use a 1.25in receiver bike rack, you know the routine: lift the rack, wiggle it, slide it, pull it out, try again… all just to line up the pin hole.\n\n
+RackStop fixes that.\n\n
+Install it once on your rack stem, slide the rack into your receiver like normal, set the RackStop against the hitch face, and tighten the bolt. From that point on, your rack stops in the exact position needed for the hitch pin — every time.\n\n
+No more guessing.\n
+No more sliding the rack back and forth.\n
+Just insert the rack and drop in the pin.\n\n
+FEATURES\n\n
+• Eliminates hitch pin alignment frustration\n
+• Install once — perfect alignment every time\n
+• Durable industrial materials\n
+• Handles UV exposure and temperature extremes\n
+• Installs in minutes\n\n
+HOW IT WORKS\n\n
+1. Install RackStop on your rack stem\n
+2. Insert your rack into the receiver\n
+3. Slide RackStop against the hitch face\n
+4. Tighten the bolt\n\n
+Your rack will now stop in the exact position needed for the hitch pin every time you install it.\n\n
+Built from durable industrial materials designed for outdoor use, RackStop is made to withstand years of use on the road and trail.\n\n
+Install once. Enjoy effortless hitch pin alignment forever.\n\n
+Compatible with standard 1.25in receiver hitch racks.",
     
     "images": [
-      "images/bike1.jpg",
-      "images/bike2.jpg",
-      "images/bike3.jpg"
+      "images/rackstop1.25packaging.jpg",
+      "images/rackstop1.25installednopin.jpg",
+      "images/rackstopinstalledfar.jpg",
+      "images/rackstop1.25installedtop.jpg"
+      "images/rackstop2.0bike.jpg"
+      "images/rackstopinstructions.jpg",
+      "images/rackstop1.25rack.jpg",
+      "images/rackstopboth.jpg"
     ]
   },
 
@@ -16,10 +43,39 @@
     "id": "rackstop2.0",
     "name": "RackStop 2.0",
     "price": 28.99,
-    "description": "Meet RackStop, the best addition you can make to your biking toolkit. This simple addition to any 2.0in receiver hitch rack will get you to the trails faster with no more frustration. Set it once and enjoy faster, smoother, effortless installation of your bike or cargo rack every time. It is a simple as install the RackStop to any rack stem, install the rack as usual, then set the rackstop against the receiving hitch and tighten the bolt. Never again spend time or energy on aligning the holes to insert your hitch pin. \n \n The RackStop is made of high quality industrial materials that can withstand high temperatures, UV exposure, and will last forever no matter what you put it through. \n \n Install once, enjoy effortless pin allignment every time! \n \n For 2.0in hitch receiver systems.",
+    "description": "Stop fighting your hitch pin.\n\n
+Meet RackStop — the simple upgrade that eliminates the frustration of aligning your hitch pin.\n\n
+If you use a 2.0in receiver bike rack, you know the routine: lift the rack, wiggle it, slide it, pull it out, try again… all just to line up the pin hole.\n\n
+RackStop fixes that.\n\n
+Install it once on your rack stem, slide the rack into your receiver like normal, set the RackStop against the hitch face, and tighten the bolt. From that point on, your rack stops in the exact position needed for the hitch pin — every time.\n\n
+No more guessing.\n
+No more sliding the rack back and forth.\n
+Just insert the rack and drop in the pin.\n\n
+FEATURES\n\n
+• Eliminates hitch pin alignment frustration\n
+• Install once — perfect alignment every time\n
+• Durable industrial materials\n
+• Handles UV exposure and temperature extremes\n
+• Installs in minutes\n\n
+HOW IT WORKS\n\n
+1. Install RackStop on your rack stem\n
+2. Insert your rack into the receiver\n
+3. Slide RackStop against the hitch face\n
+4. Tighten the bolt\n\n
+Your rack will now stop in the exact position needed for the hitch pin every time you install it.\n\n
+Built from durable industrial materials designed for outdoor use, RackStop is made to withstand years of use on the road and trail.\n\n
+Install once. Enjoy effortless hitch pin alignment forever.\n\n
+Compatible with standard 2.0in receiver hitch racks.",
+
     "images": [
-      "images/torque1.jpg",
-      "images/torque2.jpg"
+      "images/rackstop2.0packaging.jpg",
+      "images/rackstop1.25installednopin.jpg",
+      "images/rackstopinstalledfar.jpg",
+      "images/rackstop1.25installedtop.jpg"
+      "images/rackstop2.0bike.jpg"
+      "images/rackstopinstructions.jpg",
+      "images/rackstop1.25rack.jpg",
+      "images/rackstopboth.jpg"
     ]
   }
 ]
