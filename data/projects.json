@@ -32,7 +32,11 @@
 "cost":"$15",
 "tools":"Pliers, Drill, Impact Driver, Mallet",
 "description":"Assemble this simple assortment of galvinized pipe and fittings together along with the plasitic PEX pipe and you have a universal bike storage hook strong enough to hold a bike up to 40 pounds. Drill the correct size holes for your lag bolts and sink into a stud. The plastic pipe over the metal pipe prvents scratches under the seat of any bike. Storage is as simple as lift and set. No need to worry about damage to your rims, scratches in the frame, or complicated hardware.  \n \n More to come!",
-"image":"images/bike-hook.jpg",
+"image": [
+  "images/bikehook1.jpeg",
+  "images/bikehook2.jpeg",
+  "images/bikehook3.jpeg"
+]
 "download":"projects/files/bike-hook.zip"
 }
 
