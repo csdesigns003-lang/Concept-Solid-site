@@ -19,7 +19,11 @@
 "cost":"$150",
 "tools":"3D Printer, Soldering Iron, Woodworking Tools",
 "description":"Full Arduino powered skee ball arcade machine with scoring sensors and LCD display. This project takes time and energy, but is worth it. This can be your personalized home skee ball machine with electronic scoring, sounds, and auto ball dispensing. All it takes is a weekend or two to build and you are playing skeeball in your home or garage! \n \n Full schematic and parts list to come!",
-"image":"images/skeeball.jpg",
+"image": [
+  "images/skeeball.gif",
+  "images/skeeballwood.JPG",
+  "images/skeeballhinge.jpg"
+]
 "download":"projects/files/skeeball.zip",
 "video":"https://www.youtube.com/shorts/-cLo-4VxnyM"
 },
