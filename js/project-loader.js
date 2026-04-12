@@ -52,7 +52,8 @@ document.getElementById("project-cost").innerText = p.cost
 document.getElementById("project-tools").innerText = p.tools
 document.getElementById("project-description").innerText = p.description
 
-document.getElementById("project-image").src = p.image
+document.getElementById("project-image").src =
+Array.isArray(p.image) ? p.image[0] : p.image
 
 
 // CREATE BUTTONS
