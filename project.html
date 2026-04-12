@@ -200,12 +200,16 @@ async>
 
 <script>
 
+<script>
+
 const supabaseClient = supabase.createClient(
 "https://YOURPROJECT.supabase.co",
 "PUBLIC_ANON_KEY"
 )
 
 const projectSlug = projectID
+
+let currentProject = null
 
 async function recordDownload(){
 
@@ -216,10 +220,12 @@ slug: projectSlug
 }
 
 async function downloadProject(){
-let currentProject = null
+
+if(!currentProject) return
+
 await recordDownload()
 
-window.location.href = "downloads/" + projectSlug + ".zip"
+window.location.href = currentProject.download
 
 }
 
