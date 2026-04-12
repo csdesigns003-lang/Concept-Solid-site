@@ -54,6 +54,22 @@ document.getElementById("project-description").innerText = p.description
 
 document.getElementById("project-image").src =
 Array.isArray(p.image) ? p.image[0] : p.image
+const thumbContainer = document.getElementById("project-thumbnails")
+thumbContainer.innerHTML = ""
+
+if(Array.isArray(p.image)){
+
+p.image.forEach(img => {
+
+thumbContainer.innerHTML += `
+<img src="${img}"
+class="w-20 h-20 object-cover rounded cursor-pointer border hover:border-blue-500"
+onclick="document.getElementById('project-image').src='${img}'">
+`
+
+})
+
+}
 
 
 // CREATE BUTTONS
