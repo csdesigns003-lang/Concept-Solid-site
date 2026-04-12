@@ -20,7 +20,7 @@
 "tools":"3D Printer, Soldering Iron, Woodworking Tools",
 "description":"Full Arduino powered skee ball arcade machine with scoring sensors and LCD display. This project takes time and energy, but is worth it. This can be your personalized home skee ball machine with electronic scoring, sounds, and auto ball dispensing. All it takes is a weekend or two to build and you are playing skeeball in your home or garage! \n \n Video of the machine being played: https://www.youtube.com/shorts/-cLo-4VxnyM \n \n Full schematic and parts list to come!",
 "image":"images/skeeball.jpg",
-"zip":"projects/files/skeeball.zip",
+"download":"projects/files/skeeball.zip",
 "video":"https://www.youtube.com/shorts/-cLo-4VxnyM"
 },
 
@@ -33,7 +33,7 @@
 "tools":"Pliers, Drill, Impact Driver, Mallet",
 "description":"Assemble this simple assortment of galvinized pipe and fittings together along with the plasitic PEX pipe and you have a universal bike storage hook strong enough to hold a bike up to 40 pounds. Drill the correct size holes for your lag bolts and sink into a stud. The plastic pipe over the metal pipe prvents scratches under the seat of any bike. Storage is as simple as lift and set. No need to worry about damage to your rims, scratches in the frame, or complicated hardware.  \n \n More to come!",
 "image":"images/bike-hook.jpg",
-"zip":"projects/files/bike-hook.zip"
+"download":"projects/files/bike-hook.zip"
 }
 
 ]
