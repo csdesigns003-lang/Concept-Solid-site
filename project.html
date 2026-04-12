@@ -105,18 +105,7 @@ Concept Solid
 <div class="space-y-2 mb-8">
 
 <div id="project-buttons" class="flex flex-wrap gap-4 mb-10"></div>
-class="bg-blue-600 hover:bg-blue-700
-text-white text-xl font-semibold
-px-10 py-5 rounded-xl
-shadow-lg hover:shadow-xl
-transition">
-
-⬇ Download Files
-<span class="ml-3 text-blue-200 text-lg">
-(<span id="downloadCount">0</span>)
-</span>
-
-</button>
+</div>
 
 <div class="space-y-2 mb-12">
 
@@ -227,7 +216,7 @@ slug: projectSlug
 }
 
 async function downloadProject(){
-
+let currentProject = null
 await recordDownload()
 
 window.location.href = "downloads/" + projectSlug + ".zip"
