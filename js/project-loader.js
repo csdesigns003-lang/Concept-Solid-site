@@ -15,7 +15,7 @@ grid.innerHTML += `
 <a href="project.html?id=${p.id}"
 class="bg-white p-6 rounded-xl shadow hover:shadow-xl transition">
 
-<img src="${p.image}" class="rounded mb-4">
+<img src="${Array.isArray(p.image) ? p.image[0] : p.image}" class="rounded mb-4">
 
 <h3 class="text-xl font-bold mb-2">
 ${p.name}
