@@ -115,7 +115,7 @@ async function downloadProject(){
 
 if(!currentProject) return
 
-await recordDownload()
+//await recordDownload()
 
 window.location.href = currentProject.download
 
@@ -136,4 +136,4 @@ data.download_count
 
 }
 
-loadDownloads()
+//loadDownloads()
