@@ -5,6 +5,52 @@ const projects = await res.json()
 
 const grid = document.getElementById(containerID)
 
+const buttons = document.getElementById("project-buttons")
+
+buttons.innerHTML = ""
+
+// DOWNLOAD BUTTON
+if(project.download){
+buttons.innerHTML += `
+<button onclick="downloadProject()"
+class="bg-blue-600 hover:bg-blue-700
+text-white text-lg font-semibold
+px-8 py-4 rounded-xl shadow">
+
+⬇ Download Files
+
+</button>
+`
+}
+
+// EXTERNAL LINK
+if(project.external_link){
+buttons.innerHTML += `
+<a href="${project.external_link}" target="_blank"
+class="bg-green-600 hover:bg-green-700
+text-white text-lg font-semibold
+px-8 py-4 rounded-xl shadow">
+
+🔗 View Project
+
+</a>
+`
+}
+
+// VIDEO
+if(project.video){
+buttons.innerHTML += `
+<a href="${project.video}" target="_blank"
+class="bg-red-600 hover:bg-red-700
+text-white text-lg font-semibold
+px-8 py-4 rounded-xl shadow">
+
+▶ Watch Video
+
+</a>
+`
+}
+
 projects.forEach(p=>{
 
 grid.innerHTML += `
