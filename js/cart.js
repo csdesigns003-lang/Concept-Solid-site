@@ -10,8 +10,6 @@ if (existing) {
 } else {
   cart.push({
     id: product.id,
-    name: product.name,
-    price: product.price,
     qty: 1
   });
 }
