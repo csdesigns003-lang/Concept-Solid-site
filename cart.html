@@ -174,11 +174,32 @@ Order Summary
 
 </div>
 
+<h3 class="text-xl font-bold mb-4">Shipping Information</h3>
 
-<button class="checkout-btn w-full">
+<div class="space-y-4">
 
+<input id="ship-name" placeholder="Full Name"
+class="w-full border rounded p-3">
+
+<input id="ship-email" placeholder="Email"
+class="w-full border rounded p-3">
+
+<input id="ship-address" placeholder="Address"
+class="w-full border rounded p-3">
+
+<input id="ship-city" placeholder="City"
+class="w-full border rounded p-3">
+
+<input id="ship-state" placeholder="State"
+class="w-full border rounded p-3">
+
+<input id="ship-zip" placeholder="ZIP Code"
+class="w-full border rounded p-3">
+
+</div>
+  
+<button onclick="checkout()" class="checkout-btn w-full">
 Proceed to Checkout
-
 </button>
 
 <p class="text-sm text-gray-500 mt-4 text-center">
@@ -322,6 +343,41 @@ renderCart()
 function toggleMenu(){
   const menu = document.getElementById("mobileMenu");
   menu.classList.toggle("hidden");
+}
+</script>
+
+<script>
+  async function checkout(){
+
+const cart = JSON.parse(localStorage.getItem("cart")) || []
+
+if(cart.length === 0){
+alert("Your cart is empty")
+return
+}
+
+const shipping = {
+name: document.getElementById("ship-name").value,
+email: document.getElementById("ship-email").value,
+address: document.getElementById("ship-address").value,
+city: document.getElementById("ship-city").value,
+state: document.getElementById("ship-state").value,
+zip: document.getElementById("ship-zip").value
+}
+
+const response = await fetch("/create-checkout-session",{
+method:"POST",
+headers:{ "Content-Type":"application/json" },
+body:JSON.stringify({
+cart: cart,
+shipping: shipping
+})
+})
+
+const data = await response.json()
+
+window.location = data.url
+
 }
 </script>
 
