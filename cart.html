@@ -367,22 +367,25 @@ state: document.getElementById("ship-state").value,
 zip: document.getElementById("ship-zip").value
 }
 
-const response = await fetch("/create-checkout-session",{
+const res = await fetch(
+"https://rrcuuftcbwltppkmfpxv.supabase.co/functions/v1/create-checkout",
+{
 method:"POST",
-headers:{ "Content-Type":"application/json" },
-body:JSON.stringify({
+headers:{
+"Content-Type":"application/json"
+},
+body: JSON.stringify({
 cart: cart,
 shipping: shipping
 })
 })
 
-const data = await response.json()
+const data = await res.json()
 
 window.location = data.url
 
 }
 </script>
-
 
 </body>
 </html>
