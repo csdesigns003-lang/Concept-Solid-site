@@ -132,6 +132,13 @@ document.getElementById("order-modal").classList.add("hidden")
 
 </script>
 
+<script>
+await supabase.auth.signInWithPassword({
+email:"your@email.com",
+password:"password"
+})
+</script>
+
 
 </body>
 </html>
