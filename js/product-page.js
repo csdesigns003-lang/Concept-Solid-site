@@ -64,9 +64,9 @@ if (product.etsyUrl) {
 }
   
 // ✅ CART BUTTON (FIXED)
-//document.getElementById("add-cart-btn").onclick = () => {
-//  addToCart(product);
-//};
+document.getElementById("add-cart-btn").onclick = () => {
+  addToCart(product);
+};
 
 }
 
