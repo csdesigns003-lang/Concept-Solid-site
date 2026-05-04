@@ -1,5 +1,6 @@
 const params = new URLSearchParams(window.location.search);
 const productID = params.get("id");
+const cartBtn = document.getElementById("add-cart-btn");
 
 async function loadProduct() {
 
@@ -64,9 +65,10 @@ if (product.etsyUrl) {
 }
   
 // ✅ CART BUTTON (FIXED)
-document.getElementById("add-cart-btn").onclick = () => {
-  addToCart(product);
-};
+if (cartBtn) {
+  cartBtn.onclick = () => {
+    addToCart(product);
+  };
 
 }
 
