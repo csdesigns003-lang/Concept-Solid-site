@@ -51,10 +51,22 @@ product.images.forEach(img => {
   `;
 });
 
+
+// NEW: Etsy button link
+const buyBtn = document.getElementById("buy-btn")
+
+if (product.etsyUrl) {
+  buyBtn.href = product.etsyUrl
+  buyBtn.target = "_blank" // opens Etsy in new tab
+} else {
+  // fallback if no Etsy link exists
+  buyBtn.style.display = "none"
+}
+  
 // ✅ CART BUTTON (FIXED)
-document.getElementById("add-cart-btn").onclick = () => {
-  addToCart(product);
-};
+//document.getElementById("add-cart-btn").onclick = () => {
+//  addToCart(product);
+//};
 
 }
 
