@@ -72,4 +72,6 @@ if (cartBtn) {
 
 }
 
+}
+
 loadProduct();
