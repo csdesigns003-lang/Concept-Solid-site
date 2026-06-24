@@ -3,65 +3,65 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 
-async function signup(email,password){
+// ── Auth actions ──────────────────────────────────────────
 
-const { data, error } = await supabase.auth.signUp({
-email:email,
-password:password
-})
-
-if(error){
-alert(error.message)
-return
+async function signup(email, password) {
+  const { data, error } = await supabase.auth.signUp({ email, password })
+  if (error) { alert(error.message); return null }
+  alert("Account created! Check your email to confirm.")
+  return data
 }
 
-alert("Account created. Check email confirmation.")
+async function login(email, password) {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+  if (error) { alert("Login failed: " + error.message); return null }
+  window.location.href = "dashboard.html"
 }
 
-async function login(email,password){
-
-const { data, error } = await supabase.auth.signInWithPassword({
-email:email,
-password:password
-})
-
-if(error){
-alert("Login failed")
-return
+async function logout() {
+  await supabase.auth.signOut()
+  window.location.href = "login.html"
 }
 
-window.location.href="dashboard.html"
+// ── Session / guard ───────────────────────────────────────
 
+async function getSession() {
+  const { data } = await supabase.auth.getSession()
+  return data.session
 }
 
-async function initDashboard(){
-  const session = await requireAuth();
-  console.log("Logged in as:", session.user.email);
-  loadUserSensors();
-}
-initDashboard();
-
-async function requireAuth(){
-
-const { data } = await supabase.auth.getSession()
-
-if(!data.session){
-window.location.href="login.html"
+async function getUser() {
+  const { data } = await supabase.auth.getUser()
+  return data.user
 }
 
-return data.session
-
+// Call this at the top of dashboard.html — redirects if not logged in
+async function requireAuth() {
+  const { data } = await supabase.auth.getSession()
+  if (!data.session) {
+    window.location.href = "login.html"
+    return null
+  }
+  return data.session
 }
 
-async function logout(){
+// ── Sensor data ───────────────────────────────────────────
 
-await supabase.auth.signOut()
-
-window.location.href="login.html"
-
+async function loadUserSensors() {
+  const { data, error } = await supabase
+    .from("sensors")
+    .select("*")
+  if (error) { console.error("Sensor load error:", error); return [] }
+  return data
 }
 
-async function getUser(){
-    const { data } = await supabase.auth.getUser();
-    return data.user;
+async function loadLatestReadings(sensorId) {
+  const { data, error } = await supabase
+    .from("sensor_readings")
+    .select("*")
+    .eq("sensor_id", sensorId)
+    .order("received_at", { ascending: false })
+    .limit(50)
+  if (error) { console.error("Reading load error:", error); return [] }
+  return data
 }
