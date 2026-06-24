@@ -1,88 +1,268 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Create SapEM Account</title>
-
+<link rel="icon" href="/images/favicon/sapem-favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon/sapem-favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/sapem-apple-touch-icon.png">
 <script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: "Microsoft Sans Serif", Arial, sans-serif; background: #f5f7fb; }
+  .hero { background: linear-gradient(120deg, #004b00, #006400, #228B22); }
+  .signup-card { transition: all .25s ease; }
+  .signup-card:hover { box-shadow: 0 20px 40px rgba(0,0,0,.15); }
 
+  /* Inline validation states */
+  .input-error  { border-color: #dc2626 !important; }
+  .input-ok     { border-color: #16a34a !important; }
+
+  .msg-error { color: #dc2626; font-size: 0.78rem; margin-top: 4px; display: none; }
+  .msg-ok    { color: #16a34a; font-size: 0.78rem; margin-top: 4px; display: none; }
+
+  /* Password strength bar */
+  #strength-bar-wrap { height: 4px; background: #e5e7eb; border-radius: 9999px; margin-top: 6px; }
+  #strength-bar      { height: 4px; border-radius: 9999px; width: 0%; transition: width .3s, background .3s; }
+</style>
 </head>
+<body>
 
-<body class="bg-gray-100 flex items-center justify-center h-screen">
+<!-- HEADER -->
+<header class="bg-white/90 backdrop-blur shadow sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
 
-<div class="bg-white p-10 rounded-xl shadow w-96">
+    <div class="hidden md:flex space-x-6 text-lg">
+      <a href="products.html" class="hover:text-[#006400]">Products</a>
+      <a href="resources.html" class="hover:text-[#006400]">Resources</a>
+    </div>
 
-<h2 class="text-2xl font-bold mb-6 text-center">
-Create Account
-</h2>
+    <a href="index.html" class="flex items-center gap-3 hover:opacity-90">
+      <img src="../images/sapemlogo.png" class="h-10 md:h-12">
+      <span class="text-2xl md:text-4xl font-extrabold tracking-tight">SapEM Systems</span>
+    </a>
 
-<input id="email"
-type="email"
-placeholder="Email"
-class="w-full border rounded-lg px-4 py-3 mb-4">
+    <div class="hidden md:flex items-center space-x-6">
+      <a href="../index.html" class="text-gray-700 hover:text-[#006400]">Concept Solid</a>
+      <a href="login.html" class="hover:text-[#006400]">Login</a>
+      <a href="../cart.html" class="font-semibold">Cart (<span class="cart-count">0</span>)</a>
+    </div>
 
-<input id="password"
-type="password"
-placeholder="Password"
-class="w-full border rounded-lg px-4 py-3 mb-6">
+    <button onclick="toggleMenu()" class="md:hidden text-3xl">☰</button>
+  </div>
 
-<button
-onclick="signup()"
-class="w-full bg-green-700 text-white py-3 rounded-lg">
+  <div id="mobileMenu" class="hidden md:hidden bg-white border-t">
+    <a href="products.html" class="block px-6 py-4 border-b">Products</a>
+    <a href="resources.html" class="block px-6 py-4 border-b">Resources</a>
+    <a href="../index.html" class="block px-6 py-4 border-b">Concept Solid</a>
+    <a href="login.html" class="block px-6 py-4 border-b">Login</a>
+    <a href="../cart.html" class="block px-6 py-4">Cart</a>
+  </div>
+</header>
 
-Create Account
+<!-- HERO -->
+<section class="hero text-white py-24">
+  <div class="max-w-5xl mx-auto px-6 text-center">
+    <h1 class="text-5xl font-bold mb-6">Create Your Account</h1>
+    <p class="text-xl opacity-90">Get started monitoring your maple sap system.</p>
+  </div>
+</section>
 
-</button>
+<!-- SIGNUP CARD -->
+<section class="max-w-4xl mx-auto px-6 py-24">
+  <div class="signup-card bg-white rounded-xl shadow p-12 max-w-md mx-auto">
 
-<p class="text-center text-sm mt-6">
+    <h2 class="text-3xl font-bold mb-8 text-center">New Account</h2>
 
-Already have an account?
+    <form id="signupForm" class="space-y-5" novalidate>
 
-<a href="login.html" class="text-green-700 font-semibold">
-Login
-</a>
+      <!-- Email -->
+      <div>
+        <label class="block text-sm font-semibold mb-2">Email</label>
+        <input id="email" type="email" placeholder="user@example.com"
+          class="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#006400]">
+        <p id="email-error" class="msg-error">Enter a valid email address.</p>
+      </div>
 
-</p>
+      <!-- Password -->
+      <div>
+        <label class="block text-sm font-semibold mb-2">Password</label>
+        <input id="password" type="password" placeholder="Min. 8 characters"
+          class="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#006400]"
+          oninput="checkStrength()">
+        <div id="strength-bar-wrap"><div id="strength-bar"></div></div>
+        <p id="strength-label" class="text-xs text-gray-400 mt-1"></p>
+        <p id="password-error" class="msg-error">Password must be at least 8 characters.</p>
+      </div>
 
-</div>
+      <!-- Confirm Password -->
+      <div>
+        <label class="block text-sm font-semibold mb-2">Confirm Password</label>
+        <input id="confirm" type="password" placeholder="Re-enter password"
+          class="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#006400]"
+          oninput="checkMatch()">
+        <p id="confirm-error" class="msg-error">Passwords do not match.</p>
+        <p id="confirm-ok"    class="msg-ok">✓ Passwords match.</p>
+      </div>
 
+      <!-- Submit -->
+      <button type="submit" id="submitBtn"
+        class="w-full bg-[#006400] text-white py-3 rounded-lg font-semibold hover:bg-[#004b00] transition disabled:opacity-50 disabled:cursor-not-allowed">
+        Create Account
+      </button>
+
+      <!-- General error banner (Supabase errors) -->
+      <p id="general-error" class="msg-error text-center"></p>
+
+    </form>
+
+    <p class="text-center text-sm mt-6 text-gray-600">
+      Already have an account?
+      <a href="login.html" class="text-[#006400] font-semibold">Login</a>
+    </p>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="bg-gray-900 text-gray-300 py-16">
+  <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-3 gap-10">
+    <div>
+      <h3 class="text-xl font-bold mb-4">SapEM Systems</h3>
+      <p>Simple wireless monitoring for maple sap systems so producers can track vacuum pressure without the high cost of traditional systems.</p>
+    </div>
+    <div>
+      <h3 class="font-semibold mb-3">Contact</h3>
+      <p>Email: sapemsystems@gmail.com</p>
+    </div>
+    <div>
+      <h3 class="font-semibold mb-3">Links</h3>
+      <p><a href="products.html">Products</a></p>
+      <p><a href="resources.html">Resources</a></p>
+      <p><a href="../index.html">Concept Solid</a></p>
+    </div>
+  </div>
+</footer>
+
+<!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/auth.js"></script>
+<script src="../js/cart.js"></script>
 
 <script>
+  function toggleMenu() {
+    document.getElementById("mobileMenu").classList.toggle("hidden");
+  }
 
-const supabaseClient = supabase.createClient(
-"https://odantloiqtucdqoqwjnl.supabase.co",
-"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kYW50bG9pcXR1Y2Rxb3F3am5sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1ODc2NjMsImV4cCI6MjA4OTE2MzY2M30._NFnGZ2GlRSPrB37cRn5mVdvCdMe1MuGbI6SPSa44BU"
-)
+  // ── Password strength indicator ───────────────────────
+  function checkStrength() {
+    const val = document.getElementById("password").value
+    const bar = document.getElementById("strength-bar")
+    const lbl = document.getElementById("strength-label")
 
-async function signup(){
+    let score = 0
+    if (val.length >= 8)              score++
+    if (/[A-Z]/.test(val))            score++
+    if (/[0-9]/.test(val))            score++
+    if (/[^A-Za-z0-9]/.test(val))     score++
 
-const email = document.getElementById("email").value
-const password = document.getElementById("password").value
+    const levels = [
+      { w: "0%",   bg: "transparent", txt: "" },
+      { w: "25%",  bg: "#dc2626",     txt: "Weak" },
+      { w: "50%",  bg: "#f97316",     txt: "Fair" },
+      { w: "75%",  bg: "#eab308",     txt: "Good" },
+      { w: "100%", bg: "#16a34a",     txt: "Strong" },
+    ]
+    bar.style.width      = levels[score].w
+    bar.style.background = levels[score].bg
+    lbl.textContent      = levels[score].txt
+    lbl.style.color      = levels[score].bg
 
-const { data, error } = await supabaseClient.auth.signUp({
-email: email,
-password: password
-})
+    // also re-check match if confirm already has a value
+    if (document.getElementById("confirm").value) checkMatch()
+  }
 
-if(error){
+  // ── Password match indicator ──────────────────────────
+  function checkMatch() {
+    const pw  = document.getElementById("password").value
+    const cfm = document.getElementById("confirm").value
+    const err = document.getElementById("confirm-error")
+    const ok  = document.getElementById("confirm-ok")
+    const inp = document.getElementById("confirm")
 
-alert(error.message)
+    if (!cfm) {
+      err.style.display = "none"
+      ok.style.display  = "none"
+      inp.classList.remove("input-error", "input-ok")
+      return
+    }
 
-}else{
+    if (pw === cfm) {
+      err.style.display = "none"
+      ok.style.display  = "block"
+      inp.classList.remove("input-error")
+      inp.classList.add("input-ok")
+    } else {
+      ok.style.display  = "none"
+      err.style.display = "block"
+      inp.classList.remove("input-ok")
+      inp.classList.add("input-error")
+    }
+  }
 
-alert("Account created! Please log in.")
+  // ── Form submit ───────────────────────────────────────
+  document.getElementById("signupForm").addEventListener("submit", async function(e) {
+    e.preventDefault()
 
-window.location.href="login.html"
+    const email    = document.getElementById("email").value.trim()
+    const password = document.getElementById("password").value
+    const confirm  = document.getElementById("confirm").value
+    const emailErr = document.getElementById("email-error")
+    const pwErr    = document.getElementById("password-error")
+    const genErr   = document.getElementById("general-error")
 
-}
+    // Reset errors
+    emailErr.style.display = "none"
+    pwErr.style.display    = "none"
+    genErr.style.display   = "none"
 
-}
+    // Client-side validation
+    let valid = true
 
+    if (!email || !/\S+@\S+\.\S+/.test(email)) {
+      emailErr.style.display = "block"
+      document.getElementById("email").classList.add("input-error")
+      valid = false
+    }
+
+    if (password.length < 8) {
+      pwErr.style.display = "block"
+      document.getElementById("password").classList.add("input-error")
+      valid = false
+    }
+
+    if (password !== confirm) {
+      document.getElementById("confirm-error").style.display = "block"
+      document.getElementById("confirm").classList.add("input-error")
+      valid = false
+    }
+
+    if (!valid) return
+
+    // Disable button while submitting
+    const btn = document.getElementById("submitBtn")
+    btn.disabled     = true
+    btn.textContent  = "Creating account…"
+
+    const result = await signup(email, password)
+
+    if (!result) {
+      // signup() already alerted the Supabase error message
+      btn.disabled    = false
+      btn.textContent = "Create Account"
+    }
+    // On success, signup() in auth.js alerts and redirects to login.html
+  })
 </script>
 
 </body>
