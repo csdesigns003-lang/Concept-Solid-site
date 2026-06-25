@@ -67,7 +67,7 @@ async function loadLatestReadings(sensorId) {
 
 async function sendPasswordReset(email) {
   const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-    redirectTo: "https://yourusername.github.io/pages/reset-password.html"
+    redirectTo: "https://concept-solid.com/sapem/reset-password.html"
   })
   if (error) { alert(error.message); return false }
   return true
