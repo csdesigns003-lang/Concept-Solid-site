@@ -64,3 +64,19 @@ async function loadLatestReadings(sensorId) {
   if (error) { console.error("Reading load error:", error); return [] }
   return data
 }
+
+async function sendPasswordReset(email) {
+  const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+    redirectTo: "https://yourusername.github.io/pages/reset-password.html"
+  })
+  if (error) { alert(error.message); return false }
+  return true
+}
+
+async function updatePassword(newPassword) {
+  const { error } = await supabaseClient.auth.updateUser({
+    password: newPassword
+  })
+  if (error) { alert(error.message); return false }
+  return true
+}
