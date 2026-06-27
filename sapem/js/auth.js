@@ -80,3 +80,37 @@ async function updatePassword(newPassword) {
   if (error) { alert(error.message); return false }
   return true
 }
+
+async function claimHub(hubHardwareId, hubName) {
+  // Call the claim_hub database function
+  const { data, error } = await supabaseClient
+    .rpc("claim_hub", { p_hardware_id: hubHardwareId.trim() })
+
+  if (error) {
+    // Give the user a clear message for the two failure cases
+    if (error.message.includes("not found or already claimed")) {
+      alert("Hub serial number not found. Make sure the hub is powered on and connected, then try again.")
+    } else {
+      alert("Hub claim failed: " + error.message)
+    }
+    return null
+  }
+
+  // Fetch the full hub row now that it's claimed
+  const { data: hub } = await supabaseClient
+    .from("hubs")
+    .select("*")
+    .eq("id", data)
+    .single()
+
+  // Update the name if user provided one
+  if (hubName && hub) {
+    await supabaseClient
+      .from("hubs")
+      .update({ hub_name: hubName.trim() })
+      .eq("id", hub.id)
+    hub.hub_name = hubName.trim()
+  }
+
+  return hub
+}
