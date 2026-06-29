@@ -141,17 +141,29 @@ body {
 <header class="bg-slate-900 border-b border-slate-700">
   <div class="max-w-7xl mx-auto px-4 py-4">
 
-    <!-- Site title centered on its own line -->
+    <!-- Site title -->
     <h1 class="text-2xl font-bold text-center mb-4">
       SapEM Systems
     </h1>
 
-    <!-- Buttons centered, wrap naturally on small screens -->
-    <div class="flex flex-wrap justify-center gap-3">
-      <button onclick="openModal('hubModal')"    class="btn-green text-sm">+ Add Hub</button>
-      <button onclick="openModal('sensorModal')" class="btn-green text-sm">+ Add Sensor</button>
-      <button onclick="openModal('assignModal')" class="btn-slate text-sm">Assign Sensor</button>
-      <button onclick="logout()"                 class="btn-slate text-sm">Logout</button>
+    <!-- Equal width buttons in a single row -->
+    <div class="grid grid-cols-4 gap-3">
+      <button onclick="openModal('hubModal')"
+        class="btn-green text-sm py-4 rounded-xl text-center leading-tight">
+        + Add<br>Hub
+      </button>
+      <button onclick="openModal('sensorModal')"
+        class="btn-green text-sm py-4 rounded-xl text-center leading-tight">
+        + Add<br>Sensor
+      </button>
+      <button onclick="openModal('assignModal')"
+        class="btn-slate text-sm py-4 rounded-xl text-center leading-tight">
+        Assign<br>Sensor
+      </button>
+      <button onclick="logout()"
+        class="btn-slate text-sm py-4 rounded-xl text-center leading-tight">
+        Log<br>Out
+      </button>
     </div>
 
   </div>
