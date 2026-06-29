@@ -82,32 +82,45 @@ async function updatePassword(newPassword) {
 }
 
 async function claimHub(hubHardwareId, hubName) {
-  // Call the claim_hub database function
+  // First try the claim function (for unclaimed hubs)
   const { data, error } = await supabaseClient
     .rpc("claim_hub", { p_hardware_id: hubHardwareId.trim() })
 
+  let hubId = null
+
   if (error) {
-    if (error.message.includes("not found or already claimed")) {
-      alert("Hub serial number not found. Make sure the hub is powered on and connected to the internet, then try again.")
+    // If claim failed, check if this hub is already claimed by THIS user
+    const { data: existing } = await supabaseClient
+      .from("hubs")
+      .select("*")
+      .eq("hub_hardware_id", hubHardwareId.trim())
+      .single()
+
+    if (existing) {
+      // Already claimed by this user — just return it
+      hubId = existing.id
     } else {
-      alert("Hub claim failed: " + error.message)
+      // Genuinely not found or claimed by someone else
+      alert("Hub serial number not found. Make sure the hub is powered on and connected to the internet, then try again.")
+      return null
     }
-    return null
+  } else {
+    hubId = data
   }
 
-  // Fetch the full hub row now that it's claimed
+  // Fetch the full hub row
   const { data: hub, error: fetchError } = await supabaseClient
     .from("hubs")
     .select("*")
-    .eq("id", data)
+    .eq("id", hubId)
     .single()
 
-  if (fetchError) {
-    alert("Hub claimed but failed to load details: " + fetchError.message)
+  if (fetchError || !hub) {
+    alert("Hub claimed but failed to load details.")
     return null
   }
 
-  // Save the user-provided name if they entered one
+  // Save user-provided name if entered
   if (hubName && hubName.trim()) {
     await supabaseClient
       .from("hubs")
