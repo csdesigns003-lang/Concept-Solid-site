@@ -87,9 +87,8 @@ async function claimHub(hubHardwareId, hubName) {
     .rpc("claim_hub", { p_hardware_id: hubHardwareId.trim() })
 
   if (error) {
-    // Give the user a clear message for the two failure cases
     if (error.message.includes("not found or already claimed")) {
-      alert("Hub serial number not found. Make sure the hub is powered on and connected, then try again.")
+      alert("Hub serial number not found. Make sure the hub is powered on and connected to the internet, then try again.")
     } else {
       alert("Hub claim failed: " + error.message)
     }
@@ -97,14 +96,19 @@ async function claimHub(hubHardwareId, hubName) {
   }
 
   // Fetch the full hub row now that it's claimed
-  const { data: hub } = await supabaseClient
+  const { data: hub, error: fetchError } = await supabaseClient
     .from("hubs")
     .select("*")
     .eq("id", data)
     .single()
 
-  // Update the name if user provided one
-  if (hubName && hub) {
+  if (fetchError) {
+    alert("Hub claimed but failed to load details: " + fetchError.message)
+    return null
+  }
+
+  // Save the user-provided name if they entered one
+  if (hubName && hubName.trim()) {
     await supabaseClient
       .from("hubs")
       .update({ hub_name: hubName.trim() })
