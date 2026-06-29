@@ -45,6 +45,14 @@ async function requireAuth() {
 }
 
 // ── Sensor data ───────────────────────────────────────────
+async function loadUserHubs() {
+  const { data, error } = await supabaseClient
+    .from("hubs")
+    .select("*")
+    .order("assigned_at", { ascending: true })
+  if (error) { console.error("Hub load error:", error); return [] }
+  return data
+}
 
 async function loadUserSensors() {
   const { data, error } = await supabaseClient
