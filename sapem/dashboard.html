@@ -601,16 +601,31 @@ async function loadDashboard() {
   const session = await requireAuth()
   if (!session) return
 
-  allHubs    = await loadUserHubs()
-  allSensors = await loadUserSensors()
+  // Show loading state
+  document.getElementById("hubsContainer").innerHTML = `
+    <div class="text-center text-slate-400 py-20">Loading your hubs...</div>
+  `
+
+  try {
+    allHubs    = await loadUserHubs()
+    allSensors = await loadUserSensors()
+  } catch (e) {
+    document.getElementById("hubsContainer").innerHTML = `
+      <div class="text-center text-red-400 py-20">Failed to load data. Please refresh.</div>
+    `
+    console.error("Dashboard load error:", e)
+    return
+  }
 
   // Show empty state if no hubs
   const empty = document.getElementById("emptyState")
   if (allHubs.length === 0) {
+    document.getElementById("hubsContainer").innerHTML = ""
     empty.classList.remove("hidden")
     return
   }
   empty.classList.add("hidden")
+  document.getElementById("hubsContainer").innerHTML = ""
 
   // Render a section per hub
   for (const hub of allHubs) {
