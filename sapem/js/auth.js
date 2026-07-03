@@ -141,21 +141,42 @@ async function claimHub(hubHardwareId, hubName) {
 }
 
 async function claimSensor(sensorHardwareId, sensorName) {
-  const { data: sessionData } = await supabaseClient.auth.getSession()
-  const user = sessionData?.session?.user
-  if (!user) { alert("Not logged in."); return null }
-
   const { data, error } = await supabaseClient
+    .rpc("claim_sensor", { p_sensor_hardware_id: sensorHardwareId.trim() })
+
+  if (error) {
+    if (error.message.includes("not heard")) {
+      alert("Sensor not found. Make sure it is powered on and in range of your hub, then try again.")
+    } else if (error.message.includes("already claimed")) {
+      alert("That sensor serial number is already registered to another account.")
+    } else {
+      alert("Sensor claim failed: " + error.message)
+    }
+    return null
+  }
+
+  // Fetch the full sensor row
+  const { data: sensor, error: fetchError } = await supabaseClient
     .from("sensors")
-    .insert({
-      user_id:            user.id,
-      sensor_hardware_id: sensorHardwareId.trim(),
-      sensor_name:        sensorName.trim() || null
-    })
-    .select()
+    .select("*")
+    .eq("id", data)
     .single()
-  if (error) { alert("Sensor claim failed: " + error.message); return null }
-  return data
+
+  if (fetchError || !sensor) {
+    alert("Sensor claimed but failed to load details.")
+    return null
+  }
+
+  // Save user-provided name if entered
+  if (sensorName && sensorName.trim()) {
+    await supabaseClient
+      .from("sensors")
+      .update({ sensor_name: sensorName.trim() })
+      .eq("id", sensor.id)
+    sensor.sensor_name = sensorName.trim()
+  }
+
+  return sensor
 }
 
 // ── Hub/Sensor management ─────────────────────────────────
@@ -186,3 +207,5 @@ async function removeSensorFromHub(hubId, sensorId) {
   if (error) { alert("Remove failed: " + error.message); return false }
   return true
 }
+
+
