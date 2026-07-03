@@ -139,3 +139,21 @@ async function claimHub(hubHardwareId, hubName) {
 
   return hub
 }
+
+async function claimSensor(sensorHardwareId, sensorName) {
+  const { data: sessionData } = await supabaseClient.auth.getSession()
+  const user = sessionData?.session?.user
+  if (!user) { alert("Not logged in."); return null }
+
+  const { data, error } = await supabaseClient
+    .from("sensors")
+    .insert({
+      user_id:            user.id,
+      sensor_hardware_id: sensorHardwareId.trim(),
+      sensor_name:        sensorName.trim() || null
+    })
+    .select()
+    .single()
+  if (error) { alert("Sensor claim failed: " + error.message); return null }
+  return data
+}
