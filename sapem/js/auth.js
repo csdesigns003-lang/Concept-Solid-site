@@ -157,3 +157,32 @@ async function claimSensor(sensorHardwareId, sensorName) {
   if (error) { alert("Sensor claim failed: " + error.message); return null }
   return data
 }
+
+// ── Hub/Sensor management ─────────────────────────────────
+
+async function loadSensorsForHub(hubId) {
+  const { data, error } = await supabaseClient
+    .from("hub_sensors")
+    .select("sensor_id, sensors(*)")
+    .eq("hub_id", hubId)
+  if (error) { console.error("loadSensorsForHub error:", error); return [] }
+  return data.map(row => row.sensors)
+}
+
+async function assignSensorToHub(hubId, sensorId) {
+  const { error } = await supabaseClient
+    .from("hub_sensors")
+    .insert({ hub_id: hubId, sensor_id: sensorId })
+  if (error) { alert("Assignment failed: " + error.message); return false }
+  return true
+}
+
+async function removeSensorFromHub(hubId, sensorId) {
+  const { error } = await supabaseClient
+    .from("hub_sensors")
+    .delete()
+    .eq("hub_id", hubId)
+    .eq("sensor_id", sensorId)
+  if (error) { alert("Remove failed: " + error.message); return false }
+  return true
+}
