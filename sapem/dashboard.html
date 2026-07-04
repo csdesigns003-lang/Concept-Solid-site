@@ -3,11 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>SapEM Monitoring Dashboard</title>
 <link rel="icon" href="/images/favicon/sapem-favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon/sapem-favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon/sapem-favicon-192.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/sapem-apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -151,7 +154,7 @@ body {
     </h1>
 
     <!-- Equal width buttons in a single row -->
-    <div class="grid grid-cols-4 gap-3">
+    <div class="grid grid-cols-5 gap-3">
       <button onclick="openModal('hubModal')"
         class="btn-green text-sm py-4 rounded-xl text-center leading-tight">
         + Add<br>Hub
@@ -167,6 +170,10 @@ body {
       <button onclick="logout()"
         class="btn-slate text-sm py-4 rounded-xl text-center leading-tight">
         Log<br>Out
+      </button>
+      <button onclick="refreshDashboard()"
+        class="btn-slate text-sm py-4 rounded-xl text-center leading-tight">
+        ↻<br>Refresh
       </button>
     </div>
 
@@ -779,6 +786,13 @@ function startPolling() {
     }
     await populateUnassigned()
   }, 60000)  // every 60 seconds
+}
+
+async function refreshDashboard() {
+  for (const hub of allHubs) {
+    await populateHub(hub)
+  }
+  await populateUnassigned()
 }
 
 // ── Boot ──────────────────────────────────────
