@@ -753,16 +753,39 @@ function subscribeRealtime() {
     .channel("readings-stream")
     .on("postgres_changes",
       { event: "INSERT", schema: "public", table: "sensor_readings" },
-      async () => {
-        for (const hub of allHubs) await populateHub(hub)
+      async (payload) => {
+        log.info("Realtime reading received — refreshing display")
+        // Only re-render the hub that owns this sensor
+        for (const hub of allHubs) {
+          const sensors = await loadSensorsForHub(hub.id)
+          const match   = sensors.find(s => s.id === payload.new.sensor_id)
+          if (match) {
+            await populateHub(hub)
+            break
+          }
+        }
         await populateUnassigned()
       }
     )
-    .subscribe()
+    .subscribe((status) => {
+      console.log("Realtime status:", status)
+    })
+}
+
+function startPolling() {
+  setInterval(async () => {
+    for (const hub of allHubs) {
+      await populateHub(hub)
+    }
+    await populateUnassigned()
+  }, 60000)  // every 60 seconds
 }
 
 // ── Boot ──────────────────────────────────────
-loadDashboard().then(() => subscribeRealtime())
+loadDashboard().then(() => {
+  subscribeRealtime()
+  startPolling()
+})
 </script>
 
 </body>
