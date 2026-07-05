@@ -403,7 +403,7 @@ function renderHubSection(hub) {
                   id="threshold-${hub.id}"
                   type="number"
                   min="1" max="99"
-                  placeholder="10"
+                  placeholder="--"
                   class="inline-block w-14 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs mx-1 text-center
                          [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   oninput="this.value=this.value.replace(/[^0-9]/g,'')"
@@ -512,6 +512,16 @@ function renderHubSection(hub) {
           title: { display: true, text: "°F", color: "#64748b", font: { size: 11 } }
         }
       }
+    }
+  })
+  // Restore saved threshold from Supabase after section renders
+  loadHubThreshold(hub.id).then(val => {
+    const input = document.getElementById(`threshold-${hub.id}`)
+    if (input && val != null) {
+      input.value = val
+      // Trigger highlight recalculation with the restored value
+      const h = allHubs.find(h => h.id === hub.id)
+      if (h) populateHub(h)
     }
   })
 }
@@ -651,7 +661,8 @@ function updateLowList(hubId, sensorReadings, lowSensorIds) {
 
 // Called when threshold input changes — re-renders without a full DB fetch
 function applyThreshold(hubId) {
-  // Just trigger a full populate so highlights recalculate with fresh data
+  const input = document.getElementById(`threshold-${hubId}`)
+  if (input) saveHubThreshold(hubId, input.value)  // save to Supabase
   const hub = allHubs.find(h => h.id === hubId)
   if (hub) populateHub(hub)
 }
