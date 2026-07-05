@@ -208,4 +208,20 @@ async function removeSensorFromHub(hubId, sensorId) {
   return true
 }
 
+async function saveHubThreshold(hubId, value) {
+  const { error } = await supabaseClient
+    .from("hubs")
+    .update({ low_pressure_threshold: value === "" ? null : parseFloat(value) })
+    .eq("id", hubId)
+  if (error) console.error("Threshold save error:", error)
+}
 
+async function loadHubThreshold(hubId) {
+  const { data, error } = await supabaseClient
+    .from("hubs")
+    .select("low_pressure_threshold")
+    .eq("id", hubId)
+    .single()
+  if (error || !data) return null
+  return data.low_pressure_threshold
+}
