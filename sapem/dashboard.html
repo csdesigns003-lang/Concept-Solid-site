@@ -377,11 +377,15 @@ function renderHubSection(hub) {
     <!-- Gauge + Stats + Pressure chart -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
 
-      <div class="card text-center md:col-span-3">
-        <h3 class="text-sm text-slate-400 mb-3">System Vacuum</h3>
-        <p id="${gvalId}" class="text-3xl font-bold mt-2">0.00</p>
-        <p class="text-slate-400 text-sm">inHg</p>
+    <div class="card text-center md:col-span-3">
+      <h3 class="text-sm text-slate-400 mb-3">System Vacuum</h3>
+      <div class="gauge-wrap">
+        <img src="assets/gauge.png" alt="gauge">
+        <canvas id="${gcId}" width="400" height="400"></canvas>
       </div>
+      <p id="${gvalId}" class="text-3xl font-bold mt-2">0.00</p>
+      <p class="text-slate-400 text-sm">inHg</p>
+    </div>
     
       <div class="card">
         <h3 class="text-sm text-slate-400 mb-4">Hub Stats</h3>
