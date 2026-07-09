@@ -376,61 +376,58 @@ function renderHubSection(hub) {
     <!-- Gauge + Stats + Pressure chart -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
 
-      <div class="card text-center">
+      <div class="card text-center md:col-span-3">
         <h3 class="text-sm text-slate-400 mb-3">System Vacuum</h3>
-        <div class="gauge-wrap">
+        <div class="gauge-wrap" style="width:400px;height:400px;">
           <img src="assets/gauge.png" alt="gauge">
-          <canvas id="${gcId}" width="260" height="260"></canvas>
+          <canvas id="${gcId}" width="400" height="400"></canvas>
         </div>
         <p id="${gvalId}" class="text-3xl font-bold mt-2">0.00</p>
         <p class="text-slate-400 text-sm">inHg</p>
       </div>
-
-    <div class="card">
-            <h3 class="text-sm text-slate-400 mb-4">Hub Stats</h3>
-            <div class="space-y-3 text-sm">
-              <div>Sensors on this hub: <span id="count-${hub.id}" class="text-white font-semibold">0</span></div>
-              <div>Avg Temperature: <span id="avgtemp-${hub.id}" class="text-white font-semibold">—</span> °F</div>
-              <div>Avg Pressure: <span id="avgpres-${hub.id}" class="text-white font-semibold">—</span> inHg</div>
-              <div>Last data: <span id="lastseen-${hub.id}" class="text-white font-semibold">—</span></div>
-            </div>
     
-            <!-- Low pressure threshold input -->
-            <div class="mt-4 pt-4 border-t border-slate-700">
-              <label class="text-xs text-slate-400 block mb-2">
-                Alert if sensor is
-                <input
-                  id="threshold-${hub.id}"
-                  type="number"
-                  min="1" max="99"
-                  placeholder="--"
-                  class="inline-block w-14 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs mx-1 text-center
-                         [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  oninput="this.value=this.value.replace(/[^0-9]/g,'')"
-                  onchange="applyThreshold('${hub.id}')"
-                >
-                % below average
-              </label>
+      <div class="card">
+        <h3 class="text-sm text-slate-400 mb-4">Hub Stats</h3>
+        <div class="space-y-3 text-sm">
+          <div>Sensors on this hub: <span id="count-${hub.id}" class="text-white font-semibold">0</span></div>
+          <div>Avg Temperature: <span id="avgtemp-${hub.id}" class="text-white font-semibold">—</span> °F</div>
+          <div>Avg Pressure: <span id="avgpres-${hub.id}" class="text-white font-semibold">—</span> inHg</div>
+          <div>Last data: <span id="lastseen-${hub.id}" class="text-white font-semibold">—</span></div>
+        </div>
     
-              <!-- Low sensor alert list -->
-              <div id="lowlist-${hub.id}" class="mt-2 space-y-1 hidden">
-                <p class="text-xs text-amber-400 font-semibold mb-1">⚠ Low pressure sensors:</p>
-                <div id="lowlist-items-${hub.id}"></div>
-              </div>
-            </div>
+        <div class="mt-4 pt-4 border-t border-slate-700">
+          <label class="text-xs text-slate-400 block mb-2">
+            Alert if sensor is
+            <input
+              id="threshold-${hub.id}"
+              type="number"
+              min="1" max="99"
+              placeholder="--"
+              class="inline-block w-14 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs mx-1 text-center
+                     [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              oninput="this.value=this.value.replace(/[^0-9]/g,'')"
+              onchange="applyThreshold('${hub.id}')"
+            >
+            % below average
+          </label>
+    
+          <div id="lowlist-${hub.id}" class="mt-2 space-y-1 hidden">
+            <p class="text-xs text-amber-400 font-semibold mb-1">⚠ Low pressure sensors:</p>
+            <div id="lowlist-items-${hub.id}"></div>
           </div>
-
+        </div>
+      </div>
+      
       <div class="card">
         <h3 class="text-sm text-slate-400 mb-4">Temperature History</h3>
         <canvas id="${tChartId}"></canvas>
       </div>
-
-    </div>
-
-    <!-- Pressure history -->
-    <div class="card mb-6">
-      <h3 class="text-sm text-slate-400 mb-4">Pressure History</h3>
-      <canvas id="${pChartId}"></canvas>
+      
+      <div class="card">
+        <h3 class="text-sm text-slate-400 mb-4">Pressure History</h3>
+        <canvas id="${pChartId}"></canvas>
+      </div>
+    
     </div>
 
     <!-- Sensor table -->
