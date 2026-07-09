@@ -349,7 +349,7 @@ function rssiBars(rssi) {
   for (let i = 0; i < 5; i++) {
     bars += `<div class="rssi-bar" style="height:${(i+1)*5}px;opacity:${i < strength ? 1 : 0.2}"></div>`
   }
-  return `<div style="display:flex;align-items:flex-end;height:25px">${bars}</div>`
+  return `<div style="display:flex;align-items:flex-end;justify-content:center;height:25px">${bars}</div>`
 }
 
 // ── Render hub section (structure only) ──────
@@ -421,16 +421,16 @@ function renderHubSection(hub) {
           </div>
 
       <div class="card">
-        <h3 class="text-sm text-slate-400 mb-4">Pressure History</h3>
-        <canvas id="${pChartId}"></canvas>
+        <h3 class="text-sm text-slate-400 mb-4">Temperature History</h3>
+        <canvas id="${tChartId}"></canvas>
       </div>
 
     </div>
 
-    <!-- Temperature history -->
+    <!-- Pressure history -->
     <div class="card mb-6">
-      <h3 class="text-sm text-slate-400 mb-4">Temperature History</h3>
-      <canvas id="${tChartId}"></canvas>
+      <h3 class="text-sm text-slate-400 mb-4">Pressure History</h3>
+      <canvas id="${pChartId}"></canvas>
     </div>
 
     <!-- Sensor table -->
