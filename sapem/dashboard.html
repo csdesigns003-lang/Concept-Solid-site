@@ -272,6 +272,23 @@ body {
 
 
 <!-- ═══════════════════════════════════════
+     MODAL — Edit Names
+════════════════════════════════════════ -->
+
+      <div id="editNamesModal" class="modal-backdrop">
+    <div class="modal-box">
+      <h2 class="text-xl font-bold mb-6">Edit Names</h2>
+      <div id="editNamesBody"></div>
+      <p id="editNamesError" class="text-red-400 text-sm mt-4 hidden"></p>
+      <div class="flex gap-3 justify-end mt-6">
+        <button onclick="closeModal('editNamesModal')" class="btn-slate">Cancel</button>
+        <button id="editNamesSubmit" onclick="submitEditNames()" class="btn-green">Save</button>
+      </div>
+    </div>
+  </div>
+
+
+<!-- ═══════════════════════════════════════
      SCRIPTS
 ════════════════════════════════════════ -->
 <script src="js/auth.js"></script>
@@ -368,10 +385,19 @@ function renderHubSection(hub) {
   div.id        = sId
   div.className = "hub-section"
   div.innerHTML = `
-    <div class="hub-title">
-      <span class="hub-dot"></span>
-      ${hub.hub_name || hub.hub_hardware_id}
-      <span class="text-slate-500 text-xs font-normal ml-2">${hub.hub_hardware_id}</span>
+    <div class="hub-title" style="justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="hub-dot"></span>
+        ${hub.hub_name || hub.hub_hardware_id}
+        <span class="text-slate-500 text-xs font-normal ml-2">${hub.hub_hardware_id}</span>
+      </div>
+      <button
+        onclick="openEditModal('${hub.id}')"
+        title="Edit names"
+        style="background:none;border:none;cursor:pointer;color:#64748b;font-size:1rem;padding:4px 6px;border-radius:6px;"
+        onmouseover="this.style.color='#cbd5e1'" 
+        onmouseout="this.style.color='#64748b'"
+      >✏️</button>
     </div>
 
     <!-- Gauge + Stats + Pressure chart -->
@@ -854,6 +880,107 @@ async function refreshDashboard() {
   }, 2000)
 }
 
+// ── Edit names modal ──────────────────────────
+let editingHubId = null
+
+async function openEditModal(hubId) {
+  editingHubId = hubId
+  const hub     = allHubs.find(h => h.id === hubId)
+  const sensors = await loadSensorsForHub(hubId)
+  const body    = document.getElementById("editNamesBody")
+  const err     = document.getElementById("editNamesError")
+  err.classList.add("hidden")
+
+  let html = `
+    <label class="text-sm font-semibold block mb-1">Hub Name</label>
+    <input
+      id="edit-hub-name"
+      class="modal-input mb-5"
+      value="${hub.hub_name || ""}"
+      placeholder="${hub.hub_hardware_id}"
+    >
+  `
+
+  if (sensors.length > 0) {
+    html += `<p class="text-xs text-slate-400 uppercase tracking-wide mb-3">Sensors on this hub</p>`
+    for (const s of sensors) {
+      html += `
+        <label class="text-sm font-semibold block mb-1">
+          ${s.sensor_name || s.sensor_hardware_id}
+          <span class="text-slate-500 font-normal">(${s.sensor_hardware_id})</span>
+        </label>
+        <input
+          id="edit-sensor-${s.id}"
+          class="modal-input mb-4"
+          value="${s.sensor_name || ""}"
+          placeholder="${s.sensor_hardware_id}"
+        >
+      `
+    }
+  } else {
+    html += `<p class="text-slate-500 text-sm">No sensors assigned to this hub yet.</p>`
+  }
+
+  body.innerHTML = html
+  openModal("editNamesModal")
+}
+
+async function submitEditNames() {
+  const hub     = allHubs.find(h => h.id === editingHubId)
+  const sensors = await loadSensorsForHub(editingHubId)
+  const err     = document.getElementById("editNamesError")
+  const btn     = document.getElementById("editNamesSubmit")
+  err.classList.add("hidden")
+  btn.textContent = "Saving..."
+  btn.disabled = true
+
+  // Save hub name
+  const newHubName = document.getElementById("edit-hub-name").value.trim()
+  const hubOk = await updateHubName(editingHubId, newHubName)
+  if (!hubOk) {
+    err.textContent = "Failed to save hub name."
+    err.classList.remove("hidden")
+    btn.textContent = "Save"
+    btn.disabled = false
+    return
+  }
+  hub.hub_name = newHubName
+
+  // Save each sensor name
+  for (const s of sensors) {
+    const input = document.getElementById(`edit-sensor-${s.id}`)
+    if (!input) continue
+    const newName = input.value.trim()
+    const ok = await updateSensorName(s.id, newName)
+    if (!ok) {
+      err.textContent = `Failed to save name for sensor ${s.sensor_hardware_id}.`
+      err.classList.remove("hidden")
+      btn.textContent = "Save"
+      btn.disabled = false
+      return
+    }
+    // Update local state so re-renders use the new name immediately
+    const ls = allSensors.find(x => x.id === s.id)
+    if (ls) ls.sensor_name = newName
+  }
+
+  btn.textContent = "Save"
+  btn.disabled = false
+  closeModal("editNamesModal")
+
+  // Re-render the hub title and table with new names
+  const titleEl = document.querySelector(`#hub-${editingHubId} .hub-title div`)
+  if (titleEl) {
+    titleEl.innerHTML = `
+      <span class="hub-dot"></span>
+      ${hub.hub_name || hub.hub_hardware_id}
+      <span class="text-slate-500 text-xs font-normal ml-2">${hub.hub_hardware_id}</span>
+    `
+  }
+  await populateHub(hub)
+  populateAssignDropdowns()
+}
+  
 // ── Boot ──────────────────────────────────────
 loadDashboard().then(() => {
   subscribeRealtime()
