@@ -225,3 +225,19 @@ async function loadHubThreshold(hubId) {
   if (error || !data) return null
   return data.low_pressure_threshold
 }
+
+async function updateHubName(hubId, name) {
+  const { error } = await supabaseClient
+    .from("hubs")
+    .update({ hub_name: name })
+    .eq("id", hubId)
+  return !error
+}
+
+async function updateSensorName(sensorId, name) {
+  const { error } = await supabaseClient
+    .from("sensors")
+    .update({ sensor_name: name })
+    .eq("id", sensorId)
+  return !error
+}
