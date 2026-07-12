@@ -492,10 +492,6 @@ function initHubMap(hubId) {
     { position: "topright", collapsed: true }
   ).addTo(map)
   
-  satellite.addTo(map)
-  labels.addTo(map)
-  roads.addTo(map)
-  
   L.control.layers(
     {},  // no base layer switcher
     { "Labels & Boundaries": labels, "Roads": roads },
@@ -515,6 +511,30 @@ function initHubMap(hubId) {
     }
   })
   new FsControl().addTo(map)
+
+  // Recenter Control
+  const RecenterControl = L.Control.extend({
+    options: { position: "topright" },
+    onAdd: function() {
+      const btn = L.DomUtil.create("button", "leaflet-fs-btn")
+      btn.title = "Recenter on sensors"
+      btn.innerHTML = `
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+        </svg>`
+      L.DomEvent.on(btn, "click", L.DomEvent.stopPropagation)
+      L.DomEvent.on(btn, "click", () => {
+        const placed = (hubSensorsCache[hubId] || []).filter(s => s.lat && s.lng)
+        if (placed.length) {
+          map.fitBounds(placed.map(s => [s.lat, s.lng]), { padding: [50, 50] })
+        }
+      })
+      return btn
+    }
+  })
+  new RecenterControl().addTo(map)
 
   // Legend
   const LegendControl = L.Control.extend({
