@@ -466,12 +466,41 @@ function initHubMap(hubId) {
   const map = L.map(mapEl, { zoomControl: false })
 
   // Esri satellite tiles -- free, no API key required
-  L.tileLayer(
+  L.control.zoom({ position: "topleft" }).addTo(map)
+
+  // Toggle Layers Buttons
+  const satellite = L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     { attribution: "Tiles &copy; Esri", maxZoom: 20 }
+  )
+  const labels = L.tileLayer(
+    "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+    { maxZoom: 20, opacity: 0.8 }
+  )
+  const roads = L.tileLayer(
+    "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}",
+    { maxZoom: 20, opacity: 0.6 }
+  )
+  
+  satellite.addTo(map)
+  labels.addTo(map)
+  roads.addTo(map)
+  
+  L.control.layers(
+    {},
+    { "Labels & Boundaries": labels, "Roads": roads },
+    { position: "topright", collapsed: true }
   ).addTo(map)
-
-  L.control.zoom({ position: "topleft" }).addTo(map)
+  
+  satellite.addTo(map)
+  labels.addTo(map)
+  roads.addTo(map)
+  
+  L.control.layers(
+    {},  // no base layer switcher
+    { "Labels & Boundaries": labels, "Roads": roads },
+    { position: "topright", collapsed: true }
+  ).addTo(map)
 
   // Fullscreen button
   const FsControl = L.Control.extend({
