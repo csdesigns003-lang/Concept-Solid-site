@@ -241,3 +241,18 @@ async function updateSensorName(sensorId, name) {
     .eq("id", sensorId)
   return !error
 }
+
+async function updateSensorLocation(sensorId, lat, lng) {
+  const { error } = await supabaseClient
+    .from("sensors")
+    .update({ lat, lng })
+    .eq("id", sensorId)
+  return !error
+}
+
+async function loadUserSensorsWithLocation() {
+  const { data, error } = await supabaseClient
+    .from("sensors")
+    .select("id, sensor_hardware_id, sensor_name, lat, lng")
+  return error ? [] : data
+}
