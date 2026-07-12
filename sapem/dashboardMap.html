@@ -17,6 +17,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
 
 <style>
 html, body { overflow-x: hidden; }
@@ -582,6 +584,76 @@ function initHubMap(hubId) {
   }
 }
 
+// Line type state for this hub
+hubMaps[hubId] = { map, markers: {}, activeLineType: { type: "mainline", color: "#3b82f6", weight: 5 } }
+
+// Drawn lines layer — Leaflet.draw needs a FeatureGroup
+const drawnItems = new L.FeatureGroup()
+map.addLayer(drawnItems)
+
+// Load existing saved lines from Supabase and add them to the map
+const savedLines = await loadMapLines(hubId)
+const lineLayerMap = {}  // lineId → L.Layer, so edits/deletes know which DB row to update
+
+for (const line of savedLines) {
+  const layer = L.geoJSON(line.geojson, {
+    style: { color: line.color, weight: weightForType(line.line_type) }
+  })
+  layer.bindTooltip(line.name || line.line_type, { permanent: false })
+  layer._dbId = line.id
+  drawnItems.addLayer(layer)
+}
+
+// Leaflet.draw control — polyline only, no shapes
+const drawControl = new L.Control.Draw({
+  position: "topleft",
+  edit: { featureGroup: drawnItems, remove: true },
+  draw: {
+    polyline: {
+      shapeOptions: { color: activeLineType.color, weight: activeLineType.weight },
+      showLength: false
+    },
+    polygon: false, rectangle: false,
+    circle: false, circlemarker: false, marker: false
+  }
+})
+map.addControl(drawControl)
+
+// When a line is drawn — save to Supabase immediately
+map.on(L.Draw.Event.CREATED, async (e) => {
+  const active = hubMaps[hubId].activeLineType   // ← read from hubMaps
+  const layer = e.layer
+  layer.setStyle({ color: active.color, weight: active.weight })
+  //layer.setStyle({ color: activeLineType.color, weight: activeLineType.weight })
+  drawnItems.addLayer(layer)
+
+  const geojson  = layer.toGeoJSON()
+  const lineName = `${activeLineType.type} ${savedLines.length + 1}`
+  const saved    = await saveMapLine(hubId, activeLineType.type, activeLineType.color, lineName, geojson)
+  if (saved) layer._dbId = saved.id
+})
+
+// When a line is edited — update the GeoJSON in Supabase
+map.on(L.Draw.Event.EDITED, async (e) => {
+  e.layers.eachLayer(async (layer) => {
+    if (layer._dbId) await updateMapLine(layer._dbId, layer.toGeoJSON())
+  })
+})
+
+// When a line is deleted — remove from Supabase
+map.on(L.Draw.Event.DELETED, async (e) => {
+  e.layers.eachLayer(async (layer) => {
+    if (layer._dbId) await deleteMapLine(layer._dbId)
+  })
+})
+
+function weightForType(type) {
+  if (type === "mainline")  return 5
+  if (type === "lateral")   return 3
+  if (type === "dropline")  return 2
+  return 3
+}
+
 function renderHubSection(hub) {
   const sId = `hub-${hub.id}`
   if (document.getElementById(sId)) return
@@ -678,7 +750,26 @@ function renderHubSection(hub) {
         <tbody id="${tableId}"></tbody>
       </table>
     </div>
-
+    
+  <div class="flex items-center gap-3 mb-3 p-3 rounded-xl border border-slate-700 bg-slate-900">
+    <span class="text-xs text-slate-400 shrink-0">Draw line type:</span>
+    <button onclick="setLineType('${hub.id}','mainline','#3b82f6',5)" id="lt-mainline-${hub.id}"
+      class="line-type-btn active-line-type text-xs px-3 py-1.5 rounded-lg border font-semibold"
+      style="border-color:#3b82f6;color:#3b82f6">
+      ── Mainline
+    </button>
+    <button onclick="setLineType('${hub.id}','lateral','#22c55e',3)"  id="lt-lateral-${hub.id}"
+      class="line-type-btn text-xs px-3 py-1.5 rounded-lg border font-semibold"
+      style="border-color:#22c55e;color:#22c55e">
+      ── Lateral
+    </button>
+    <button onclick="setLineType('${hub.id}','dropline','#94a3b8',2)" id="lt-dropline-${hub.id}"
+      class="line-type-btn text-xs px-3 py-1.5 rounded-lg border font-semibold"
+      style="border-color:#94a3b8;color:#94a3b8">
+      ── Dropline
+    </button>
+  </div>
+  
     <!-- MAP VIEW -->
     <div id="mapview-${hub.id}" class="hidden">
       <div id="unplaced-bar-${hub.id}" class="hidden mb-3 p-3 rounded-xl border border-slate-700 bg-slate-900">
@@ -836,6 +927,19 @@ function applyThreshold(hubId) {
   if (input) saveHubThreshold(hubId, input.value)
   const hub = allHubs.find(h => h.id === hubId)
   if (hub) populateHub(hub)
+}
+
+function setLineType(hubId, type, color, weight) {
+  if (hubMaps[hubId]) {
+    hubMaps[hubId].activeLineType = { type, color, weight }
+  }
+  // Update button highlight
+  ["mainline", "lateral", "dropline"].forEach(t => {
+    const btn = document.getElementById(`lt-${t}-${hubId}`)
+    if (!btn) return
+    btn.style.background = t === type ? color + "20" : "transparent"
+    btn.style.fontWeight = t === type ? "700" : "600"
+  })
 }
 
 async function populateUnassigned() {
