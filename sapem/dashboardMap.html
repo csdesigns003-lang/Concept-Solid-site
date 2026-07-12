@@ -222,29 +222,7 @@ body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
 
 <script>
 /*
-  REQUIRED ADDITIONS TO auth.js:
-
-  async function updateHubName(hubId, name) {
-    const { error } = await supabaseClient.from("hubs").update({ hub_name: name }).eq("id", hubId)
-    return !error
-  }
-
-  async function updateSensorName(sensorId, name) {
-    const { error } = await supabaseClient.from("sensors").update({ sensor_name: name }).eq("id", sensorId)
-    return !error
-  }
-
-  async function updateSensorLocation(sensorId, lat, lng) {
-    const { error } = await supabaseClient.from("sensors").update({ lat, lng }).eq("id", sensorId)
-    return !error
-  }
-
-  REQUIRED SUPABASE SQL (run once in SQL editor):
-    alter table public.sensors add column lat numeric(10,7) default null;
-    alter table public.sensors add column lng numeric(10,7) default null;
-
-  loadSensorsForHub already uses sensors(*) so lat/lng will be returned
-  automatically once those columns exist.
+  REQUIRED ADDITIONS TO auth.js: ...
 */
 
 // Gauge constants
@@ -461,7 +439,14 @@ function toggleFullscreen(mapEl, map) {
   }
 }
 
-function initHubMap(hubId) {
+function weightForType(type) {
+  if (type === "mainline")  return 5
+  if (type === "lateral")   return 3
+  if (type === "dropline")  return 2
+  return 3
+}
+
+async function initHubMap(hubId) {
   const mapEl = document.getElementById(`map-${hubId}`)
   if (!mapEl || hubMaps[hubId]) return
 
@@ -470,7 +455,6 @@ function initHubMap(hubId) {
   // Esri satellite tiles -- free, no API key required
   L.control.zoom({ position: "topleft" }).addTo(map)
 
-  // Toggle Layers Buttons
   const satellite = L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     { attribution: "Tiles &copy; Esri", maxZoom: 20 }
@@ -490,12 +474,6 @@ function initHubMap(hubId) {
   
   L.control.layers(
     {},
-    { "Labels & Boundaries": labels, "Roads": roads },
-    { position: "topright", collapsed: true }
-  ).addTo(map)
-  
-  L.control.layers(
-    {},  // no base layer switcher
     { "Labels & Boundaries": labels, "Roads": roads },
     { position: "topright", collapsed: true }
   ).addTo(map)
@@ -566,7 +544,66 @@ function initHubMap(hubId) {
     setTimeout(() => map.invalidateSize(), 100)
   })
 
-  hubMaps[hubId] = { map, markers: {} }
+  // Line type state configuration for this hub map
+  hubMaps[hubId] = { map, markers: {}, activeLineType: { type: "mainline", color: "#3b82f6", weight: 5 } }
+
+  // Drawn lines layer — Leaflet.draw needs a FeatureGroup
+  const drawnItems = new L.FeatureGroup()
+  map.addLayer(drawnItems)
+
+  // Load existing saved lines from Supabase and add them to the map
+  const savedLines = await loadMapLines(hubId)
+
+  for (const line of savedLines) {
+    const layer = L.geoJSON(line.geojson, {
+      style: { color: line.color, weight: weightForType(line.line_type) }
+    })
+    layer.bindTooltip(line.name || line.line_type, { permanent: false })
+    layer._dbId = line.id
+    drawnItems.addLayer(layer)
+  }
+
+  // Leaflet.draw control — polyline only, no shapes
+  const drawControl = new L.Control.Draw({
+    position: "topleft",
+    edit: { featureGroup: drawnItems, remove: true },
+    draw: {
+      polyline: {
+        shapeOptions: { color: hubMaps[hubId].activeLineType.color, weight: hubMaps[hubId].activeLineType.weight },
+        showLength: false
+      },
+      polygon: false, rectangle: false,
+      circle: false, circlemarker: false, marker: false
+    }
+  })
+  map.addControl(drawControl)
+
+  // When a line is drawn — save to Supabase immediately
+  map.on(L.Draw.Event.CREATED, async (e) => {
+    const active = hubMaps[hubId].activeLineType
+    const layer = e.layer
+    layer.setStyle({ color: active.color, weight: active.weight })
+    drawnItems.addLayer(layer)
+
+    const geojson  = layer.toGeoJSON()
+    const lineName = `${active.type} ${drawnItems.getLayers().length}`
+    const saved    = await saveMapLine(hubId, active.type, active.color, lineName, geojson)
+    if (saved) layer._dbId = saved.id
+  })
+
+  // When a line is edited — update the GeoJSON in Supabase
+  map.on(L.Draw.Event.EDITED, async (e) => {
+    e.layers.eachLayer(async (layer) => {
+      if (layer._dbId) await updateMapLine(layer._dbId, layer.toGeoJSON())
+    })
+  })
+
+  // When a line is deleted — remove from Supabase
+  map.on(L.Draw.Event.DELETED, async (e) => {
+    e.layers.eachLayer(async (layer) => {
+      if (layer._dbId) await deleteMapLine(layer._dbId)
+    })
+  })
 
   // Place markers for sensors that already have coordinates
   const sensors = hubSensorsCache[hubId] || []
@@ -582,76 +619,6 @@ function initHubMap(hubId) {
   } else {
     map.setView([44.5, -93.0], 14)
   }
-}
-
-// Line type state for this hub
-hubMaps[hubId] = { map, markers: {}, activeLineType: { type: "mainline", color: "#3b82f6", weight: 5 } }
-
-// Drawn lines layer — Leaflet.draw needs a FeatureGroup
-const drawnItems = new L.FeatureGroup()
-map.addLayer(drawnItems)
-
-// Load existing saved lines from Supabase and add them to the map
-const savedLines = await loadMapLines(hubId)
-const lineLayerMap = {}  // lineId → L.Layer, so edits/deletes know which DB row to update
-
-for (const line of savedLines) {
-  const layer = L.geoJSON(line.geojson, {
-    style: { color: line.color, weight: weightForType(line.line_type) }
-  })
-  layer.bindTooltip(line.name || line.line_type, { permanent: false })
-  layer._dbId = line.id
-  drawnItems.addLayer(layer)
-}
-
-// Leaflet.draw control — polyline only, no shapes
-const drawControl = new L.Control.Draw({
-  position: "topleft",
-  edit: { featureGroup: drawnItems, remove: true },
-  draw: {
-    polyline: {
-      shapeOptions: { color: activeLineType.color, weight: activeLineType.weight },
-      showLength: false
-    },
-    polygon: false, rectangle: false,
-    circle: false, circlemarker: false, marker: false
-  }
-})
-map.addControl(drawControl)
-
-// When a line is drawn — save to Supabase immediately
-map.on(L.Draw.Event.CREATED, async (e) => {
-  const active = hubMaps[hubId].activeLineType   // ← read from hubMaps
-  const layer = e.layer
-  layer.setStyle({ color: active.color, weight: active.weight })
-  //layer.setStyle({ color: activeLineType.color, weight: activeLineType.weight })
-  drawnItems.addLayer(layer)
-
-  const geojson  = layer.toGeoJSON()
-  const lineName = `${activeLineType.type} ${savedLines.length + 1}`
-  const saved    = await saveMapLine(hubId, activeLineType.type, activeLineType.color, lineName, geojson)
-  if (saved) layer._dbId = saved.id
-})
-
-// When a line is edited — update the GeoJSON in Supabase
-map.on(L.Draw.Event.EDITED, async (e) => {
-  e.layers.eachLayer(async (layer) => {
-    if (layer._dbId) await updateMapLine(layer._dbId, layer.toGeoJSON())
-  })
-})
-
-// When a line is deleted — remove from Supabase
-map.on(L.Draw.Event.DELETED, async (e) => {
-  e.layers.eachLayer(async (layer) => {
-    if (layer._dbId) await deleteMapLine(layer._dbId)
-  })
-})
-
-function weightForType(type) {
-  if (type === "mainline")  return 5
-  if (type === "lateral")   return 3
-  if (type === "dropline")  return 2
-  return 3
 }
 
 function renderHubSection(hub) {
