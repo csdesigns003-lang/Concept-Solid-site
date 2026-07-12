@@ -15,7 +15,8 @@ async function signup(email, password) {
 async function login(email, password) {
   const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password })
   if (error) { alert("Login failed: " + error.message); return null }
-  window.location.href = "dashboard.html"
+  //window.location.href = "dashboard.html"
+  window.location.href = "dashboardMap.html"
 }
 
 async function logout() {
