@@ -229,7 +229,7 @@ body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
 <script>
 /*
   ================================================================
-  REQUIRED ADDITIONS TO auth.js BEFORE THIS FILE WILL FULLY WORK
+  REQUIRED ADDITIONS TO auth.js
   ----------------------------------------------------------------
   async function updateHubName(hubId, name) {
     const { error } = await supabaseClient.from("hubs").update({ hub_name: name }).eq("id", hubId)
@@ -268,14 +268,14 @@ body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
     alter table public.sensors add column lng numeric(10,7) default null;
 
     create table public.hub_map_lines (
-      id          uuid primary key default gen_random_uuid(),
-      hub_id      uuid not null references public.hubs(id) on delete cascade,
-      user_id     uuid not null references auth.users(id) on delete cascade,
-      name        text,
-      line_type   text default 'mainline',
-      color       text default '#3b82f6',
-      geojson     jsonb not null,
-      created_at  timestamptz not null default now()
+      id         uuid primary key default gen_random_uuid(),
+      hub_id     uuid not null references public.hubs(id) on delete cascade,
+      user_id    uuid not null references auth.users(id) on delete cascade,
+      name       text,
+      line_type  text default 'mainline',
+      color      text default '#3b82f6',
+      geojson    jsonb not null,
+      created_at timestamptz not null default now()
     );
     alter table public.hub_map_lines enable row level security;
     create policy "Users manage own lines" on public.hub_map_lines
@@ -283,7 +283,7 @@ body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
   ================================================================
 */
 
-// ── Gauge constants ──────────────────────────
+// Gauge constants
 const GAUGE_MIN_DEG =  48
 const GAUGE_MAX_DEG = -228
 const PRESSURE_MAX  =  30
@@ -342,7 +342,7 @@ async function logout() {
   window.location.href = "login.html"
 }
 
-// ── Global state ─────────────────────────────
+// Global state
 let allHubs    = []
 let allSensors = []
 let hubCharts  = {}
@@ -352,7 +352,6 @@ let hubSensorsCache     = {}
 let latestReadingsCache = {}
 let placementState      = null
 
-// ── RSSI bars ────────────────────────────────
 function rssiBars(rssi) {
   if (rssi == null) return "<span class='text-slate-500'>---</span>"
   const strength = Math.max(0, Math.min(5, Math.floor((rssi + 120) / 10)))
@@ -363,7 +362,7 @@ function rssiBars(rssi) {
   return `<div style="display:flex;align-items:flex-end;justify-content:center;height:25px">${bars}</div>`
 }
 
-// ── Tab switching ─────────────────────────────
+// Tab switching
 function switchTab(hubId, tab) {
   hubTabs[hubId] = tab
   const dataView = document.getElementById(`dataview-${hubId}`)
@@ -378,11 +377,12 @@ function switchTab(hubId, tab) {
     dataView.classList.add("hidden"); mapView.classList.remove("hidden")
     dataBtn.classList.remove("active-tab"); mapBtn.classList.add("active-tab")
     initHubMap(hubId)
-    setTimeout(() => { if (hubMaps[hubId]) hubMaps[hubId].map.invalidateSize() }, 50)
+    // Increased delay to ensure container is fully painted before invalidating
+    setTimeout(() => { if (hubMaps[hubId]) hubMaps[hubId].map.invalidateSize() }, 200)
   }
 }
 
-// ── Line type selector ────────────────────────
+// Line type selector
 function setLineType(hubId, type, color, weight) {
   if (hubMaps[hubId]) {
     hubMaps[hubId].activeLineType = { type, color, weight }
@@ -395,7 +395,19 @@ function setLineType(hubId, type, color, weight) {
   })
 }
 
-// ── Marker icon ───────────────────────────────
+// Programmatic draw trigger — no toolbar needed
+function startDrawing(hubId) {
+  const mapData = hubMaps[hubId]
+  if (!mapData) return
+  const active  = mapData.activeLineType
+  const handler = new L.Draw.Polyline(mapData.map, {
+    shapeOptions: { color: active.color, weight: active.weight },
+    showLength: false
+  })
+  handler.enable()
+}
+
+// Marker icon
 function createMarkerIcon(color) {
   return L.divIcon({
     className: "",
@@ -515,31 +527,37 @@ function toggleFullscreen(mapEl, map) {
   }
 }
 
-// ── Initialize Leaflet map ────────────────────
+// Initialize Leaflet map
 async function initHubMap(hubId) {
   const mapEl = document.getElementById(`map-${hubId}`)
   if (!mapEl || hubMaps[hubId]) return
 
   const map = L.map(mapEl, { zoomControl: false })
 
-  // Tile layers
+  // Satellite base -- maxZoom 19 (Esri caps satellite at 19 in most rural areas)
   const satellite = L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    { attribution: "Tiles &copy; Esri", maxZoom: 20 }
+    {
+      attribution: "Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics",
+      maxZoom: 19
+    }
   )
+  // Labels overlay
   const labels = L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
-    { maxZoom: 20, opacity: 0.8 }
+    { maxZoom: 19, opacity: 0.8 }
   )
+  // Roads overlay
   const roads = L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}",
-    { maxZoom: 20, opacity: 0.6 }
+    { maxZoom: 19, opacity: 0.6 }
   )
+
   satellite.addTo(map)
   labels.addTo(map)
   roads.addTo(map)
 
-  // Controls -- zoom first (topleft), then layer toggle, fullscreen, recenter (all topright)
+  // Controls -- zoom topleft, then layer toggle / fullscreen / recenter topright
   L.control.zoom({ position: "topleft" }).addTo(map)
 
   L.control.layers(
@@ -599,23 +617,23 @@ async function initHubMap(hubId) {
   banner.innerHTML = `Click anywhere on the map to place this sensor <button onclick="cancelPlacement('${hubId}')">Cancel</button>`
   mapEl.appendChild(banner)
 
-  // Fullscreen resize
+  // Fullscreen resize handler
   document.addEventListener("fullscreenchange", () => {
     setTimeout(() => map.invalidateSize(), 100)
   })
 
-  // Store map instance with activeLineType
+  // Store map instance with default activeLineType
   hubMaps[hubId] = {
     map,
     markers: {},
     activeLineType: { type: "mainline", color: "#3b82f6", weight: 5 }
   }
 
-  // ── Leaflet.draw setup ────────────────────
+  // Leaflet.draw -- edit/delete toolbar only, no draw toolbar (draw triggered by button)
   const drawnItems = new L.FeatureGroup()
   map.addLayer(drawnItems)
 
-  // Load and render any previously saved lines
+  // Load previously saved lines
   const savedLines = await loadMapLines(hubId)
   for (const line of savedLines) {
     const layer = L.geoJSON(line.geojson, {
@@ -626,21 +644,15 @@ async function initHubMap(hubId) {
     drawnItems.addLayer(layer)
   }
 
-  const drawControl = new L.Control.Draw({
+  // Edit/delete control (no draw toolbar -- drawing triggered by + Draw Line button)
+  const editControl = new L.Control.Draw({
     position: "topleft",
     edit: { featureGroup: drawnItems, remove: true },
-    draw: {
-      polyline: {
-        shapeOptions: { color: "#3b82f6", weight: 5 },
-        showLength: false
-      },
-      polygon: false, rectangle: false,
-      circle: false, circlemarker: false, marker: false
-    }
+    draw: false
   })
-  map.addControl(drawControl)
+  map.addControl(editControl)
 
-  // Save new line to Supabase on draw complete
+  // Save new line on draw complete
   map.on(L.Draw.Event.CREATED, async (e) => {
     const active = hubMaps[hubId].activeLineType
     const layer  = e.layer
@@ -652,14 +664,14 @@ async function initHubMap(hubId) {
     if (saved) layer._dbId = saved.id
   })
 
-  // Update line in Supabase after edit
+  // Update line after edit
   map.on(L.Draw.Event.EDITED, async (e) => {
     e.layers.eachLayer(async (layer) => {
       if (layer._dbId) await updateMapLine(layer._dbId, layer.toGeoJSON())
     })
   })
 
-  // Delete line from Supabase
+  // Delete line
   map.on(L.Draw.Event.DELETED, async (e) => {
     e.layers.eachLayer(async (layer) => {
       if (layer._dbId) await deleteMapLine(layer._dbId)
@@ -679,9 +691,12 @@ async function initHubMap(hubId) {
   } else {
     map.setView([44.5, -93.0], 14)
   }
+
+  // Fix tile sizing after async setup -- critical for correct initial render
+  setTimeout(() => map.invalidateSize(), 100)
 }
 
-// ── Render hub section (structure only) ──────
+// Render hub section (structure only)
 function renderHubSection(hub) {
   const sId = `hub-${hub.id}`
   if (document.getElementById(sId)) return
@@ -782,8 +797,8 @@ function renderHubSection(hub) {
     <!-- MAP VIEW -->
     <div id="mapview-${hub.id}" class="hidden">
 
-      <!-- Line type selector -->
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;padding:12px;border-radius:10px;border:1px solid #1e293b;background:#0a1628;">
+      <!-- Line type selector + Draw button -->
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;padding:12px;border-radius:10px;border:1px solid #1e293b;background:#0a1628;">
         <span style="font-size:12px;color:#64748b;flex-shrink:0;">Draw line type:</span>
         <button id="lt-mainline-${hub.id}" onclick="setLineType('${hub.id}','mainline','#3b82f6',5)"
           style="font-size:12px;padding:5px 12px;border-radius:6px;border:1px solid #3b82f6;color:#3b82f6;background:#3b82f620;font-weight:700;cursor:pointer;">
@@ -796,6 +811,10 @@ function renderHubSection(hub) {
         <button id="lt-dropline-${hub.id}" onclick="setLineType('${hub.id}','dropline','#94a3b8',2)"
           style="font-size:12px;padding:5px 12px;border-radius:6px;border:1px solid #94a3b8;color:#94a3b8;background:transparent;font-weight:600;cursor:pointer;">
           Dropline
+        </button>
+        <button onclick="startDrawing('${hub.id}')"
+          style="font-size:12px;padding:5px 14px;border-radius:6px;border:1px solid #22c55e;color:#0f172a;background:#22c55e;font-weight:700;cursor:pointer;margin-left:4px;">
+          + Draw Line
         </button>
       </div>
 
@@ -843,7 +862,6 @@ function renderHubSection(hub) {
   })
 }
 
-// ── Populate hub with live data ───────────────
 async function populateHub(hub) {
   const sensors = await loadSensorsForHub(hub.id)
   const tableEl = document.getElementById(`table-${hub.id}`)
@@ -1161,7 +1179,7 @@ async function submitEditNames() {
   populateAssignDropdowns()
 }
 
-// ── Boot ──────────────────────────────────────
+// Boot
 loadDashboard().then(() => { subscribeRealtime(); startPolling() })
 </script>
 </body>
