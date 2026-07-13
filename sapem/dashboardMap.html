@@ -24,9 +24,7 @@
 html, body { overflow-x: hidden; }
 #refreshBtn:focus { outline: none; }
 #refreshBtn { -webkit-tap-highlight-color: transparent; }
-
 body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
-
 .card { background: #1e293b; border-radius: 14px; padding: 20px; }
 
 /* Gauge */
@@ -44,7 +42,6 @@ body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
 .modal-input { width: 100%; background: #0f172a; border: 1px solid #475569; border-radius: 8px; padding: 10px 14px; color: white; margin-top: 6px; }
 .modal-input:focus { outline: none; border-color: #22c55e; }
 .modal-input option { background: #1e293b; }
-
 .btn-green { background: #16a34a; color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; }
 .btn-green:hover { background: #15803d; }
 .btn-slate { background: #334155; color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; }
@@ -81,8 +78,11 @@ body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
 .leaflet-attribution-flag { display: none !important; }
 .leaflet-control-attribution { background: rgba(15,23,42,0.7) !important; color: #475569 !important; font-size: 10px !important; }
 .leaflet-control-attribution a { color: #64748b !important; }
+.leaflet-control-layers { background: rgba(15,23,42,0.92) !important; border: 1px solid #1e293b !important; border-radius: 7px !important; color: #cbd5e1 !important; box-shadow: 0 2px 8px rgba(0,0,0,0.5) !important; }
+.leaflet-control-layers-toggle { background-color: rgba(15,23,42,0.92) !important; }
+.leaflet-control-layers label { color: #cbd5e1 !important; font-size: 12px !important; }
 
-/* Fullscreen button */
+/* Fullscreen + recenter buttons */
 .leaflet-fs-btn { width: 34px; height: 34px; background: rgba(15,23,42,0.92) !important; border: 1px solid #1e293b !important; border-radius: 7px !important; color: #cbd5e1; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.5); transition: all 0.15s; }
 .leaflet-fs-btn:hover { background: #1e293b !important; color: white; }
 
@@ -97,6 +97,12 @@ body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
 .placement-banner { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); background: rgba(34,197,94,0.15); border: 1px solid #22c55e; border-radius: 8px; padding: 8px 16px; color: #22c55e; font-size: 13px; font-weight: 600; z-index: 1000; white-space: nowrap; display: flex; align-items: center; gap: 10px; pointer-events: none; }
 .placement-banner button { pointer-events: all; background: #334155; border: none; color: #94a3b8; border-radius: 5px; padding: 3px 8px; font-size: 12px; cursor: pointer; }
 .placement-banner button:hover { background: #475569; color: white; }
+
+/* Leaflet draw toolbar dark theme */
+.leaflet-draw-toolbar a { background-color: rgba(15,23,42,0.92) !important; color: #cbd5e1 !important; border-color: #1e293b !important; }
+.leaflet-draw-toolbar a:hover { background-color: #1e293b !important; }
+.leaflet-draw-actions a { background-color: #1e293b !important; color: #cbd5e1 !important; }
+.leaflet-draw-actions a:hover { background-color: #334155 !important; }
 </style>
 </head>
 <body>
@@ -222,10 +228,62 @@ body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
 
 <script>
 /*
-  REQUIRED ADDITIONS TO auth.js: ...
+  ================================================================
+  REQUIRED ADDITIONS TO auth.js BEFORE THIS FILE WILL FULLY WORK
+  ----------------------------------------------------------------
+  async function updateHubName(hubId, name) {
+    const { error } = await supabaseClient.from("hubs").update({ hub_name: name }).eq("id", hubId)
+    return !error
+  }
+  async function updateSensorName(sensorId, name) {
+    const { error } = await supabaseClient.from("sensors").update({ sensor_name: name }).eq("id", sensorId)
+    return !error
+  }
+  async function updateSensorLocation(sensorId, lat, lng) {
+    const { error } = await supabaseClient.from("sensors").update({ lat, lng }).eq("id", sensorId)
+    return !error
+  }
+  async function saveMapLine(hubId, lineType, color, name, geojson) {
+    const { data: { user } } = await supabaseClient.auth.getUser()
+    const { data, error } = await supabaseClient.from("hub_map_lines")
+      .insert({ hub_id: hubId, user_id: user.id, line_type: lineType, color, name, geojson })
+      .select().single()
+    return error ? null : data
+  }
+  async function loadMapLines(hubId) {
+    const { data, error } = await supabaseClient.from("hub_map_lines").select("*").eq("hub_id", hubId)
+    return error ? [] : data
+  }
+  async function updateMapLine(lineId, geojson) {
+    const { error } = await supabaseClient.from("hub_map_lines").update({ geojson }).eq("id", lineId)
+    return !error
+  }
+  async function deleteMapLine(lineId) {
+    const { error } = await supabaseClient.from("hub_map_lines").delete().eq("id", lineId)
+    return !error
+  }
+
+  REQUIRED SUPABASE SQL (run once):
+    alter table public.sensors add column lat numeric(10,7) default null;
+    alter table public.sensors add column lng numeric(10,7) default null;
+
+    create table public.hub_map_lines (
+      id          uuid primary key default gen_random_uuid(),
+      hub_id      uuid not null references public.hubs(id) on delete cascade,
+      user_id     uuid not null references auth.users(id) on delete cascade,
+      name        text,
+      line_type   text default 'mainline',
+      color       text default '#3b82f6',
+      geojson     jsonb not null,
+      created_at  timestamptz not null default now()
+    );
+    alter table public.hub_map_lines enable row level security;
+    create policy "Users manage own lines" on public.hub_map_lines
+      for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+  ================================================================
 */
 
-// Gauge constants
+// ── Gauge constants ──────────────────────────
 const GAUGE_MIN_DEG =  48
 const GAUGE_MAX_DEG = -228
 const PRESSURE_MAX  =  30
@@ -235,13 +293,19 @@ function fmt(dateStr) {
   return new Date(dateStr).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
 }
 
-// Pressure color -- shared by table rows and map markers
 function pressureColor(p) {
   if (p == null) return "#64748b"
   const abs = Math.abs(p)
   if (abs >= 18) return "#22c55e"
   if (abs >= 14) return "#f59e0b"
   return "#ef4444"
+}
+
+function weightForType(type) {
+  if (type === "mainline")  return 5
+  if (type === "lateral")   return 3
+  if (type === "dropline")  return 2
+  return 3
 }
 
 function drawNeedle(canvasId, value) {
@@ -259,11 +323,10 @@ function drawNeedle(canvasId, value) {
   const pivotR    = W * 0.045
   const tipX = cx + needleLen * Math.cos(rad)
   const tipY = cy + needleLen * Math.sin(rad)
-  ctx.shadowColor = "rgba(0,0,0,0.6)"
-  ctx.shadowBlur  = 6
+  ctx.shadowColor = "rgba(0,0,0,0.6)"; ctx.shadowBlur = 6
   ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(tipX, tipY)
   ctx.strokeStyle = "#ef4444"; ctx.lineWidth = W * 0.022; ctx.lineCap = "round"; ctx.stroke()
-  ctx.shadowBlur  = 0
+  ctx.shadowBlur = 0
   ctx.beginPath(); ctx.arc(cx, cy, pivotR, 0, Math.PI * 2)
   ctx.fillStyle = "#cbd5e1"; ctx.fill()
 }
@@ -279,7 +342,7 @@ async function logout() {
   window.location.href = "login.html"
 }
 
-// State
+// ── Global state ─────────────────────────────
 let allHubs    = []
 let allSensors = []
 let hubCharts  = {}
@@ -289,6 +352,7 @@ let hubSensorsCache     = {}
 let latestReadingsCache = {}
 let placementState      = null
 
+// ── RSSI bars ────────────────────────────────
 function rssiBars(rssi) {
   if (rssi == null) return "<span class='text-slate-500'>---</span>"
   const strength = Math.max(0, Math.min(5, Math.floor((rssi + 120) / 10)))
@@ -299,7 +363,7 @@ function rssiBars(rssi) {
   return `<div style="display:flex;align-items:flex-end;justify-content:center;height:25px">${bars}</div>`
 }
 
-// Tab switching
+// ── Tab switching ─────────────────────────────
 function switchTab(hubId, tab) {
   hubTabs[hubId] = tab
   const dataView = document.getElementById(`dataview-${hubId}`)
@@ -318,7 +382,20 @@ function switchTab(hubId, tab) {
   }
 }
 
-// Create a DivIcon circle marker
+// ── Line type selector ────────────────────────
+function setLineType(hubId, type, color, weight) {
+  if (hubMaps[hubId]) {
+    hubMaps[hubId].activeLineType = { type, color, weight }
+  }
+  ["mainline", "lateral", "dropline"].forEach(t => {
+    const btn = document.getElementById(`lt-${t}-${hubId}`)
+    if (!btn) return
+    btn.style.background = t === type ? color + "20" : "transparent"
+    btn.style.fontWeight = t === type ? "700" : "600"
+  })
+}
+
+// ── Marker icon ───────────────────────────────
 function createMarkerIcon(color) {
   return L.divIcon({
     className: "",
@@ -346,7 +423,8 @@ function addMarkerToMap(hubId, sensor) {
       <div style="color:${col};font-size:15px;font-weight:600;margin-bottom:4px">${l && l.pressure_1 != null ? l.pressure_1.toFixed(2) : "---"} inHg</div>
       <div style="color:#7dd3fc;font-size:13px;margin-bottom:4px">${l && l.temperature != null ? l.temperature.toFixed(1) : "---"} degF</div>
       <div style="color:#64748b;font-size:11px;margin-bottom:10px">Last seen ${fmt(l ? l.received_at : null)}</div>
-      <button onclick="startPlacement('${hubId}','${sensor.id}')" style="background:#334155;border:none;color:#cbd5e1;padding:6px 10px;border-radius:6px;font-size:12px;cursor:pointer;width:100%">
+      <button onclick="startPlacement('${hubId}','${sensor.id}')"
+        style="background:#334155;border:none;color:#cbd5e1;padding:6px 10px;border-radius:6px;font-size:12px;cursor:pointer;width:100%">
         Reposition marker
       </button>
     </div>`
@@ -422,12 +500,10 @@ function cancelPlacement(hubId) {
   if (banner) banner.classList.add("hidden")
 }
 
-// Fullscreen toggle -- native API + iOS CSS fallback
 function toggleFullscreen(mapEl, map) {
   if (mapEl.classList.contains("map-force-fullscreen")) {
     mapEl.classList.remove("map-force-fullscreen")
-    setTimeout(() => map.invalidateSize(), 100)
-    return
+    setTimeout(() => map.invalidateSize(), 100); return
   }
   if (document.fullscreenElement === mapEl) {
     document.exitFullscreen()
@@ -439,22 +515,14 @@ function toggleFullscreen(mapEl, map) {
   }
 }
 
-function weightForType(type) {
-  if (type === "mainline")  return 5
-  if (type === "lateral")   return 3
-  if (type === "dropline")  return 2
-  return 3
-}
-
+// ── Initialize Leaflet map ────────────────────
 async function initHubMap(hubId) {
   const mapEl = document.getElementById(`map-${hubId}`)
   if (!mapEl || hubMaps[hubId]) return
 
   const map = L.map(mapEl, { zoomControl: false })
 
-  // Esri satellite tiles -- free, no API key required
-  L.control.zoom({ position: "topleft" }).addTo(map)
-
+  // Tile layers
   const satellite = L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     { attribution: "Tiles &copy; Esri", maxZoom: 20 }
@@ -467,18 +535,19 @@ async function initHubMap(hubId) {
     "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}",
     { maxZoom: 20, opacity: 0.6 }
   )
-  
   satellite.addTo(map)
   labels.addTo(map)
   roads.addTo(map)
-  
+
+  // Controls -- zoom first (topleft), then layer toggle, fullscreen, recenter (all topright)
+  L.control.zoom({ position: "topleft" }).addTo(map)
+
   L.control.layers(
     {},
     { "Labels & Boundaries": labels, "Roads": roads },
     { position: "topright", collapsed: true }
   ).addTo(map)
 
-  // Fullscreen button
   const FsControl = L.Control.extend({
     options: { position: "topright" },
     onAdd: function() {
@@ -492,31 +561,22 @@ async function initHubMap(hubId) {
   })
   new FsControl().addTo(map)
 
-  // Recenter Control
   const RecenterControl = L.Control.extend({
     options: { position: "topright" },
     onAdd: function() {
       const btn = L.DomUtil.create("button", "leaflet-fs-btn")
       btn.title = "Recenter on sensors"
-      btn.innerHTML = `
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="3"/>
-          <path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
-        </svg>`
+      btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>'
       L.DomEvent.on(btn, "click", L.DomEvent.stopPropagation)
       L.DomEvent.on(btn, "click", () => {
         const placed = (hubSensorsCache[hubId] || []).filter(s => s.lat && s.lng)
-        if (placed.length) {
-          map.fitBounds(placed.map(s => [s.lat, s.lng]), { padding: [50, 50] })
-        }
+        if (placed.length) map.fitBounds(placed.map(s => [s.lat, s.lng]), { padding: [50, 50] })
       })
       return btn
     }
   })
   new RecenterControl().addTo(map)
 
-  // Legend
   const LegendControl = L.Control.extend({
     options: { position: "bottomleft" },
     onAdd: function() {
@@ -532,28 +592,31 @@ async function initHubMap(hubId) {
   })
   new LegendControl().addTo(map)
 
-  // Placement banner inside map container
+  // Placement banner
   const banner = document.createElement("div")
   banner.id        = `placement-banner-${hubId}`
   banner.className = "placement-banner hidden"
   banner.innerHTML = `Click anywhere on the map to place this sensor <button onclick="cancelPlacement('${hubId}')">Cancel</button>`
   mapEl.appendChild(banner)
 
-  // Fullscreen resize handler -- scoped to this map instance
+  // Fullscreen resize
   document.addEventListener("fullscreenchange", () => {
     setTimeout(() => map.invalidateSize(), 100)
   })
 
-  // Line type state configuration for this hub map
-  hubMaps[hubId] = { map, markers: {}, activeLineType: { type: "mainline", color: "#3b82f6", weight: 5 } }
+  // Store map instance with activeLineType
+  hubMaps[hubId] = {
+    map,
+    markers: {},
+    activeLineType: { type: "mainline", color: "#3b82f6", weight: 5 }
+  }
 
-  // Drawn lines layer — Leaflet.draw needs a FeatureGroup
+  // ── Leaflet.draw setup ────────────────────
   const drawnItems = new L.FeatureGroup()
   map.addLayer(drawnItems)
 
-  // Load existing saved lines from Supabase and add them to the map
+  // Load and render any previously saved lines
   const savedLines = await loadMapLines(hubId)
-
   for (const line of savedLines) {
     const layer = L.geoJSON(line.geojson, {
       style: { color: line.color, weight: weightForType(line.line_type) }
@@ -563,13 +626,12 @@ async function initHubMap(hubId) {
     drawnItems.addLayer(layer)
   }
 
-  // Leaflet.draw control — polyline only, no shapes
   const drawControl = new L.Control.Draw({
     position: "topleft",
     edit: { featureGroup: drawnItems, remove: true },
     draw: {
       polyline: {
-        shapeOptions: { color: hubMaps[hubId].activeLineType.color, weight: hubMaps[hubId].activeLineType.weight },
+        shapeOptions: { color: "#3b82f6", weight: 5 },
         showLength: false
       },
       polygon: false, rectangle: false,
@@ -578,34 +640,33 @@ async function initHubMap(hubId) {
   })
   map.addControl(drawControl)
 
-  // When a line is drawn — save to Supabase immediately
+  // Save new line to Supabase on draw complete
   map.on(L.Draw.Event.CREATED, async (e) => {
     const active = hubMaps[hubId].activeLineType
-    const layer = e.layer
+    const layer  = e.layer
     layer.setStyle({ color: active.color, weight: active.weight })
     drawnItems.addLayer(layer)
-
     const geojson  = layer.toGeoJSON()
-    const lineName = `${active.type} ${drawnItems.getLayers().length}`
+    const lineName = `${active.type} ${savedLines.length + 1}`
     const saved    = await saveMapLine(hubId, active.type, active.color, lineName, geojson)
     if (saved) layer._dbId = saved.id
   })
 
-  // When a line is edited — update the GeoJSON in Supabase
+  // Update line in Supabase after edit
   map.on(L.Draw.Event.EDITED, async (e) => {
     e.layers.eachLayer(async (layer) => {
       if (layer._dbId) await updateMapLine(layer._dbId, layer.toGeoJSON())
     })
   })
 
-  // When a line is deleted — remove from Supabase
+  // Delete line from Supabase
   map.on(L.Draw.Event.DELETED, async (e) => {
     e.layers.eachLayer(async (layer) => {
       if (layer._dbId) await deleteMapLine(layer._dbId)
     })
   })
 
-  // Place markers for sensors that already have coordinates
+  // Place existing sensor markers
   const sensors = hubSensorsCache[hubId] || []
   const bounds  = []
   for (const sensor of sensors) {
@@ -613,7 +674,6 @@ async function initHubMap(hubId) {
     addMarkerToMap(hubId, sensor)
     bounds.push([sensor.lat, sensor.lng])
   }
-
   if (bounds.length) {
     map.fitBounds(bounds, { padding: [50, 50] })
   } else {
@@ -621,6 +681,7 @@ async function initHubMap(hubId) {
   }
 }
 
+// ── Render hub section (structure only) ──────
 function renderHubSection(hub) {
   const sId = `hub-${hub.id}`
   if (document.getElementById(sId)) return
@@ -717,34 +778,36 @@ function renderHubSection(hub) {
         <tbody id="${tableId}"></tbody>
       </table>
     </div>
-    
-  <div class="flex items-center gap-3 mb-3 p-3 rounded-xl border border-slate-700 bg-slate-900">
-    <span class="text-xs text-slate-400 shrink-0">Draw line type:</span>
-    <button onclick="setLineType('${hub.id}','mainline','#3b82f6',5)" id="lt-mainline-${hub.id}"
-      class="line-type-btn active-line-type text-xs px-3 py-1.5 rounded-lg border font-semibold"
-      style="border-color:#3b82f6;color:#3b82f6">
-      ── Mainline
-    </button>
-    <button onclick="setLineType('${hub.id}','lateral','#22c55e',3)"  id="lt-lateral-${hub.id}"
-      class="line-type-btn text-xs px-3 py-1.5 rounded-lg border font-semibold"
-      style="border-color:#22c55e;color:#22c55e">
-      ── Lateral
-    </button>
-    <button onclick="setLineType('${hub.id}','dropline','#94a3b8',2)" id="lt-dropline-${hub.id}"
-      class="line-type-btn text-xs px-3 py-1.5 rounded-lg border font-semibold"
-      style="border-color:#94a3b8;color:#94a3b8">
-      ── Dropline
-    </button>
-  </div>
-  
+
     <!-- MAP VIEW -->
     <div id="mapview-${hub.id}" class="hidden">
+
+      <!-- Line type selector -->
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;padding:12px;border-radius:10px;border:1px solid #1e293b;background:#0a1628;">
+        <span style="font-size:12px;color:#64748b;flex-shrink:0;">Draw line type:</span>
+        <button id="lt-mainline-${hub.id}" onclick="setLineType('${hub.id}','mainline','#3b82f6',5)"
+          style="font-size:12px;padding:5px 12px;border-radius:6px;border:1px solid #3b82f6;color:#3b82f6;background:#3b82f620;font-weight:700;cursor:pointer;">
+          Mainline
+        </button>
+        <button id="lt-lateral-${hub.id}" onclick="setLineType('${hub.id}','lateral','#22c55e',3)"
+          style="font-size:12px;padding:5px 12px;border-radius:6px;border:1px solid #22c55e;color:#22c55e;background:transparent;font-weight:600;cursor:pointer;">
+          Lateral
+        </button>
+        <button id="lt-dropline-${hub.id}" onclick="setLineType('${hub.id}','dropline','#94a3b8',2)"
+          style="font-size:12px;padding:5px 12px;border-radius:6px;border:1px solid #94a3b8;color:#94a3b8;background:transparent;font-weight:600;cursor:pointer;">
+          Dropline
+        </button>
+      </div>
+
+      <!-- Unplaced sensors bar -->
       <div id="unplaced-bar-${hub.id}" class="hidden mb-3 p-3 rounded-xl border border-slate-700 bg-slate-900">
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <span class="text-xs text-slate-400" style="flex-shrink:0;">Not yet placed on map:</span>
           <div id="unplaced-list-${hub.id}" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
         </div>
       </div>
+
+      <!-- Leaflet map -->
       <div id="map-${hub.id}" class="hub-map"></div>
     </div>
   `
@@ -780,6 +843,7 @@ function renderHubSection(hub) {
   })
 }
 
+// ── Populate hub with live data ───────────────
 async function populateHub(hub) {
   const sensors = await loadSensorsForHub(hub.id)
   const tableEl = document.getElementById(`table-${hub.id}`)
@@ -894,19 +958,6 @@ function applyThreshold(hubId) {
   if (input) saveHubThreshold(hubId, input.value)
   const hub = allHubs.find(h => h.id === hubId)
   if (hub) populateHub(hub)
-}
-
-function setLineType(hubId, type, color, weight) {
-  if (hubMaps[hubId]) {
-    hubMaps[hubId].activeLineType = { type, color, weight }
-  }
-  // Update button highlight
-  ["mainline", "lateral", "dropline"].forEach(t => {
-    const btn = document.getElementById(`lt-${t}-${hubId}`)
-    if (!btn) return
-    btn.style.background = t === type ? color + "20" : "transparent"
-    btn.style.fontWeight = t === type ? "700" : "600"
-  })
 }
 
 async function populateUnassigned() {
@@ -1089,8 +1140,8 @@ async function submitEditNames() {
     if (!input) continue
     const ok = await updateSensorName(s.id, input.value.trim())
     if (!ok) {
-      err.textContent = `Failed to save name for sensor ${s.sensor_hardware_id}.`; err.classList.remove("hidden")
-      btn.textContent = "Save"; btn.disabled = false; return
+      err.textContent = `Failed to save name for sensor ${s.sensor_hardware_id}.`
+      err.classList.remove("hidden"); btn.textContent = "Save"; btn.disabled = false; return
     }
     const ls = allSensors.find(x => x.id === s.id)
     if (ls) ls.sensor_name = input.value.trim()
@@ -1110,6 +1161,7 @@ async function submitEditNames() {
   populateAssignDropdowns()
 }
 
+// ── Boot ──────────────────────────────────────
 loadDashboard().then(() => { subscribeRealtime(); startPolling() })
 </script>
 </body>
