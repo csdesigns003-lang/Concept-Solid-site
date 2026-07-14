@@ -26,16 +26,10 @@ html, body { overflow-x: hidden; }
 #refreshBtn { -webkit-tap-highlight-color: transparent; }
 body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
 .card { background: #1e293b; border-radius: 14px; padding: 20px; }
-
-/* Gauge */
 .gauge-wrap { position: relative; width: 100%; max-width: 400px; aspect-ratio: 1 / 1; margin: 0 auto; }
 .gauge-wrap img { width: 100%; height: 100%; display: block; }
 .gauge-wrap canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-
-/* RSSI bars */
 .rssi-bar { width: 4px; margin-right: 1px; background: #22c55e; }
-
-/* Modal */
 .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; align-items: center; justify-content: center; }
 .modal-backdrop.open { display: flex; }
 .modal-box { background: #1e293b; border-radius: 14px; padding: 32px; width: 100%; max-width: 440px; border: 1px solid #334155; }
@@ -46,25 +40,17 @@ body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
 .btn-green:hover { background: #15803d; }
 .btn-slate { background: #334155; color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; }
 .btn-slate:hover { background: #475569; }
-
-/* Hub section */
 .hub-section { border: 1px solid #334155; border-radius: 14px; padding: 24px; margin-bottom: 32px; }
 .hub-title { font-size: 1.2rem; font-weight: 700; color: #22c55e; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
 .hub-dot { width: 10px; height: 10px; border-radius: 50%; background: #22c55e; display: inline-block; }
-
-/* Tab bar */
 .tab-bar { display: flex; gap: 4px; background: #0f172a; border-radius: 10px; padding: 4px; width: fit-content; margin-bottom: 20px; border: 1px solid #1e293b; }
 .tab-btn { padding: 7px 18px; border-radius: 7px; border: none; background: transparent; color: #64748b; font-weight: 500; font-size: 13px; cursor: pointer; transition: all 0.15s; }
 .tab-btn:hover:not(.active-tab) { color: #cbd5e1; background: #1e293b; }
 .tab-btn.active-tab { background: #22c55e; color: #0f172a; font-weight: 700; }
-
-/* Map container */
 .hub-map { height: 460px; border-radius: 12px; z-index: 0; }
 .hub-map:fullscreen { height: 100vh !important; border-radius: 0 !important; }
 .hub-map:-webkit-full-screen { height: 100vh !important; border-radius: 0 !important; }
 .hub-map.map-force-fullscreen { position: fixed !important; inset: 0 !important; z-index: 9999 !important; height: 100vh !important; width: 100vw !important; border-radius: 0 !important; }
-
-/* Leaflet dark theme */
 .leaflet-popup-content-wrapper { background: #1e293b !important; color: white !important; border: 1px solid #334155 !important; border-radius: 10px !important; box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important; }
 .leaflet-popup-tip { background: #1e293b !important; }
 .leaflet-popup-content { margin: 14px 16px !important; font-size: 13px !important; line-height: 1.6 !important; }
@@ -81,24 +67,16 @@ body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
 .leaflet-control-layers { background: rgba(15,23,42,0.92) !important; border: 1px solid #1e293b !important; border-radius: 7px !important; color: #cbd5e1 !important; box-shadow: 0 2px 8px rgba(0,0,0,0.5) !important; }
 .leaflet-control-layers-toggle { background-color: rgba(15,23,42,0.92) !important; }
 .leaflet-control-layers label { color: #cbd5e1 !important; font-size: 12px !important; }
-
-/* Fullscreen + recenter buttons */
 .leaflet-fs-btn { width: 34px; height: 34px; background: rgba(15,23,42,0.92) !important; border: 1px solid #1e293b !important; border-radius: 7px !important; color: #cbd5e1; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.5); transition: all 0.15s; }
 .leaflet-fs-btn:hover { background: #1e293b !important; color: white; }
-
-/* Map legend */
 .map-legend { background: rgba(15,23,42,0.92); border: 1px solid #1e293b; border-radius: 10px; padding: 10px 14px; backdrop-filter: blur(8px); box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
 .map-legend-title { font-size: 11px; color: #64748b; font-weight: 600; letter-spacing: 0.05em; margin-bottom: 8px; }
 .map-legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #cbd5e1; margin-bottom: 5px; }
 .map-legend-item:last-child { margin-bottom: 0; }
 .map-legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-
-/* Placement banner */
 .placement-banner { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); background: rgba(34,197,94,0.15); border: 1px solid #22c55e; border-radius: 8px; padding: 8px 16px; color: #22c55e; font-size: 13px; font-weight: 600; z-index: 1000; white-space: nowrap; display: flex; align-items: center; gap: 10px; pointer-events: none; }
 .placement-banner button { pointer-events: all; background: #334155; border: none; color: #94a3b8; border-radius: 5px; padding: 3px 8px; font-size: 12px; cursor: pointer; }
 .placement-banner button:hover { background: #475569; color: white; }
-
-/* Leaflet draw toolbar dark theme */
 .leaflet-draw-toolbar a { background-color: rgba(15,23,42,0.92) !important; color: #cbd5e1 !important; border-color: #1e293b !important; }
 .leaflet-draw-toolbar a:hover { background-color: #1e293b !important; }
 .leaflet-draw-actions a { background-color: #1e293b !important; color: #cbd5e1 !important; }
@@ -107,7 +85,6 @@ body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
 </head>
 <body>
 
-<!-- HEADER -->
 <header class="bg-slate-900 border-b border-slate-700">
   <div class="max-w-7xl mx-auto px-4 py-4">
     <h1 class="text-2xl font-bold text-center mb-3">SapEM Systems</h1>
@@ -123,13 +100,9 @@ body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
 
 <div id="hubsContainer" class="max-w-7xl mx-auto p-6"></div>
 
-<!-- Unassigned sensors -->
 <div id="unassignedSection" class="max-w-7xl mx-auto px-6 pb-10 hidden">
   <div class="hub-section">
-    <div class="hub-title">
-      <span class="hub-dot" style="background:#94a3b8"></span>
-      Unassigned Sensors
-    </div>
+    <div class="hub-title"><span class="hub-dot" style="background:#94a3b8"></span>Unassigned Sensors</div>
     <table class="w-full text-sm">
       <thead class="text-slate-400 border-b border-slate-700">
         <tr>
@@ -146,7 +119,6 @@ body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
   </div>
 </div>
 
-<!-- Empty state -->
 <div id="emptyState" class="max-w-7xl mx-auto p-6 text-center hidden">
   <div class="card py-20">
     <p class="text-slate-400 text-lg mb-6">No hubs connected yet.</p>
@@ -154,7 +126,6 @@ body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
   </div>
 </div>
 
-<!-- MODAL: Add Hub -->
 <div id="hubModal" class="modal-backdrop">
   <div class="modal-box">
     <h2 class="text-xl font-bold mb-6">Add Receiving Hub</h2>
@@ -171,7 +142,6 @@ body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
   </div>
 </div>
 
-<!-- MODAL: Add Sensor -->
 <div id="sensorModal" class="modal-backdrop">
   <div class="modal-box">
     <h2 class="text-xl font-bold mb-6">Add Sensor Node</h2>
@@ -188,7 +158,6 @@ body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
   </div>
 </div>
 
-<!-- MODAL: Assign Sensor -->
 <div id="assignModal" class="modal-backdrop">
   <div class="modal-box">
     <h2 class="text-xl font-bold mb-6">Assign Sensor to Hub</h2>
@@ -211,7 +180,6 @@ body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
   </div>
 </div>
 
-<!-- MODAL: Edit Names -->
 <div id="editNamesModal" class="modal-backdrop">
   <div class="modal-box">
     <h2 class="text-xl font-bold mb-6">Edit Names</h2>
@@ -225,7 +193,6 @@ body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
 </div>
 
 <script src="js/auth.js"></script>
-
 <script>
 /*
   ================================================================
@@ -263,7 +230,7 @@ body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
     return !error
   }
 
-  REQUIRED SUPABASE SQL (run once):
+  REQUIRED SUPABASE SQL (run once in SQL editor):
     alter table public.sensors add column lat numeric(10,7) default null;
     alter table public.sensors add column lng numeric(10,7) default null;
 
@@ -280,10 +247,15 @@ body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
     alter table public.hub_map_lines enable row level security;
     create policy "Users manage own lines" on public.hub_map_lines
       for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+  NOTE ON MISSING NODE:
+  If a node placed previously is not showing, the most likely cause is that
+  updateSensorLocation was not yet added to auth.js when the node was placed,
+  so the lat/lng was never saved to the database. Re-place the node after
+  confirming the SQL migration is run and updateSensorLocation is in auth.js.
   ================================================================
 */
 
-// Gauge constants
 const GAUGE_MIN_DEG =  48
 const GAUGE_MAX_DEG = -228
 const PRESSURE_MAX  =  30
@@ -302,9 +274,9 @@ function pressureColor(p) {
 }
 
 function weightForType(type) {
-  if (type === "mainline")  return 5
-  if (type === "lateral")   return 3
-  if (type === "dropline")  return 2
+  if (type === "mainline") return 5
+  if (type === "lateral")  return 3
+  if (type === "dropline") return 2
   return 3
 }
 
@@ -319,10 +291,8 @@ function drawNeedle(canvasId, value) {
   const deg      = GAUGE_MIN_DEG + fraction * (GAUGE_MAX_DEG - GAUGE_MIN_DEG)
   const rad      = (deg * Math.PI) / 180
   const cx = W / 2, cy = H / 2
-  const needleLen = W * 0.38
-  const pivotR    = W * 0.045
-  const tipX = cx + needleLen * Math.cos(rad)
-  const tipY = cy + needleLen * Math.sin(rad)
+  const needleLen = W * 0.38, pivotR = W * 0.045
+  const tipX = cx + needleLen * Math.cos(rad), tipY = cy + needleLen * Math.sin(rad)
   ctx.shadowColor = "rgba(0,0,0,0.6)"; ctx.shadowBlur = 6
   ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(tipX, tipY)
   ctx.strokeStyle = "#ef4444"; ctx.lineWidth = W * 0.022; ctx.lineCap = "round"; ctx.stroke()
@@ -342,7 +312,6 @@ async function logout() {
   window.location.href = "login.html"
 }
 
-// Global state
 let allHubs    = []
 let allSensors = []
 let hubCharts  = {}
@@ -362,8 +331,8 @@ function rssiBars(rssi) {
   return `<div style="display:flex;align-items:flex-end;justify-content:center;height:25px">${bars}</div>`
 }
 
-// Tab switching
-function switchTab(hubId, tab) {
+// ── Tab switching -- async so we can await initHubMap and then recenter ──
+async function switchTab(hubId, tab) {
   hubTabs[hubId] = tab
   const dataView = document.getElementById(`dataview-${hubId}`)
   const mapView  = document.getElementById(`mapview-${hubId}`)
@@ -376,13 +345,21 @@ function switchTab(hubId, tab) {
   } else {
     dataView.classList.add("hidden"); mapView.classList.remove("hidden")
     dataBtn.classList.remove("active-tab"); mapBtn.classList.add("active-tab")
-    initHubMap(hubId)
-    // Increased delay to ensure container is fully painted before invalidating
-    setTimeout(() => { if (hubMaps[hubId]) hubMaps[hubId].map.invalidateSize() }, 200)
+    await initHubMap(hubId)
+    // After map container is painted, fix tile sizing then recenter on sensors
+    setTimeout(() => {
+      const mapData = hubMaps[hubId]
+      if (!mapData) return
+      mapData.map.invalidateSize()
+      const placed = (hubSensorsCache[hubId] || []).filter(s => s.lat && s.lng)
+      if (placed.length) {
+        mapData.map.fitBounds(placed.map(s => [s.lat, s.lng]), { padding: [50, 50] })
+      }
+    }, 200)
   }
 }
 
-// Line type selector
+// ── Line type selector -- updates active type and button highlight ──
 function setLineType(hubId, type, color, weight) {
   if (hubMaps[hubId]) {
     hubMaps[hubId].activeLineType = { type, color, weight }
@@ -395,11 +372,11 @@ function setLineType(hubId, type, color, weight) {
   })
 }
 
-// Programmatic draw trigger — no toolbar needed
+// ── Programmatic draw trigger ──
 function startDrawing(hubId) {
   const mapData = hubMaps[hubId]
   if (!mapData) return
-  const active  = mapData.activeLineType
+  const active = mapData.activeLineType
   const handler = new L.Draw.Polyline(mapData.map, {
     shapeOptions: { color: active.color, weight: active.weight },
     showLength: false
@@ -407,7 +384,6 @@ function startDrawing(hubId) {
   handler.enable()
 }
 
-// Marker icon
 function createMarkerIcon(color) {
   return L.divIcon({
     className: "",
@@ -527,37 +503,30 @@ function toggleFullscreen(mapEl, map) {
   }
 }
 
-// Initialize Leaflet map
+// ── Initialize Leaflet map ──
 async function initHubMap(hubId) {
   const mapEl = document.getElementById(`map-${hubId}`)
-  if (!mapEl || hubMaps[hubId]) return
+  if (!mapEl || hubMaps[hubId]) return   // already initialized
 
   const map = L.map(mapEl, { zoomControl: false })
 
-  // Satellite base -- maxZoom 19 (Esri caps satellite at 19 in most rural areas)
+  // Satellite -- maxZoom 19 (Esri caps at 19 in most rural areas)
   const satellite = L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    {
-      attribution: "Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics",
-      maxZoom: 19
-    }
+    { attribution: "Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics", maxZoom: 19 }
   )
-  // Labels overlay
   const labels = L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
     { maxZoom: 19, opacity: 0.8 }
   )
-  // Roads overlay
   const roads = L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}",
     { maxZoom: 19, opacity: 0.6 }
   )
-
   satellite.addTo(map)
   labels.addTo(map)
   roads.addTo(map)
 
-  // Controls -- zoom topleft, then layer toggle / fullscreen / recenter topright
   L.control.zoom({ position: "topleft" }).addTo(map)
 
   L.control.layers(
@@ -566,6 +535,7 @@ async function initHubMap(hubId) {
     { position: "topright", collapsed: true }
   ).addTo(map)
 
+  // Fullscreen button
   const FsControl = L.Control.extend({
     options: { position: "topright" },
     onAdd: function() {
@@ -579,6 +549,7 @@ async function initHubMap(hubId) {
   })
   new FsControl().addTo(map)
 
+  // Recenter button
   const RecenterControl = L.Control.extend({
     options: { position: "topright" },
     onAdd: function() {
@@ -595,6 +566,73 @@ async function initHubMap(hubId) {
   })
   new RecenterControl().addTo(map)
 
+  // Draw lines control -- collapsible panel inside the map
+  const DrawLinesControl = L.Control.extend({
+    options: { position: "topright" },
+    onAdd: function() {
+      const container = L.DomUtil.create("div")
+      container.style.cssText = "display:flex;flex-direction:column;align-items:flex-end;gap:4px;"
+
+      // Toggle button
+      const toggleBtn = L.DomUtil.create("button", "leaflet-fs-btn", container)
+      toggleBtn.title = "Draw tap lines"
+      toggleBtn.style.cssText = "width:auto !important;padding:0 10px !important;font-size:12px !important;font-weight:600 !important;white-space:nowrap;gap:5px;"
+      toggleBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px"><path d="M3 17l4-4 4 4 4-8 4 4"/></svg>Lines'
+
+      // Expandable panel (hidden by default)
+      const panel = L.DomUtil.create("div", "", container)
+      panel.style.cssText = "display:none;flex-direction:column;gap:6px;background:rgba(15,23,42,0.95);border:1px solid #1e293b;border-radius:10px;padding:10px;backdrop-filter:blur(8px);box-shadow:0 2px 12px rgba(0,0,0,0.6);min-width:130px;"
+
+      // Label
+      const lbl = L.DomUtil.create("div", "", panel)
+      lbl.textContent = "Line type:"
+      lbl.style.cssText = "font-size:11px;color:#64748b;font-weight:600;letter-spacing:0.05em;margin-bottom:2px;"
+
+      // Line type buttons
+      const types = [
+        { type: "mainline", color: "#3b82f6", weight: 5, label: "Mainline" },
+        { type: "lateral",  color: "#22c55e", weight: 3, label: "Lateral"  },
+        { type: "dropline", color: "#94a3b8", weight: 2, label: "Dropline" },
+      ]
+      types.forEach(lt => {
+        const btn = L.DomUtil.create("button", "", panel)
+        btn.id          = `lt-${lt.type}-${hubId}`
+        btn.textContent = lt.label
+        btn.style.cssText = `font-size:12px;padding:5px 10px;border-radius:6px;border:1px solid ${lt.color};color:${lt.color};background:${lt.type === "mainline" ? lt.color + "20" : "transparent"};font-weight:${lt.type === "mainline" ? "700" : "600"};cursor:pointer;text-align:left;`
+        L.DomEvent.on(btn, "click", L.DomEvent.stopPropagation)
+        L.DomEvent.on(btn, "click", () => setLineType(hubId, lt.type, lt.color, lt.weight))
+      })
+
+      // Divider
+      const divider = L.DomUtil.create("div", "", panel)
+      divider.style.cssText = "border-top:1px solid #1e293b;margin:2px 0;"
+
+      // Draw button
+      const drawBtn = L.DomUtil.create("button", "", panel)
+      drawBtn.textContent = "+ Draw Line"
+      drawBtn.style.cssText = "font-size:12px;padding:6px 10px;border-radius:6px;border:none;color:#0f172a;background:#22c55e;font-weight:700;cursor:pointer;"
+      L.DomEvent.on(drawBtn, "click", L.DomEvent.stopPropagation)
+      L.DomEvent.on(drawBtn, "click", () => {
+        startDrawing(hubId)
+        isOpen = false
+        panel.style.display = "none"
+      })
+
+      // Toggle open/close
+      let isOpen = false
+      L.DomEvent.on(toggleBtn, "click", L.DomEvent.stopPropagation)
+      L.DomEvent.on(toggleBtn, "click", () => {
+        isOpen = !isOpen
+        panel.style.display = isOpen ? "flex" : "none"
+      })
+
+      L.DomEvent.disableClickPropagation(container)
+      return container
+    }
+  })
+  new DrawLinesControl().addTo(map)
+
+  // Legend
   const LegendControl = L.Control.extend({
     options: { position: "bottomleft" },
     onAdd: function() {
@@ -617,24 +655,27 @@ async function initHubMap(hubId) {
   banner.innerHTML = `Click anywhere on the map to place this sensor <button onclick="cancelPlacement('${hubId}')">Cancel</button>`
   mapEl.appendChild(banner)
 
-  // Fullscreen resize handler
+  // Fullscreen resize
   document.addEventListener("fullscreenchange", () => {
     setTimeout(() => map.invalidateSize(), 100)
   })
 
-  // Store map instance with default activeLineType
-  hubMaps[hubId] = {
-    map,
-    markers: {},
-    activeLineType: { type: "mainline", color: "#3b82f6", weight: 5 }
-  }
-
-  // Leaflet.draw -- edit/delete toolbar only, no draw toolbar (draw triggered by button)
+  // ── Store map instance -- drawnItems stored here so CREATED handler
+  //    and startDrawing both access the same object reliably ──
   const drawnItems = new L.FeatureGroup()
   map.addLayer(drawnItems)
 
+  hubMaps[hubId] = {
+    map,
+    markers: {},
+    activeLineType: { type: "mainline", color: "#3b82f6", weight: 5 },
+    drawnItems
+  }
+
   // Load previously saved lines
   const savedLines = await loadMapLines(hubId)
+  let lineCount = savedLines.length
+
   for (const line of savedLines) {
     const layer = L.geoJSON(line.geojson, {
       style: { color: line.color, weight: weightForType(line.line_type) }
@@ -644,7 +685,7 @@ async function initHubMap(hubId) {
     drawnItems.addLayer(layer)
   }
 
-  // Edit/delete control (no draw toolbar -- drawing triggered by + Draw Line button)
+  // Edit/delete control -- draw: false removes toolbar, drawing via button
   const editControl = new L.Control.Draw({
     position: "topleft",
     edit: { featureGroup: drawnItems, remove: true },
@@ -652,26 +693,26 @@ async function initHubMap(hubId) {
   })
   map.addControl(editControl)
 
-  // Save new line on draw complete
+  // CREATED -- uses hubMaps ref to avoid any closure timing issues
   map.on(L.Draw.Event.CREATED, async (e) => {
     const active = hubMaps[hubId].activeLineType
+    const di     = hubMaps[hubId].drawnItems
     const layer  = e.layer
     layer.setStyle({ color: active.color, weight: active.weight })
-    drawnItems.addLayer(layer)
+    di.addLayer(layer)
+    lineCount++
     const geojson  = layer.toGeoJSON()
-    const lineName = `${active.type} ${savedLines.length + 1}`
+    const lineName = `${active.type} ${lineCount}`
     const saved    = await saveMapLine(hubId, active.type, active.color, lineName, geojson)
     if (saved) layer._dbId = saved.id
   })
 
-  // Update line after edit
   map.on(L.Draw.Event.EDITED, async (e) => {
     e.layers.eachLayer(async (layer) => {
       if (layer._dbId) await updateMapLine(layer._dbId, layer.toGeoJSON())
     })
   })
 
-  // Delete line
   map.on(L.Draw.Event.DELETED, async (e) => {
     e.layers.eachLayer(async (layer) => {
       if (layer._dbId) await deleteMapLine(layer._dbId)
@@ -686,17 +727,16 @@ async function initHubMap(hubId) {
     addMarkerToMap(hubId, sensor)
     bounds.push([sensor.lat, sensor.lng])
   }
+
+  // Initial view -- actual recenter + invalidateSize happens in switchTab after paint
   if (bounds.length) {
     map.fitBounds(bounds, { padding: [50, 50] })
   } else {
     map.setView([44.5, -93.0], 14)
   }
-
-  // Fix tile sizing after async setup -- critical for correct initial render
-  setTimeout(() => map.invalidateSize(), 100)
 }
 
-// Render hub section (structure only)
+// ── Render hub section ──
 function renderHubSection(hub) {
   const sId = `hub-${hub.id}`
   if (document.getElementById(sId)) return
@@ -794,39 +834,14 @@ function renderHubSection(hub) {
       </table>
     </div>
 
-    <!-- MAP VIEW -->
+    <!-- MAP VIEW -- line type selector bar removed; controls live inside the map now -->
     <div id="mapview-${hub.id}" class="hidden">
-
-      <!-- Line type selector + Draw button -->
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;padding:12px;border-radius:10px;border:1px solid #1e293b;background:#0a1628;">
-        <span style="font-size:12px;color:#64748b;flex-shrink:0;">Draw line type:</span>
-        <button id="lt-mainline-${hub.id}" onclick="setLineType('${hub.id}','mainline','#3b82f6',5)"
-          style="font-size:12px;padding:5px 12px;border-radius:6px;border:1px solid #3b82f6;color:#3b82f6;background:#3b82f620;font-weight:700;cursor:pointer;">
-          Mainline
-        </button>
-        <button id="lt-lateral-${hub.id}" onclick="setLineType('${hub.id}','lateral','#22c55e',3)"
-          style="font-size:12px;padding:5px 12px;border-radius:6px;border:1px solid #22c55e;color:#22c55e;background:transparent;font-weight:600;cursor:pointer;">
-          Lateral
-        </button>
-        <button id="lt-dropline-${hub.id}" onclick="setLineType('${hub.id}','dropline','#94a3b8',2)"
-          style="font-size:12px;padding:5px 12px;border-radius:6px;border:1px solid #94a3b8;color:#94a3b8;background:transparent;font-weight:600;cursor:pointer;">
-          Dropline
-        </button>
-        <button onclick="startDrawing('${hub.id}')"
-          style="font-size:12px;padding:5px 14px;border-radius:6px;border:1px solid #22c55e;color:#0f172a;background:#22c55e;font-weight:700;cursor:pointer;margin-left:4px;">
-          + Draw Line
-        </button>
-      </div>
-
-      <!-- Unplaced sensors bar -->
       <div id="unplaced-bar-${hub.id}" class="hidden mb-3 p-3 rounded-xl border border-slate-700 bg-slate-900">
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <span class="text-xs text-slate-400" style="flex-shrink:0;">Not yet placed on map:</span>
           <div id="unplaced-list-${hub.id}" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
         </div>
       </div>
-
-      <!-- Leaflet map -->
       <div id="map-${hub.id}" class="hub-map"></div>
     </div>
   `
@@ -1179,7 +1194,6 @@ async function submitEditNames() {
   populateAssignDropdowns()
 }
 
-// Boot
 loadDashboard().then(() => { subscribeRealtime(); startPolling() })
 </script>
 </body>
