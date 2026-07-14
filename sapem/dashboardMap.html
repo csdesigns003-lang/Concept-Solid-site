@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="theme-color" content="#0f172a">
 <title>SapEM Monitoring Dashboard</title>
 <link rel="icon" href="/images/favicon/sapem-favicon.ico" sizes="any">
@@ -26,7 +26,7 @@ html, body { overflow-x: hidden; }
 #refreshBtn { -webkit-tap-highlight-color: transparent; }
 body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
 .card { background: #1e293b; border-radius: 14px; padding: 20px; }
-.gauge-wrap { position: relative; width: 100%; max-width: 400px; aspect-ratio: 1 / 1; margin: 0 auto; }
+.gauge-wrap { position: relative; width: 100%; max-width: 400px; aspect-ratio: 1/1; margin: 0 auto; }
 .gauge-wrap img { width: 100%; height: 100%; display: block; }
 .gauge-wrap canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
 .rssi-bar { width: 4px; margin-right: 1px; background: #22c55e; }
@@ -47,10 +47,31 @@ body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
 .tab-btn { padding: 7px 18px; border-radius: 7px; border: none; background: transparent; color: #64748b; font-weight: 500; font-size: 13px; cursor: pointer; transition: all 0.15s; }
 .tab-btn:hover:not(.active-tab) { color: #cbd5e1; background: #1e293b; }
 .tab-btn.active-tab { background: #22c55e; color: #0f172a; font-weight: 700; }
-.hub-map { height: 460px; border-radius: 12px; z-index: 0; }
-.hub-map:fullscreen { height: 100vh !important; border-radius: 0 !important; }
+
+/* Map -- large square on desktop, rectangle on mobile */
+.hub-map {
+  width: 100%;
+  height: clamp(420px, 60vw, 720px);
+  border-radius: 12px;
+  z-index: 0;
+}
+@media (max-width: 767px) {
+  .hub-map { height: 420px; }
+}
+.hub-map:fullscreen          { height: 100vh !important; border-radius: 0 !important; }
 .hub-map:-webkit-full-screen { height: 100vh !important; border-radius: 0 !important; }
-.hub-map.map-force-fullscreen { position: fixed !important; inset: 0 !important; z-index: 9999 !important; height: 100vh !important; width: 100vw !important; border-radius: 0 !important; }
+/* iOS CSS fullscreen -- use inset instead of explicit h/w to avoid gray bar */
+.hub-map.map-force-fullscreen {
+  position: fixed !important;
+  top: 0 !important; left: 0 !important;
+  right: 0 !important; bottom: 0 !important;
+  z-index: 9999 !important;
+  border-radius: 0 !important;
+  height: auto !important;
+  width: auto !important;
+}
+
+/* Leaflet dark theme */
 .leaflet-popup-content-wrapper { background: #1e293b !important; color: white !important; border: 1px solid #334155 !important; border-radius: 10px !important; box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important; }
 .leaflet-popup-tip { background: #1e293b !important; }
 .leaflet-popup-content { margin: 14px 16px !important; font-size: 13px !important; line-height: 1.6 !important; }
@@ -60,7 +81,7 @@ body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
 .leaflet-control-zoom a:hover { background: #1e293b !important; color: white !important; }
 .leaflet-bar { border: none !important; box-shadow: 0 2px 8px rgba(0,0,0,0.5) !important; }
 .leaflet-bar a:first-child { border-radius: 7px 7px 0 0 !important; }
-.leaflet-bar a:last-child { border-radius: 0 0 7px 7px !important; }
+.leaflet-bar a:last-child  { border-radius: 0 0 7px 7px !important; }
 .leaflet-attribution-flag { display: none !important; }
 .leaflet-control-attribution { background: rgba(15,23,42,0.7) !important; color: #475569 !important; font-size: 10px !important; }
 .leaflet-control-attribution a { color: #64748b !important; }
@@ -69,18 +90,18 @@ body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
 .leaflet-control-layers label { color: #cbd5e1 !important; font-size: 12px !important; }
 .leaflet-fs-btn { width: 34px; height: 34px; background: rgba(15,23,42,0.92) !important; border: 1px solid #1e293b !important; border-radius: 7px !important; color: #cbd5e1; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.5); transition: all 0.15s; }
 .leaflet-fs-btn:hover { background: #1e293b !important; color: white; }
-.map-legend { background: rgba(15,23,42,0.92); border: 1px solid #1e293b; border-radius: 10px; padding: 10px 14px; backdrop-filter: blur(8px); box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
-.map-legend-title { font-size: 11px; color: #64748b; font-weight: 600; letter-spacing: 0.05em; margin-bottom: 8px; }
-.map-legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #cbd5e1; margin-bottom: 5px; }
-.map-legend-item:last-child { margin-bottom: 0; }
-.map-legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-.placement-banner { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); background: rgba(34,197,94,0.15); border: 1px solid #22c55e; border-radius: 8px; padding: 8px 16px; color: #22c55e; font-size: 13px; font-weight: 600; z-index: 1000; white-space: nowrap; display: flex; align-items: center; gap: 10px; pointer-events: none; }
-.placement-banner button { pointer-events: all; background: #334155; border: none; color: #94a3b8; border-radius: 5px; padding: 3px 8px; font-size: 12px; cursor: pointer; }
-.placement-banner button:hover { background: #475569; color: white; }
 .leaflet-draw-toolbar a { background-color: rgba(15,23,42,0.92) !important; color: #cbd5e1 !important; border-color: #1e293b !important; }
 .leaflet-draw-toolbar a:hover { background-color: #1e293b !important; }
 .leaflet-draw-actions a { background-color: #1e293b !important; color: #cbd5e1 !important; }
 .leaflet-draw-actions a:hover { background-color: #334155 !important; }
+
+/* Map legend -- commented out per request */
+/* .map-legend { ... } */
+
+/* Placement banner */
+.placement-banner { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); background: rgba(34,197,94,0.15); border: 1px solid #22c55e; border-radius: 8px; padding: 8px 16px; color: #22c55e; font-size: 13px; font-weight: 600; z-index: 1000; white-space: nowrap; display: flex; align-items: center; gap: 10px; pointer-events: none; }
+.placement-banner button { pointer-events: all; background: #334155; border: none; color: #94a3b8; border-radius: 5px; padding: 3px 8px; font-size: 12px; cursor: pointer; }
+.placement-banner button:hover { background: #475569; color: white; }
 </style>
 </head>
 <body>
@@ -106,12 +127,9 @@ body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
     <table class="w-full text-sm">
       <thead class="text-slate-400 border-b border-slate-700">
         <tr>
-          <th class="py-2 text-left">Sensor</th>
-          <th class="text-center">P1 (inHg)</th>
-          <th class="text-center">P2 (inHg)</th>
-          <th class="text-center">Temp (degF)</th>
-          <th class="text-center">Signal</th>
-          <th class="text-center">Last Seen</th>
+          <th class="py-2 text-left">Sensor</th><th class="text-center">P1 (inHg)</th>
+          <th class="text-center">P2 (inHg)</th><th class="text-center">Temp (degF)</th>
+          <th class="text-center">Signal</th><th class="text-center">Last Seen</th>
         </tr>
       </thead>
       <tbody id="unassignedTable"></tbody>
@@ -171,7 +189,7 @@ body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
       <option value="assign">Assign to this hub</option>
       <option value="remove">Remove from this hub</option>
     </select>
-    <p id="assignError" class="text-red-400 text-sm mb-4 hidden"></p>
+    <p id="assignError"   class="text-red-400   text-sm mb-4 hidden"></p>
     <p id="assignSuccess" class="text-green-400 text-sm mb-4 hidden"></p>
     <div class="flex gap-3 justify-end">
       <button onclick="closeModal('assignModal')" class="btn-slate">Close</button>
@@ -230,74 +248,54 @@ body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
     return !error
   }
 
-  REQUIRED SUPABASE SQL (run once in SQL editor):
+  REQUIRED SUPABASE SQL (run once):
     alter table public.sensors add column lat numeric(10,7) default null;
     alter table public.sensors add column lng numeric(10,7) default null;
-
     create table public.hub_map_lines (
-      id         uuid primary key default gen_random_uuid(),
-      hub_id     uuid not null references public.hubs(id) on delete cascade,
-      user_id    uuid not null references auth.users(id) on delete cascade,
-      name       text,
-      line_type  text default 'mainline',
-      color      text default '#3b82f6',
-      geojson    jsonb not null,
+      id uuid primary key default gen_random_uuid(),
+      hub_id uuid not null references public.hubs(id) on delete cascade,
+      user_id uuid not null references auth.users(id) on delete cascade,
+      name text, line_type text default 'mainline',
+      color text default '#3b82f6', geojson jsonb not null,
       created_at timestamptz not null default now()
     );
     alter table public.hub_map_lines enable row level security;
     create policy "Users manage own lines" on public.hub_map_lines
       for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
-
-  NOTE ON MISSING NODE:
-  If a node placed previously is not showing, the most likely cause is that
-  updateSensorLocation was not yet added to auth.js when the node was placed,
-  so the lat/lng was never saved to the database. Re-place the node after
-  confirming the SQL migration is run and updateSensorLocation is in auth.js.
   ================================================================
 */
 
-const GAUGE_MIN_DEG =  48
-const GAUGE_MAX_DEG = -228
-const PRESSURE_MAX  =  30
+const GAUGE_MIN_DEG = 48, GAUGE_MAX_DEG = -228, PRESSURE_MAX = 30
 
-function fmt(dateStr) {
-  if (!dateStr) return "---"
-  return new Date(dateStr).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+function fmt(d) {
+  if (!d) return "---"
+  return new Date(d).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
 }
 
 function pressureColor(p) {
   if (p == null) return "#64748b"
-  const abs = Math.abs(p)
-  if (abs >= 18) return "#22c55e"
-  if (abs >= 14) return "#f59e0b"
+  const a = Math.abs(p)
+  if (a >= 18) return "#22c55e"
+  if (a >= 14) return "#f59e0b"
   return "#ef4444"
 }
 
-function weightForType(type) {
-  if (type === "mainline") return 5
-  if (type === "lateral")  return 3
-  if (type === "dropline") return 2
-  return 3
+function weightForType(t) {
+  return t === "mainline" ? 5 : t === "lateral" ? 3 : 2
 }
 
-function drawNeedle(canvasId, value) {
-  const canvas = document.getElementById(canvasId)
-  if (!canvas) return
-  const ctx = canvas.getContext("2d")
-  const W = canvas.width, H = canvas.height
+function drawNeedle(id, value) {
+  const c = document.getElementById(id); if (!c) return
+  const ctx = c.getContext("2d"), W = c.width, H = c.height
   ctx.clearRect(0, 0, W, H)
-  const abs      = Math.max(0, Math.min(PRESSURE_MAX, Math.abs(value)))
-  const fraction = abs / PRESSURE_MAX
-  const deg      = GAUGE_MIN_DEG + fraction * (GAUGE_MAX_DEG - GAUGE_MIN_DEG)
-  const rad      = (deg * Math.PI) / 180
-  const cx = W / 2, cy = H / 2
-  const needleLen = W * 0.38, pivotR = W * 0.045
-  const tipX = cx + needleLen * Math.cos(rad), tipY = cy + needleLen * Math.sin(rad)
+  const frac = Math.max(0, Math.min(PRESSURE_MAX, Math.abs(value))) / PRESSURE_MAX
+  const rad  = ((GAUGE_MIN_DEG + frac * (GAUGE_MAX_DEG - GAUGE_MIN_DEG)) * Math.PI) / 180
+  const cx = W/2, cy = H/2, len = W*0.38
   ctx.shadowColor = "rgba(0,0,0,0.6)"; ctx.shadowBlur = 6
-  ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(tipX, tipY)
-  ctx.strokeStyle = "#ef4444"; ctx.lineWidth = W * 0.022; ctx.lineCap = "round"; ctx.stroke()
+  ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + len*Math.cos(rad), cy + len*Math.sin(rad))
+  ctx.strokeStyle = "#ef4444"; ctx.lineWidth = W*0.022; ctx.lineCap = "round"; ctx.stroke()
   ctx.shadowBlur = 0
-  ctx.beginPath(); ctx.arc(cx, cy, pivotR, 0, Math.PI * 2)
+  ctx.beginPath(); ctx.arc(cx, cy, W*0.045, 0, Math.PI*2)
   ctx.fillStyle = "#cbd5e1"; ctx.fill()
 }
 
@@ -312,205 +310,157 @@ async function logout() {
   window.location.href = "login.html"
 }
 
-let allHubs    = []
-let allSensors = []
-let hubCharts  = {}
-let hubTabs    = {}
-let hubMaps    = {}
-let hubSensorsCache     = {}
-let latestReadingsCache = {}
-let placementState      = null
+let allHubs = [], allSensors = [], hubCharts = {}, hubTabs = {}, hubMaps = {}
+let hubSensorsCache = {}, latestReadingsCache = {}, placementState = null
 
 function rssiBars(rssi) {
   if (rssi == null) return "<span class='text-slate-500'>---</span>"
-  const strength = Math.max(0, Math.min(5, Math.floor((rssi + 120) / 10)))
-  let bars = ""
-  for (let i = 0; i < 5; i++) {
-    bars += `<div class="rssi-bar" style="height:${(i+1)*5}px;opacity:${i < strength ? 1 : 0.2}"></div>`
-  }
-  return `<div style="display:flex;align-items:flex-end;justify-content:center;height:25px">${bars}</div>`
+  const s = Math.max(0, Math.min(5, Math.floor((rssi + 120) / 10)))
+  let b = ""
+  for (let i = 0; i < 5; i++) b += `<div class="rssi-bar" style="height:${(i+1)*5}px;opacity:${i < s ? 1 : 0.2}"></div>`
+  return `<div style="display:flex;align-items:flex-end;justify-content:center;height:25px">${b}</div>`
 }
 
-// ── Tab switching -- async so we can await initHubMap and then recenter ──
+// ── Tab switching
+// Uses double requestAnimationFrame before initHubMap so the map div has
+// real dimensions when Leaflet measures it -- this fixes gray tile issue
 async function switchTab(hubId, tab) {
   hubTabs[hubId] = tab
-  const dataView = document.getElementById(`dataview-${hubId}`)
-  const mapView  = document.getElementById(`mapview-${hubId}`)
-  const dataBtn  = document.getElementById(`tab-data-${hubId}`)
-  const mapBtn   = document.getElementById(`tab-map-${hubId}`)
-  if (!dataView || !mapView) return
+  const dv = document.getElementById(`dataview-${hubId}`)
+  const mv = document.getElementById(`mapview-${hubId}`)
+  const db = document.getElementById(`tab-data-${hubId}`)
+  const mb = document.getElementById(`tab-map-${hubId}`)
+  if (!dv || !mv) return
   if (tab === "data") {
-    dataView.classList.remove("hidden"); mapView.classList.add("hidden")
-    dataBtn.classList.add("active-tab"); mapBtn.classList.remove("active-tab")
+    dv.classList.remove("hidden"); mv.classList.add("hidden")
+    db.classList.add("active-tab"); mb.classList.remove("active-tab")
   } else {
-    dataView.classList.add("hidden"); mapView.classList.remove("hidden")
-    dataBtn.classList.remove("active-tab"); mapBtn.classList.add("active-tab")
+    dv.classList.add("hidden"); mv.classList.remove("hidden")
+    db.classList.remove("active-tab"); mb.classList.add("active-tab")
+    // Wait for two animation frames -- ensures the div is painted with real
+    // dimensions before Leaflet initializes and loads tiles
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))
     await initHubMap(hubId)
-    // After map container is painted, fix tile sizing then recenter on sensors
+    // invalidateSize + auto-recenter after short delay for tile load
     setTimeout(() => {
-      const mapData = hubMaps[hubId]
-      if (!mapData) return
-      mapData.map.invalidateSize()
+      const md = hubMaps[hubId]; if (!md) return
+      md.map.invalidateSize()
       const placed = (hubSensorsCache[hubId] || []).filter(s => s.lat && s.lng)
-      if (placed.length) {
-        mapData.map.fitBounds(placed.map(s => [s.lat, s.lng]), { padding: [50, 50] })
-      }
-    }, 200)
+      if (placed.length) md.map.fitBounds(placed.map(s => [s.lat, s.lng]), { padding: [50, 50] })
+    }, 150)
   }
 }
 
-// ── Line type selector -- updates active type and button highlight ──
 function setLineType(hubId, type, color, weight) {
-  if (hubMaps[hubId]) {
-    hubMaps[hubId].activeLineType = { type, color, weight }
-  }
-  ["mainline", "lateral", "dropline"].forEach(t => {
-    const btn = document.getElementById(`lt-${t}-${hubId}`)
-    if (!btn) return
+  if (hubMaps[hubId]) hubMaps[hubId].activeLineType = { type, color, weight }
+  ;["mainline","lateral","dropline"].forEach(t => {
+    const btn = document.getElementById(`lt-${t}-${hubId}`); if (!btn) return
     btn.style.background = t === type ? color + "20" : "transparent"
     btn.style.fontWeight = t === type ? "700" : "600"
   })
 }
 
-// ── Programmatic draw trigger ──
 function startDrawing(hubId) {
-  const mapData = hubMaps[hubId]
-  if (!mapData) return
-  const active = mapData.activeLineType
-  const handler = new L.Draw.Polyline(mapData.map, {
-    shapeOptions: { color: active.color, weight: active.weight },
-    showLength: false
-  })
-  handler.enable()
+  const md = hubMaps[hubId]; if (!md) return
+  const a  = md.activeLineType
+  new L.Draw.Polyline(md.map, { shapeOptions: { color: a.color, weight: a.weight }, showLength: false }).enable()
 }
 
 function createMarkerIcon(color) {
   return L.divIcon({
     className: "",
     html: `<div style="width:20px;height:20px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 0 0 2px ${color},0 2px 8px rgba(0,0,0,0.5);"></div>`,
-    iconSize: [20, 20], iconAnchor: [10, 10], popupAnchor: [0, -14],
+    iconSize: [20,20], iconAnchor: [10,10], popupAnchor: [0,-14],
   })
 }
 
 function addMarkerToMap(hubId, sensor) {
-  const mapData = hubMaps[hubId]
-  if (!mapData || mapData.markers[sensor.id]) return
-  const latest = latestReadingsCache[sensor.id]
-  const color  = pressureColor(latest ? latest.pressure_1 : null)
-  const name   = sensor.sensor_name || sensor.sensor_hardware_id
-
-  const marker = L.marker([sensor.lat, sensor.lng], {
-    icon: createMarkerIcon(color), draggable: true, title: name,
-  }).addTo(mapData.map)
-
-  const makePopup = () => {
-    const l   = latestReadingsCache[sensor.id]
-    const col = pressureColor(l ? l.pressure_1 : null)
+  const md = hubMaps[hubId]; if (!md || md.markers[sensor.id]) return
+  const color = pressureColor((latestReadingsCache[sensor.id] || {}).pressure_1)
+  const name  = sensor.sensor_name || sensor.sensor_hardware_id
+  const marker = L.marker([sensor.lat, sensor.lng], { icon: createMarkerIcon(color), draggable: true, title: name }).addTo(md.map)
+  const popup = () => {
+    const l = latestReadingsCache[sensor.id] || {}, col = pressureColor(l.pressure_1)
     return `<div style="min-width:160px">
       <div style="font-weight:700;margin-bottom:6px;color:white">${name}</div>
-      <div style="color:${col};font-size:15px;font-weight:600;margin-bottom:4px">${l && l.pressure_1 != null ? l.pressure_1.toFixed(2) : "---"} inHg</div>
-      <div style="color:#7dd3fc;font-size:13px;margin-bottom:4px">${l && l.temperature != null ? l.temperature.toFixed(1) : "---"} degF</div>
-      <div style="color:#64748b;font-size:11px;margin-bottom:10px">Last seen ${fmt(l ? l.received_at : null)}</div>
+      <div style="color:${col};font-size:15px;font-weight:600;margin-bottom:4px">${l.pressure_1 != null ? l.pressure_1.toFixed(2) : "---"} inHg</div>
+      <div style="color:#7dd3fc;font-size:13px;margin-bottom:4px">${l.temperature != null ? l.temperature.toFixed(1) : "---"} degF</div>
+      <div style="color:#64748b;font-size:11px;margin-bottom:10px">Last seen ${fmt(l.received_at)}</div>
       <button onclick="startPlacement('${hubId}','${sensor.id}')"
         style="background:#334155;border:none;color:#cbd5e1;padding:6px 10px;border-radius:6px;font-size:12px;cursor:pointer;width:100%">
-        Reposition marker
-      </button>
-    </div>`
+        Reposition marker</button></div>`
   }
-
-  marker.bindPopup(makePopup, { maxWidth: 220 })
-  marker.on("click", () => marker.setPopupContent(makePopup()))
+  marker.bindPopup(popup, { maxWidth: 220 })
+  marker.on("click", () => marker.setPopupContent(popup()))
   marker.on("dragend", async () => {
-    const pos = marker.getLatLng()
-    if (typeof updateSensorLocation === "function") {
-      await updateSensorLocation(sensor.id, pos.lat, pos.lng)
-    }
-    sensor.lat = pos.lat; sensor.lng = pos.lng
+    const p = marker.getLatLng()
+    if (typeof updateSensorLocation === "function") await updateSensorLocation(sensor.id, p.lat, p.lng)
+    sensor.lat = p.lat; sensor.lng = p.lng
   })
-
-  mapData.markers[sensor.id] = marker
+  md.markers[sensor.id] = marker
 }
 
 function updateHubMapMarkers(hubId) {
-  const mapData = hubMaps[hubId]
-  if (!mapData) return
-  for (const [sensorId, marker] of Object.entries(mapData.markers)) {
-    const latest = latestReadingsCache[sensorId]
-    marker.setIcon(createMarkerIcon(pressureColor(latest ? latest.pressure_1 : null)))
+  const md = hubMaps[hubId]; if (!md) return
+  for (const [sid, marker] of Object.entries(md.markers)) {
+    marker.setIcon(createMarkerIcon(pressureColor((latestReadingsCache[sid] || {}).pressure_1)))
   }
 }
 
 function updateUnplacedBar(hubId) {
-  const bar     = document.getElementById(`unplaced-bar-${hubId}`)
-  const list    = document.getElementById(`unplaced-list-${hubId}`)
-  const sensors = hubSensorsCache[hubId] || []
+  const bar  = document.getElementById(`unplaced-bar-${hubId}`)
+  const list = document.getElementById(`unplaced-list-${hubId}`)
+  const unplaced = (hubSensorsCache[hubId] || []).filter(s => !s.lat || !s.lng)
   if (!bar || !list) return
-  const unplaced = sensors.filter(s => !s.lat || !s.lng)
   if (unplaced.length === 0) { bar.classList.add("hidden"); return }
   bar.classList.remove("hidden")
   list.innerHTML = unplaced.map(s => `
     <button onclick="startPlacement('${hubId}','${s.id}')"
-      style="display:flex;align-items:center;gap:6px;font-size:12px;background:#334155;border:none;color:#94a3b8;padding:5px 10px;border-radius:6px;cursor:pointer;"
+      style="font-size:12px;background:#334155;border:none;color:#94a3b8;padding:5px 10px;border-radius:6px;cursor:pointer;"
       onmouseover="this.style.background='#475569';this.style.color='white'"
       onmouseout="this.style.background='#334155';this.style.color='#94a3b8'">
-      Place ${s.sensor_name || s.sensor_hardware_id}
-    </button>`).join("")
+      Place ${s.sensor_name || s.sensor_hardware_id}</button>`).join("")
 }
 
 function startPlacement(hubId, sensorId) {
-  const mapData = hubMaps[hubId]
-  if (!mapData) return
-  mapData.map.closePopup()
-  placementState = { hubId, sensorId }
+  const md = hubMaps[hubId]; if (!md) return
+  md.map.closePopup(); placementState = { hubId, sensorId }
   const banner = document.getElementById(`placement-banner-${hubId}`)
   if (banner) banner.classList.remove("hidden")
-  mapData.map.once("click", async (e) => {
+  md.map.once("click", async e => {
     if (!placementState) return
     const sensor = (hubSensorsCache[hubId] || []).find(s => s.id === sensorId)
     if (!sensor) { cancelPlacement(hubId); return }
-    if (typeof updateSensorLocation === "function") {
-      await updateSensorLocation(sensorId, e.latlng.lat, e.latlng.lng)
-    }
+    if (typeof updateSensorLocation === "function") await updateSensorLocation(sensorId, e.latlng.lat, e.latlng.lng)
     sensor.lat = e.latlng.lat; sensor.lng = e.latlng.lng
-    if (mapData.markers[sensorId]) {
-      mapData.markers[sensorId].setLatLng([sensor.lat, sensor.lng])
-    } else {
-      addMarkerToMap(hubId, sensor)
-    }
-    cancelPlacement(hubId)
-    updateUnplacedBar(hubId)
+    if (md.markers[sensorId]) md.markers[sensorId].setLatLng([sensor.lat, sensor.lng])
+    else addMarkerToMap(hubId, sensor)
+    cancelPlacement(hubId); updateUnplacedBar(hubId)
   })
 }
 
 function cancelPlacement(hubId) {
   placementState = null
-  const banner = document.getElementById(`placement-banner-${hubId}`)
-  if (banner) banner.classList.add("hidden")
+  const b = document.getElementById(`placement-banner-${hubId}`)
+  if (b) b.classList.add("hidden")
 }
 
 function toggleFullscreen(mapEl, map) {
   if (mapEl.classList.contains("map-force-fullscreen")) {
-    mapEl.classList.remove("map-force-fullscreen")
-    setTimeout(() => map.invalidateSize(), 100); return
+    mapEl.classList.remove("map-force-fullscreen"); setTimeout(() => map.invalidateSize(), 100); return
   }
-  if (document.fullscreenElement === mapEl) {
-    document.exitFullscreen()
-  } else if (document.fullscreenEnabled) {
-    mapEl.requestFullscreen()
-  } else {
-    mapEl.classList.add("map-force-fullscreen")
-    setTimeout(() => map.invalidateSize(), 100)
-  }
+  if (document.fullscreenElement === mapEl) { document.exitFullscreen() }
+  else if (document.fullscreenEnabled) { mapEl.requestFullscreen() }
+  else { mapEl.classList.add("map-force-fullscreen"); setTimeout(() => map.invalidateSize(), 100) }
 }
 
-// ── Initialize Leaflet map ──
+// ── Initialize Leaflet map
 async function initHubMap(hubId) {
   const mapEl = document.getElementById(`map-${hubId}`)
-  if (!mapEl || hubMaps[hubId]) return   // already initialized
+  if (!mapEl || hubMaps[hubId]) return
 
   const map = L.map(mapEl, { zoomControl: false })
 
-  // Satellite -- maxZoom 19 (Esri caps at 19 in most rural areas)
   const satellite = L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     { attribution: "Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics", maxZoom: 19 }
@@ -523,269 +473,197 @@ async function initHubMap(hubId) {
     "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}",
     { maxZoom: 19, opacity: 0.6 }
   )
-  satellite.addTo(map)
-  labels.addTo(map)
-  roads.addTo(map)
+  satellite.addTo(map); labels.addTo(map); roads.addTo(map)
 
   L.control.zoom({ position: "topleft" }).addTo(map)
-
-  L.control.layers(
-    {},
-    { "Labels & Boundaries": labels, "Roads": roads },
-    { position: "topright", collapsed: true }
-  ).addTo(map)
+  L.control.layers({}, { "Labels & Boundaries": labels, "Roads": roads }, { position: "topright", collapsed: true }).addTo(map)
 
   // Fullscreen button
-  const FsControl = L.Control.extend({
-    options: { position: "topright" },
-    onAdd: function() {
-      const btn = L.DomUtil.create("button", "leaflet-fs-btn")
-      btn.title = "Toggle fullscreen"
-      btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V3h4"/><path d="M21 7V3h-4"/><path d="M3 17v4h4"/><path d="M21 17v4h-4"/></svg>'
-      L.DomEvent.on(btn, "click", L.DomEvent.stopPropagation)
-      L.DomEvent.on(btn, "click", () => toggleFullscreen(mapEl, map))
-      return btn
-    }
-  })
-  new FsControl().addTo(map)
+  const FsCtrl = L.Control.extend({ options: { position: "topright" }, onAdd() {
+    const btn = L.DomUtil.create("button", "leaflet-fs-btn")
+    btn.title = "Toggle fullscreen"
+    btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V3h4"/><path d="M21 7V3h-4"/><path d="M3 17v4h4"/><path d="M21 17v4h-4"/></svg>'
+    L.DomEvent.on(btn, "click", L.DomEvent.stopPropagation)
+    L.DomEvent.on(btn, "click", () => toggleFullscreen(mapEl, map))
+    return btn
+  }})
+  new FsCtrl().addTo(map)
 
   // Recenter button
-  const RecenterControl = L.Control.extend({
-    options: { position: "topright" },
-    onAdd: function() {
-      const btn = L.DomUtil.create("button", "leaflet-fs-btn")
-      btn.title = "Recenter on sensors"
-      btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>'
-      L.DomEvent.on(btn, "click", L.DomEvent.stopPropagation)
-      L.DomEvent.on(btn, "click", () => {
-        const placed = (hubSensorsCache[hubId] || []).filter(s => s.lat && s.lng)
-        if (placed.length) map.fitBounds(placed.map(s => [s.lat, s.lng]), { padding: [50, 50] })
-      })
-      return btn
-    }
-  })
-  new RecenterControl().addTo(map)
+  const RcCtrl = L.Control.extend({ options: { position: "topright" }, onAdd() {
+    const btn = L.DomUtil.create("button", "leaflet-fs-btn")
+    btn.title = "Recenter on sensors"
+    btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>'
+    L.DomEvent.on(btn, "click", L.DomEvent.stopPropagation)
+    L.DomEvent.on(btn, "click", () => {
+      const placed = (hubSensorsCache[hubId] || []).filter(s => s.lat && s.lng)
+      if (placed.length) map.fitBounds(placed.map(s => [s.lat, s.lng]), { padding: [50, 50] })
+    })
+    return btn
+  }})
+  new RcCtrl().addTo(map)
 
-  // Draw lines control -- collapsible panel inside the map
-  const DrawLinesControl = L.Control.extend({
-    options: { position: "topright" },
-    onAdd: function() {
-      const container = L.DomUtil.create("div")
-      container.style.cssText = "display:flex;flex-direction:column;align-items:flex-end;gap:4px;"
+  // Draw lines collapsible control -- positioned below recenter
+  const DlCtrl = L.Control.extend({ options: { position: "topright" }, onAdd() {
+    const wrap = L.DomUtil.create("div")
+    wrap.style.cssText = "display:flex;flex-direction:column;align-items:flex-end;gap:4px;"
 
-      // Toggle button
-      const toggleBtn = L.DomUtil.create("button", "leaflet-fs-btn", container)
-      toggleBtn.title = "Draw tap lines"
-      toggleBtn.style.cssText = "width:auto !important;padding:0 10px !important;font-size:12px !important;font-weight:600 !important;white-space:nowrap;gap:5px;"
-      toggleBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px"><path d="M3 17l4-4 4 4 4-8 4 4"/></svg>Lines'
+    const toggle = L.DomUtil.create("button", "leaflet-fs-btn", wrap)
+    toggle.title = "Draw tap lines"
+    toggle.style.cssText = "width:auto !important;padding:0 10px !important;font-size:12px !important;font-weight:600 !important;white-space:nowrap;"
+    toggle.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:4px"><path d="M3 17l4-4 4 4 4-8 4 4"/></svg>Lines`
 
-      // Expandable panel (hidden by default)
-      const panel = L.DomUtil.create("div", "", container)
-      panel.style.cssText = "display:none;flex-direction:column;gap:6px;background:rgba(15,23,42,0.95);border:1px solid #1e293b;border-radius:10px;padding:10px;backdrop-filter:blur(8px);box-shadow:0 2px 12px rgba(0,0,0,0.6);min-width:130px;"
+    const panel = L.DomUtil.create("div","",wrap)
+    panel.style.cssText = "display:none;flex-direction:column;gap:6px;background:rgba(15,23,42,0.95);border:1px solid #1e293b;border-radius:10px;padding:10px;backdrop-filter:blur(8px);box-shadow:0 2px 12px rgba(0,0,0,0.6);min-width:130px;"
 
-      // Label
-      const lbl = L.DomUtil.create("div", "", panel)
-      lbl.textContent = "Line type:"
-      lbl.style.cssText = "font-size:11px;color:#64748b;font-weight:600;letter-spacing:0.05em;margin-bottom:2px;"
+    const lbl = L.DomUtil.create("div","",panel)
+    lbl.textContent = "Line type:"
+    lbl.style.cssText = "font-size:11px;color:#64748b;font-weight:600;letter-spacing:0.05em;"
 
-      // Line type buttons
-      const types = [
-        { type: "mainline", color: "#3b82f6", weight: 5, label: "Mainline" },
-        { type: "lateral",  color: "#22c55e", weight: 3, label: "Lateral"  },
-        { type: "dropline", color: "#94a3b8", weight: 2, label: "Dropline" },
-      ]
-      types.forEach(lt => {
-        const btn = L.DomUtil.create("button", "", panel)
-        btn.id          = `lt-${lt.type}-${hubId}`
-        btn.textContent = lt.label
-        btn.style.cssText = `font-size:12px;padding:5px 10px;border-radius:6px;border:1px solid ${lt.color};color:${lt.color};background:${lt.type === "mainline" ? lt.color + "20" : "transparent"};font-weight:${lt.type === "mainline" ? "700" : "600"};cursor:pointer;text-align:left;`
-        L.DomEvent.on(btn, "click", L.DomEvent.stopPropagation)
-        L.DomEvent.on(btn, "click", () => setLineType(hubId, lt.type, lt.color, lt.weight))
-      })
+    ;[{type:"mainline",color:"#3b82f6",weight:5,label:"Mainline"},
+      {type:"lateral", color:"#22c55e",weight:3,label:"Lateral"},
+      {type:"dropline",color:"#94a3b8",weight:2,label:"Dropline"}].forEach(lt => {
+      const b = L.DomUtil.create("button","",panel)
+      b.id = `lt-${lt.type}-${hubId}`; b.textContent = lt.label
+      b.style.cssText = `font-size:12px;padding:5px 10px;border-radius:6px;border:1px solid ${lt.color};color:${lt.color};background:${lt.type==="mainline"?lt.color+"20":"transparent"};font-weight:${lt.type==="mainline"?"700":"600"};cursor:pointer;text-align:left;`
+      L.DomEvent.on(b,"click",L.DomEvent.stopPropagation)
+      L.DomEvent.on(b,"click",() => setLineType(hubId, lt.type, lt.color, lt.weight))
+    })
 
-      // Divider
-      const divider = L.DomUtil.create("div", "", panel)
-      divider.style.cssText = "border-top:1px solid #1e293b;margin:2px 0;"
+    const div = L.DomUtil.create("div","",panel)
+    div.style.cssText = "border-top:1px solid #1e293b;margin:2px 0;"
 
-      // Draw button
-      const drawBtn = L.DomUtil.create("button", "", panel)
-      drawBtn.textContent = "+ Draw Line"
-      drawBtn.style.cssText = "font-size:12px;padding:6px 10px;border-radius:6px;border:none;color:#0f172a;background:#22c55e;font-weight:700;cursor:pointer;"
-      L.DomEvent.on(drawBtn, "click", L.DomEvent.stopPropagation)
-      L.DomEvent.on(drawBtn, "click", () => {
-        startDrawing(hubId)
-        isOpen = false
-        panel.style.display = "none"
-      })
+    const drawBtn = L.DomUtil.create("button","",panel)
+    drawBtn.textContent = "+ Draw Line"
+    drawBtn.style.cssText = "font-size:12px;padding:6px 10px;border-radius:6px;border:none;color:#0f172a;background:#22c55e;font-weight:700;cursor:pointer;"
+    L.DomEvent.on(drawBtn,"click",L.DomEvent.stopPropagation)
+    L.DomEvent.on(drawBtn,"click",() => { startDrawing(hubId); isOpen=false; panel.style.display="none" })
 
-      // Toggle open/close
-      let isOpen = false
-      L.DomEvent.on(toggleBtn, "click", L.DomEvent.stopPropagation)
-      L.DomEvent.on(toggleBtn, "click", () => {
-        isOpen = !isOpen
-        panel.style.display = isOpen ? "flex" : "none"
-      })
+    let isOpen = false
+    L.DomEvent.on(toggle,"click",L.DomEvent.stopPropagation)
+    L.DomEvent.on(toggle,"click",() => { isOpen=!isOpen; panel.style.display=isOpen?"flex":"none" })
+    L.DomEvent.disableClickPropagation(wrap)
+    return wrap
+  }})
+  new DlCtrl().addTo(map)
 
-      L.DomEvent.disableClickPropagation(container)
-      return container
-    }
-  })
-  new DrawLinesControl().addTo(map)
-
-  // Legend
-  const LegendControl = L.Control.extend({
-    options: { position: "bottomleft" },
-    onAdd: function() {
-      const div = L.DomUtil.create("div", "map-legend")
-      div.innerHTML = `
-        <div class="map-legend-title">VACUUM LEVEL</div>
-        <div class="map-legend-item"><div class="map-legend-dot" style="background:#22c55e"></div>Good (18+ inHg)</div>
-        <div class="map-legend-item"><div class="map-legend-dot" style="background:#f59e0b"></div>Low (14-18 inHg)</div>
-        <div class="map-legend-item"><div class="map-legend-dot" style="background:#ef4444"></div>Critical (under 14 inHg)</div>`
-      L.DomEvent.disableClickPropagation(div)
-      return div
-    }
-  })
-  new LegendControl().addTo(map)
+  // Legend -- commented out per request
+  // const LgCtrl = L.Control.extend({ options: { position: "bottomleft" }, onAdd() {
+  //   const d = L.DomUtil.create("div","map-legend")
+  //   d.innerHTML = `...`
+  //   L.DomEvent.disableClickPropagation(d); return d
+  // }})
+  // new LgCtrl().addTo(map)
 
   // Placement banner
   const banner = document.createElement("div")
-  banner.id        = `placement-banner-${hubId}`
-  banner.className = "placement-banner hidden"
+  banner.id = `placement-banner-${hubId}`; banner.className = "placement-banner hidden"
   banner.innerHTML = `Click anywhere on the map to place this sensor <button onclick="cancelPlacement('${hubId}')">Cancel</button>`
   mapEl.appendChild(banner)
 
-  // Fullscreen resize
-  document.addEventListener("fullscreenchange", () => {
-    setTimeout(() => map.invalidateSize(), 100)
-  })
+  document.addEventListener("fullscreenchange", () => setTimeout(() => map.invalidateSize(), 100))
 
-  // ── Store map instance -- drawnItems stored here so CREATED handler
-  //    and startDrawing both access the same object reliably ──
+  // drawnItems stored in hubMaps so CREATED handler uses same reference
+  // even if function scope is long gone
   const drawnItems = new L.FeatureGroup()
   map.addLayer(drawnItems)
 
   hubMaps[hubId] = {
-    map,
-    markers: {},
+    map, markers: {},
     activeLineType: { type: "mainline", color: "#3b82f6", weight: 5 },
     drawnItems
   }
 
-  // Load previously saved lines
-  const savedLines = await loadMapLines(hubId)
-  let lineCount = savedLines.length
+  // Load saved lines -- wrapped in try/catch so if auth.js functions are not
+  // yet added the map still initialises and lines can be drawn (just not saved)
+  let lineCount = 0
+  try {
+    if (typeof loadMapLines === "function") {
+      const savedLines = await loadMapLines(hubId)
+      lineCount = savedLines.length
+      for (const line of savedLines) {
+        const layer = L.geoJSON(line.geojson, { style: { color: line.color, weight: weightForType(line.line_type) } })
+        layer.bindTooltip(line.name || line.line_type, { permanent: false })
+        layer._dbId = line.id
+        drawnItems.addLayer(layer)
+      }
+    }
+  } catch(e) { console.warn("loadMapLines not available yet:", e) }
 
-  for (const line of savedLines) {
-    const layer = L.geoJSON(line.geojson, {
-      style: { color: line.color, weight: weightForType(line.line_type) }
-    })
-    layer.bindTooltip(line.name || line.line_type, { permanent: false })
-    layer._dbId = line.id
-    drawnItems.addLayer(layer)
-  }
+  // Edit/delete toolbar (no draw toolbar -- drawing via Lines button)
+  map.addControl(new L.Control.Draw({ position: "topleft", edit: { featureGroup: drawnItems, remove: true }, draw: false }))
 
-  // Edit/delete control -- draw: false removes toolbar, drawing via button
-  const editControl = new L.Control.Draw({
-    position: "topleft",
-    edit: { featureGroup: drawnItems, remove: true },
-    draw: false
-  })
-  map.addControl(editControl)
-
-  // CREATED -- uses hubMaps ref to avoid any closure timing issues
-  map.on(L.Draw.Event.CREATED, async (e) => {
-    const active = hubMaps[hubId].activeLineType
-    const di     = hubMaps[hubId].drawnItems
+  // CREATED -- references hubMaps[hubId].drawnItems directly (not closure var)
+  // so it always has the right reference regardless of timing
+  map.on(L.Draw.Event.CREATED, async e => {
+    const md    = hubMaps[hubId]
+    const active = md.activeLineType
     const layer  = e.layer
     layer.setStyle({ color: active.color, weight: active.weight })
-    di.addLayer(layer)
+    md.drawnItems.addLayer(layer)
     lineCount++
-    const geojson  = layer.toGeoJSON()
-    const lineName = `${active.type} ${lineCount}`
-    const saved    = await saveMapLine(hubId, active.type, active.color, lineName, geojson)
-    if (saved) layer._dbId = saved.id
+    try {
+      if (typeof saveMapLine === "function") {
+        const saved = await saveMapLine(hubId, active.type, active.color, `${active.type} ${lineCount}`, layer.toGeoJSON())
+        if (saved) layer._dbId = saved.id
+      }
+    } catch(e) { console.warn("saveMapLine not available yet:", e) }
   })
 
-  map.on(L.Draw.Event.EDITED, async (e) => {
-    e.layers.eachLayer(async (layer) => {
-      if (layer._dbId) await updateMapLine(layer._dbId, layer.toGeoJSON())
-    })
+  map.on(L.Draw.Event.EDITED, async e => {
+    if (typeof updateMapLine !== "function") return
+    e.layers.eachLayer(async l => { if (l._dbId) await updateMapLine(l._dbId, l.toGeoJSON()).catch(()=>{}) })
   })
 
-  map.on(L.Draw.Event.DELETED, async (e) => {
-    e.layers.eachLayer(async (layer) => {
-      if (layer._dbId) await deleteMapLine(layer._dbId)
-    })
+  map.on(L.Draw.Event.DELETED, async e => {
+    if (typeof deleteMapLine !== "function") return
+    e.layers.eachLayer(async l => { if (l._dbId) await deleteMapLine(l._dbId).catch(()=>{}) })
   })
 
   // Place existing sensor markers
   const sensors = hubSensorsCache[hubId] || []
   const bounds  = []
-  for (const sensor of sensors) {
-    if (!sensor.lat || !sensor.lng) continue
-    addMarkerToMap(hubId, sensor)
-    bounds.push([sensor.lat, sensor.lng])
+  for (const s of sensors) {
+    if (!s.lat || !s.lng) continue
+    addMarkerToMap(hubId, s); bounds.push([s.lat, s.lng])
   }
-
-  // Initial view -- actual recenter + invalidateSize happens in switchTab after paint
-  if (bounds.length) {
-    map.fitBounds(bounds, { padding: [50, 50] })
-  } else {
-    map.setView([44.5, -93.0], 14)
-  }
+  if (bounds.length) map.fitBounds(bounds, { padding: [50, 50] })
+  else map.setView([44.5, -93.0], 14)
 }
 
-// ── Render hub section ──
+// ── Render hub section
 function renderHubSection(hub) {
-  const sId = `hub-${hub.id}`
-  if (document.getElementById(sId)) return
-
-  const pChartId = `pchart-${hub.id}`
-  const tChartId = `tchart-${hub.id}`
-  const gcId     = `gauge-canvas-${hub.id}`
-  const gvalId   = `gval-${hub.id}`
-  const tableId  = `table-${hub.id}`
-
+  if (document.getElementById(`hub-${hub.id}`)) return
   hubTabs[hub.id] = "data"
-
+  const pcId = `pchart-${hub.id}`, tcId = `tchart-${hub.id}`
+  const gcId = `gauge-canvas-${hub.id}`, gvId = `gval-${hub.id}`, tbId = `table-${hub.id}`
   const div = document.createElement("div")
-  div.id        = sId
-  div.className = "hub-section"
+  div.id = `hub-${hub.id}`; div.className = "hub-section"
   div.innerHTML = `
     <div class="hub-title" style="justify-content:space-between;">
       <div style="display:flex;align-items:center;gap:10px;">
-        <span class="hub-dot"></span>
-        ${hub.hub_name || hub.hub_hardware_id}
+        <span class="hub-dot"></span>${hub.hub_name||hub.hub_hardware_id}
         <span class="text-slate-500 text-xs font-normal ml-2">${hub.hub_hardware_id}</span>
       </div>
       <button onclick="openEditModal('${hub.id}')" title="Edit names"
         style="background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:6px;color:#64748b;flex-shrink:0;"
         onmouseover="this.style.color='#22c55e'" onmouseout="this.style.color='#64748b'">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
         </svg>
       </button>
     </div>
-
     <div class="tab-bar">
       <button id="tab-data-${hub.id}" class="tab-btn active-tab" onclick="switchTab('${hub.id}','data')">Data View</button>
       <button id="tab-map-${hub.id}"  class="tab-btn"            onclick="switchTab('${hub.id}','map')">Map View</button>
     </div>
-
-    <!-- DATA VIEW -->
     <div id="dataview-${hub.id}">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <div class="card text-center md:col-span-3">
           <h3 class="text-sm text-slate-400 mb-3">System Vacuum</h3>
-          <div class="gauge-wrap">
-            <img src="assets/gauge.png" alt="gauge">
-            <canvas id="${gcId}" width="400" height="400"></canvas>
-          </div>
-          <p id="${gvalId}" class="text-3xl font-bold mt-2">0.00</p>
-          <p class="text-slate-400 text-sm">inHg</p>
+          <div class="gauge-wrap"><img src="assets/gauge.png" alt="gauge"><canvas id="${gcId}" width="400" height="400"></canvas></div>
+          <p id="${gvId}" class="text-3xl font-bold mt-2">0.00</p><p class="text-slate-400 text-sm">inHg</p>
         </div>
         <div class="card">
           <h3 class="text-sm text-slate-400 mb-4">Hub Stats</h3>
@@ -796,45 +674,29 @@ function renderHubSection(hub) {
             <div>Last data: <span id="lastseen-${hub.id}" class="text-white font-semibold">---</span></div>
           </div>
           <div class="mt-4 pt-4 border-t border-slate-700">
-            <label class="text-xs text-slate-400 block mb-2">
-              Alert if sensor is
+            <label class="text-xs text-slate-400 block mb-2">Alert if sensor is
               <input id="threshold-${hub.id}" type="number" min="1" max="99" placeholder="--"
                 class="inline-block w-14 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs mx-1 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                oninput="this.value=this.value.replace(/[^0-9]/g,'')"
-                onchange="applyThreshold('${hub.id}')">
-              % below average
-            </label>
+                oninput="this.value=this.value.replace(/[^0-9]/g,'')" onchange="applyThreshold('${hub.id}')">
+              % below average</label>
             <div id="lowlist-${hub.id}" class="mt-2 space-y-1 hidden">
               <p class="text-xs text-amber-400 font-semibold mb-1">Low pressure sensors:</p>
               <div id="lowlist-items-${hub.id}"></div>
             </div>
           </div>
         </div>
-        <div class="card">
-          <h3 class="text-sm text-slate-400 mb-4">Temperature History</h3>
-          <canvas id="${tChartId}"></canvas>
-        </div>
-        <div class="card">
-          <h3 class="text-sm text-slate-400 mb-4">Pressure History</h3>
-          <canvas id="${pChartId}"></canvas>
-        </div>
+        <div class="card"><h3 class="text-sm text-slate-400 mb-4">Temperature History</h3><canvas id="${tcId}"></canvas></div>
+        <div class="card"><h3 class="text-sm text-slate-400 mb-4">Pressure History</h3><canvas id="${pcId}"></canvas></div>
       </div>
       <table class="w-full text-sm">
         <thead class="text-slate-400 border-b border-slate-700">
-          <tr>
-            <th class="py-2 text-left">Sensor</th>
-            <th class="text-center">P1 (inHg)</th>
-            <th class="text-center">P2 (inHg)</th>
-            <th class="text-center">Temp (degF)</th>
-            <th class="text-center">Signal</th>
-            <th class="text-center">Last Seen</th>
-          </tr>
+          <tr><th class="py-2 text-left">Sensor</th><th class="text-center">P1 (inHg)</th>
+          <th class="text-center">P2 (inHg)</th><th class="text-center">Temp (degF)</th>
+          <th class="text-center">Signal</th><th class="text-center">Last Seen</th></tr>
         </thead>
-        <tbody id="${tableId}"></tbody>
+        <tbody id="${tbId}"></tbody>
       </table>
     </div>
-
-    <!-- MAP VIEW -- line type selector bar removed; controls live inside the map now -->
     <div id="mapview-${hub.id}" class="hidden">
       <div id="unplaced-bar-${hub.id}" class="hidden mb-3 p-3 rounded-xl border border-slate-700 bg-slate-900">
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
@@ -843,37 +705,26 @@ function renderHubSection(hub) {
         </div>
       </div>
       <div id="map-${hub.id}" class="hub-map"></div>
-    </div>
-  `
+    </div>`
   document.getElementById("hubsContainer").appendChild(div)
 
-  const chartDefaults = {
-    plugins: { legend: { display: false } },
-    scales: {
-      x: { ticks: { color: "#64748b" }, grid: { color: "#1e293b" } },
-      y: { ticks: { color: "#64748b" }, grid: { color: "#334155" }, title: { display: true, color: "#64748b", font: { size: 11 } } }
-    }
-  }
-
-  hubCharts[hub.id] = hubCharts[hub.id] || {}
-  hubCharts[hub.id].pressure = new Chart(document.getElementById(pChartId), {
-    type: "line",
-    data: { labels: [], datasets: [{ data: [], borderColor: "#22c55e", borderWidth: 2, tension: 0.3, pointRadius: 2 }] },
-    options: { ...chartDefaults, scales: { ...chartDefaults.scales, y: { ...chartDefaults.scales.y, reverse: true, title: { display: true, text: "inHg", color: "#64748b", font: { size: 11 } } } } }
+  const cd = { plugins:{legend:{display:false}}, scales:{
+    x:{ticks:{color:"#64748b"},grid:{color:"#1e293b"}},
+    y:{ticks:{color:"#64748b"},grid:{color:"#334155"},title:{display:true,color:"#64748b",font:{size:11}}}
+  }}
+  hubCharts[hub.id] = {}
+  hubCharts[hub.id].pressure = new Chart(document.getElementById(pcId), {
+    type:"line", data:{labels:[],datasets:[{data:[],borderColor:"#22c55e",borderWidth:2,tension:0.3,pointRadius:2}]},
+    options:{...cd, scales:{...cd.scales, y:{...cd.scales.y,reverse:true,title:{display:true,text:"inHg",color:"#64748b",font:{size:11}}}}}
   })
-  hubCharts[hub.id].temp = new Chart(document.getElementById(tChartId), {
-    type: "line",
-    data: { labels: [], datasets: [{ data: [], borderColor: "#7dd3fc", borderWidth: 2, tension: 0.3, pointRadius: 2 }] },
-    options: { ...chartDefaults, scales: { ...chartDefaults.scales, y: { ...chartDefaults.scales.y, title: { display: true, text: "degF", color: "#64748b", font: { size: 11 } } } } }
+  hubCharts[hub.id].temp = new Chart(document.getElementById(tcId), {
+    type:"line", data:{labels:[],datasets:[{data:[],borderColor:"#7dd3fc",borderWidth:2,tension:0.3,pointRadius:2}]},
+    options:{...cd, scales:{...cd.scales, y:{...cd.scales.y,title:{display:true,text:"degF",color:"#64748b",font:{size:11}}}}}
   })
 
   loadHubThreshold(hub.id).then(val => {
-    const input = document.getElementById(`threshold-${hub.id}`)
-    if (input && val != null) {
-      input.value = val
-      const h = allHubs.find(h => h.id === hub.id)
-      if (h) populateHub(h)
-    }
+    const inp = document.getElementById(`threshold-${hub.id}`)
+    if (inp && val != null) { inp.value = val; const h = allHubs.find(h=>h.id===hub.id); if(h) populateHub(h) }
   })
 }
 
@@ -883,318 +734,226 @@ async function populateHub(hub) {
   const pChart  = hubCharts[hub.id] && hubCharts[hub.id].pressure
   const tChart  = hubCharts[hub.id] && hubCharts[hub.id].temp
   if (!tableEl) return
-
   hubSensorsCache[hub.id] = sensors
   tableEl.innerHTML = ""
-
   if (sensors.length === 0) {
     tableEl.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-500">No sensors assigned to this hub yet.</td></tr>`
     document.getElementById(`count-${hub.id}`).textContent = "0"
-    drawNeedle(`gauge-canvas-${hub.id}`, 0)
-    updateUnplacedBar(hub.id)
-    return
+    drawNeedle(`gauge-canvas-${hub.id}`, 0); updateUnplacedBar(hub.id); return
   }
-
-  let pressureSum = 0, pressureCount = 0, tempSum = 0, tempCount = 0, latestTime = null
-  const sensorReadings = []
-
+  let pSum=0,pCnt=0,tSum=0,tCnt=0,lastT=null
+  const rows = []
   for (const sensor of sensors) {
     const readings = await loadLatestReadings(sensor.id)
     const latest   = readings[0] || null
-    sensorReadings.push({ sensor, readings, latest })
+    rows.push({sensor,readings,latest})
     if (latest) latestReadingsCache[sensor.id] = latest
-    if (latest && latest.pressure_1 != null) { pressureSum += latest.pressure_1; pressureCount++ }
-    if (latest && latest.temperature != null) { tempSum += latest.temperature; tempCount++ }
-    if (latest && latest.received_at && (!latestTime || latest.received_at > latestTime)) latestTime = latest.received_at
+    if (latest?.pressure_1 != null)  { pSum += latest.pressure_1; pCnt++ }
+    if (latest?.temperature != null)  { tSum += latest.temperature; tCnt++ }
+    if (latest?.received_at && (!lastT || latest.received_at > lastT)) lastT = latest.received_at
   }
-
-  const avgPressure = pressureCount ? pressureSum / pressureCount : null
-  const avgTemp     = tempCount     ? tempSum     / tempCount     : null
-
-  const thresholdInput = document.getElementById(`threshold-${hub.id}`)
-  const thresholdPct   = thresholdInput ? parseFloat(thresholdInput.value) : null
-
-  const lowSensorIds = new Set()
-  if (avgPressure != null && thresholdPct > 0) {
-    const cutoff = avgPressure * (1 - thresholdPct / 100)
-    for (const item of sensorReadings) {
-      if (item.latest && item.latest.pressure_1 != null && item.latest.pressure_1 > cutoff) {
-        lowSensorIds.add(item.sensor.id)
-      }
+  const avgP = pCnt ? pSum/pCnt : null, avgT = tCnt ? tSum/tCnt : null
+  const pct  = parseFloat((document.getElementById(`threshold-${hub.id}`) || {}).value)
+  const lowIds = new Set()
+  if (avgP != null && pct > 0) {
+    const cut = avgP * (1 - pct/100)
+    for (const {sensor,latest} of rows) if (latest?.pressure_1 != null && latest.pressure_1 > cut) lowIds.add(sensor.id)
+  }
+  for (const {sensor,readings,latest} of rows) {
+    const p1=latest?.pressure_1??null, p2=latest?.pressure_2??null
+    const temp=latest?.temperature??null, rssi=latest?.signal_strength??null
+    const low=lowIds.has(sensor.id)
+    tableEl.innerHTML += `<tr id="row-${sensor.id}" class="border-b border-slate-700 ${low?"bg-amber-900/30":""}">
+      <td class="py-2 ${low?"text-amber-400 font-semibold":""}">${low?"WARNING ":""}${sensor.sensor_name||sensor.sensor_hardware_id}</td>
+      <td class="text-center ${low?"text-amber-400 font-semibold":""}">${p1!=null?p1.toFixed(2):"---"}</td>
+      <td class="text-center">${p2!=null?p2.toFixed(2):"---"}</td>
+      <td class="text-center">${temp!=null?temp.toFixed(1):"---"}</td>
+      <td class="text-center">${rssiBars(rssi)}</td>
+      <td class="text-center text-slate-400">${fmt(latest?.received_at)}</td></tr>`
+    if (sensor===sensors[0] && readings.length && pChart && tChart) {
+      const sl=readings.slice(0,18).reverse(), lb=sl.map(r=>fmt(r.received_at))
+      pChart.data.labels=lb; pChart.data.datasets[0].data=sl.map(r=>r.pressure_1??null); pChart.update()
+      tChart.data.labels=lb; tChart.data.datasets[0].data=sl.map(r=>r.temperature??null); tChart.update()
     }
   }
-
-  for (const item of sensorReadings) {
-    const sensor = item.sensor, readings = item.readings, latest = item.latest
-    const p1   = latest && latest.pressure_1    != null ? latest.pressure_1    : null
-    const p2   = latest && latest.pressure_2    != null ? latest.pressure_2    : null
-    const temp = latest && latest.temperature   != null ? latest.temperature   : null
-    const rssi = latest && latest.signal_strength != null ? latest.signal_strength : null
-    const isLow = lowSensorIds.has(sensor.id)
-
-    tableEl.innerHTML += `
-      <tr id="row-${sensor.id}" class="border-b border-slate-700 ${isLow ? "bg-amber-900/30" : ""}">
-        <td class="py-2 ${isLow ? "text-amber-400 font-semibold" : ""}">
-          ${isLow ? "WARNING " : ""}${sensor.sensor_name || sensor.sensor_hardware_id}
-        </td>
-        <td class="text-center ${isLow ? "text-amber-400 font-semibold" : ""}">${p1 != null ? p1.toFixed(2) : "---"}</td>
-        <td class="text-center">${p2 != null ? p2.toFixed(2) : "---"}</td>
-        <td class="text-center">${temp != null ? temp.toFixed(1) : "---"}</td>
-        <td class="text-center">${rssiBars(rssi)}</td>
-        <td class="text-center text-slate-400">${fmt(latest ? latest.received_at : null)}</td>
-      </tr>`
-
-    if (sensor === sensors[0] && readings.length && pChart && tChart) {
-      const sliced = readings.slice(0, 18).reverse()
-      const labels = sliced.map(r => fmt(r.received_at))
-      pChart.data.labels           = labels
-      pChart.data.datasets[0].data = sliced.map(r => r.pressure_1 != null ? r.pressure_1 : null)
-      pChart.update()
-      tChart.data.labels           = labels
-      tChart.data.datasets[0].data = sliced.map(r => r.temperature != null ? r.temperature : null)
-      tChart.update()
-    }
-  }
-
   document.getElementById(`count-${hub.id}`).textContent    = sensors.length
-  document.getElementById(`avgtemp-${hub.id}`).textContent  = avgTemp     != null ? avgTemp.toFixed(1)     : "---"
-  document.getElementById(`avgpres-${hub.id}`).textContent  = avgPressure != null ? avgPressure.toFixed(2) : "---"
-  document.getElementById(`lastseen-${hub.id}`).textContent = fmt(latestTime)
-  document.getElementById(`gval-${hub.id}`).textContent     = avgPressure != null ? avgPressure.toFixed(2) : "---"
-
-  drawNeedle(`gauge-canvas-${hub.id}`, avgPressure != null ? avgPressure : 0)
-  updateLowList(hub.id, sensorReadings, lowSensorIds)
+  document.getElementById(`avgtemp-${hub.id}`).textContent  = avgT!=null?avgT.toFixed(1):"---"
+  document.getElementById(`avgpres-${hub.id}`).textContent  = avgP!=null?avgP.toFixed(2):"---"
+  document.getElementById(`lastseen-${hub.id}`).textContent = fmt(lastT)
+  document.getElementById(`gval-${hub.id}`).textContent     = avgP!=null?avgP.toFixed(2):"---"
+  drawNeedle(`gauge-canvas-${hub.id}`, avgP??0)
+  updateLowList(hub.id, rows, lowIds)
   updateHubMapMarkers(hub.id)
   updateUnplacedBar(hub.id)
 }
 
-function updateLowList(hubId, sensorReadings, lowSensorIds) {
-  const listWrap  = document.getElementById(`lowlist-${hubId}`)
-  const listItems = document.getElementById(`lowlist-items-${hubId}`)
-  if (!listWrap || !listItems) return
-  if (lowSensorIds.size === 0) { listWrap.classList.add("hidden"); return }
-  listWrap.classList.remove("hidden")
-  listItems.innerHTML = ""
-  for (const item of sensorReadings) {
-    if (!lowSensorIds.has(item.sensor.id)) continue
-    const p1 = item.latest && item.latest.pressure_1 != null ? item.latest.pressure_1 : null
-    listItems.innerHTML += `
-      <div class="flex justify-between text-xs text-amber-300 py-1 border-b border-slate-700">
-        <span>${item.sensor.sensor_name || item.sensor.sensor_hardware_id}</span>
-        <span class="font-semibold">${p1 != null ? p1.toFixed(2) + " inHg" : "---"}</span>
-      </div>`
+function updateLowList(hubId, rows, lowIds) {
+  const wrap = document.getElementById(`lowlist-${hubId}`)
+  const items = document.getElementById(`lowlist-items-${hubId}`)
+  if (!wrap || !items) return
+  if (lowIds.size===0) { wrap.classList.add("hidden"); return }
+  wrap.classList.remove("hidden"); items.innerHTML = ""
+  for (const {sensor,latest} of rows) {
+    if (!lowIds.has(sensor.id)) continue
+    const p1 = latest?.pressure_1??null
+    items.innerHTML += `<div class="flex justify-between text-xs text-amber-300 py-1 border-b border-slate-700">
+      <span>${sensor.sensor_name||sensor.sensor_hardware_id}</span>
+      <span class="font-semibold">${p1!=null?p1.toFixed(2)+" inHg":"---"}</span></div>`
   }
 }
 
 function applyThreshold(hubId) {
-  const input = document.getElementById(`threshold-${hubId}`)
-  if (input) saveHubThreshold(hubId, input.value)
-  const hub = allHubs.find(h => h.id === hubId)
-  if (hub) populateHub(hub)
+  const inp = document.getElementById(`threshold-${hubId}`)
+  if (inp) saveHubThreshold(hubId, inp.value)
+  const h = allHubs.find(h=>h.id===hubId); if(h) populateHub(h)
 }
 
 async function populateUnassigned() {
-  const { data: assigned } = await supabaseClient.from("hub_sensors").select("sensor_id")
-  const assignedIds = (assigned || []).map(r => r.sensor_id)
-  const sensors = allSensors.filter(s => !assignedIds.includes(s.id))
-  const section = document.getElementById("unassignedSection")
-  const table   = document.getElementById("unassignedTable")
-  if (sensors.length === 0) { section.classList.add("hidden"); return }
-  section.classList.remove("hidden")
-  table.innerHTML = ""
-  for (const sensor of sensors) {
-    const readings = await loadLatestReadings(sensor.id)
-    const latest   = readings[0] || null
-    const p1   = latest && latest.pressure_1  != null ? latest.pressure_1  : null
-    const p2   = latest && latest.pressure_2  != null ? latest.pressure_2  : null
-    const temp = latest && latest.temperature != null ? latest.temperature : null
-    table.innerHTML += `
-      <tr class="border-b border-slate-700">
-        <td class="py-2">${sensor.sensor_name || sensor.sensor_hardware_id}</td>
-        <td class="text-center">${p1 != null ? p1.toFixed(2) : "---"}</td>
-        <td class="text-center">${p2 != null ? p2.toFixed(2) : "---"}</td>
-        <td class="text-center">${temp != null ? temp.toFixed(1) : "---"}</td>
-        <td class="text-center">${rssiBars(latest ? latest.signal_strength : null)}</td>
-        <td class="text-center text-slate-400">${fmt(latest ? latest.received_at : null)}</td>
-      </tr>`
+  const {data:assigned} = await supabaseClient.from("hub_sensors").select("sensor_id")
+  const ids = (assigned||[]).map(r=>r.sensor_id)
+  const sensors = allSensors.filter(s=>!ids.includes(s.id))
+  const sec=document.getElementById("unassignedSection"), tbl=document.getElementById("unassignedTable")
+  if (!sensors.length) { sec.classList.add("hidden"); return }
+  sec.classList.remove("hidden"); tbl.innerHTML=""
+  for (const s of sensors) {
+    const r=await loadLatestReadings(s.id), l=r[0]||null
+    const p1=l?.pressure_1??null,p2=l?.pressure_2??null,t=l?.temperature??null
+    tbl.innerHTML+=`<tr class="border-b border-slate-700">
+      <td class="py-2">${s.sensor_name||s.sensor_hardware_id}</td>
+      <td class="text-center">${p1!=null?p1.toFixed(2):"---"}</td>
+      <td class="text-center">${p2!=null?p2.toFixed(2):"---"}</td>
+      <td class="text-center">${t!=null?t.toFixed(1):"---"}</td>
+      <td class="text-center">${rssiBars(l?.signal_strength)}</td>
+      <td class="text-center text-slate-400">${fmt(l?.received_at)}</td></tr>`
   }
 }
 
 async function loadDashboard() {
-  const session = await requireAuth()
-  if (!session) return
-  document.getElementById("hubsContainer").innerHTML = `<div class="text-center text-slate-400 py-20">Loading your hubs...</div>`
-  try {
-    allHubs    = await loadUserHubs()
-    allSensors = await loadUserSensors()
-  } catch (e) {
-    document.getElementById("hubsContainer").innerHTML = `<div class="text-center text-red-400 py-20">Failed to load data. Please refresh.</div>`
-    console.error("Dashboard load error:", e); return
+  if (!(await requireAuth())) return
+  document.getElementById("hubsContainer").innerHTML=`<div class="text-center text-slate-400 py-20">Loading your hubs...</div>`
+  try { allHubs=await loadUserHubs(); allSensors=await loadUserSensors() }
+  catch(e) {
+    document.getElementById("hubsContainer").innerHTML=`<div class="text-center text-red-400 py-20">Failed to load data. Please refresh.</div>`
+    console.error(e); return
   }
-  const empty = document.getElementById("emptyState")
-  if (allHubs.length === 0) {
-    document.getElementById("hubsContainer").innerHTML = ""
-    empty.classList.remove("hidden"); return
-  }
-  empty.classList.add("hidden")
-  document.getElementById("hubsContainer").innerHTML = ""
-  for (const hub of allHubs) { renderHubSection(hub); await populateHub(hub) }
-  await populateUnassigned()
-  populateAssignDropdowns()
+  const empty=document.getElementById("emptyState")
+  if (!allHubs.length) { document.getElementById("hubsContainer").innerHTML=""; empty.classList.remove("hidden"); return }
+  empty.classList.add("hidden"); document.getElementById("hubsContainer").innerHTML=""
+  for (const h of allHubs) { renderHubSection(h); await populateHub(h) }
+  await populateUnassigned(); populateAssignDropdowns()
 }
 
 function populateAssignDropdowns() {
-  const sensorSel = document.getElementById("assignSensorSelect")
-  const hubSel    = document.getElementById("assignHubSelect")
-  sensorSel.innerHTML = "<option value=''>choose sensor</option>"
-  hubSel.innerHTML    = "<option value=''>choose hub</option>"
-  allSensors.forEach(s => { sensorSel.innerHTML += `<option value="${s.id}">${s.sensor_name || s.sensor_hardware_id}</option>` })
-  allHubs.forEach(h => { hubSel.innerHTML += `<option value="${h.id}">${h.hub_name || h.hub_hardware_id}</option>` })
+  const ss=document.getElementById("assignSensorSelect"), hs=document.getElementById("assignHubSelect")
+  ss.innerHTML="<option value=''>choose sensor</option>"
+  hs.innerHTML="<option value=''>choose hub</option>"
+  allSensors.forEach(s=>{ss.innerHTML+=`<option value="${s.id}">${s.sensor_name||s.sensor_hardware_id}</option>`})
+  allHubs.forEach(h=>{hs.innerHTML+=`<option value="${h.id}">${h.hub_name||h.hub_hardware_id}</option>`})
 }
 
 async function submitHub() {
-  const hwId = document.getElementById("hubHardwareId").value.trim()
-  const name = document.getElementById("hubName").value.trim()
-  const err  = document.getElementById("hubError")
-  err.classList.add("hidden")
-  if (!hwId) { err.textContent = "Hub Hardware ID is required."; err.classList.remove("hidden"); return }
-  const result = await claimHub(hwId, name)
-  if (!result) return
+  const hwId=document.getElementById("hubHardwareId").value.trim()
+  const name=document.getElementById("hubName").value.trim()
+  const err=document.getElementById("hubError"); err.classList.add("hidden")
+  if (!hwId) { err.textContent="Hub Hardware ID is required."; err.classList.remove("hidden"); return }
+  const r=await claimHub(hwId,name); if(!r) return
   closeModal("hubModal")
-  document.getElementById("hubHardwareId").value = ""
-  document.getElementById("hubName").value = ""
-  allHubs.push(result)
-  document.getElementById("emptyState").classList.add("hidden")
-  renderHubSection(result); await populateHub(result); populateAssignDropdowns()
+  document.getElementById("hubHardwareId").value=""
+  document.getElementById("hubName").value=""
+  allHubs.push(r); document.getElementById("emptyState").classList.add("hidden")
+  renderHubSection(r); await populateHub(r); populateAssignDropdowns()
 }
 
 async function submitSensor() {
-  const hwId = document.getElementById("sensorHardwareId").value.trim()
-  const name = document.getElementById("sensorName").value.trim()
-  const err  = document.getElementById("sensorError")
-  err.classList.add("hidden")
-  if (!hwId) { err.textContent = "Sensor serial number is required."; err.classList.remove("hidden"); return }
-  const result = await claimSensor(hwId, name)
-  if (!result) return
+  const hwId=document.getElementById("sensorHardwareId").value.trim()
+  const name=document.getElementById("sensorName").value.trim()
+  const err=document.getElementById("sensorError"); err.classList.add("hidden")
+  if (!hwId) { err.textContent="Sensor serial number is required."; err.classList.remove("hidden"); return }
+  const r=await claimSensor(hwId,name); if(!r) return
   closeModal("sensorModal")
-  document.getElementById("sensorHardwareId").value = ""
-  document.getElementById("sensorName").value = ""
-  allSensors.push(result); populateAssignDropdowns(); await populateUnassigned()
+  document.getElementById("sensorHardwareId").value=""
+  document.getElementById("sensorName").value=""
+  allSensors.push(r); populateAssignDropdowns(); await populateUnassigned()
 }
 
 async function submitAssign() {
-  const sensorId = document.getElementById("assignSensorSelect").value
-  const hubId    = document.getElementById("assignHubSelect").value
-  const action   = document.getElementById("assignAction").value
-  const err      = document.getElementById("assignError")
-  const ok       = document.getElementById("assignSuccess")
+  const sid=document.getElementById("assignSensorSelect").value
+  const hid=document.getElementById("assignHubSelect").value
+  const act=document.getElementById("assignAction").value
+  const err=document.getElementById("assignError"), ok=document.getElementById("assignSuccess")
   err.classList.add("hidden"); ok.classList.add("hidden")
-  if (!sensorId || !hubId) { err.textContent = "Please select both a sensor and a hub."; err.classList.remove("hidden"); return }
-  const success = action === "assign" ? await assignSensorToHub(hubId, sensorId) : await removeSensorFromHub(hubId, sensorId)
+  if (!sid||!hid) { err.textContent="Please select both a sensor and a hub."; err.classList.remove("hidden"); return }
+  const success=act==="assign"?await assignSensorToHub(hid,sid):await removeSensorFromHub(hid,sid)
   if (!success) return
-  ok.textContent = action === "assign" ? "Sensor assigned successfully." : "Sensor removed from hub."
-  ok.classList.remove("hidden")
-  for (const hub of allHubs) await populateHub(hub)
-  await populateUnassigned()
+  ok.textContent=act==="assign"?"Sensor assigned successfully.":"Sensor removed from hub."; ok.classList.remove("hidden")
+  for (const h of allHubs) await populateHub(h); await populateUnassigned()
 }
 
 function subscribeRealtime() {
-  supabaseClient.channel("readings-stream")
-    .on("postgres_changes", { event: "INSERT", schema: "public", table: "sensor_readings" }, async (payload) => {
-      for (const hub of allHubs) {
-        const sensors = await loadSensorsForHub(hub.id)
-        if (sensors.find(s => s.id === payload.new.sensor_id)) { await populateHub(hub); break }
+  supabaseClient.channel("readings-stream").on("postgres_changes",
+    {event:"INSERT",schema:"public",table:"sensor_readings"}, async payload => {
+      for (const h of allHubs) {
+        const s=await loadSensorsForHub(h.id)
+        if (s.find(x=>x.id===payload.new.sensor_id)) { await populateHub(h); break }
       }
       await populateUnassigned()
     }).subscribe()
 }
 
 function startPolling() {
-  setInterval(async () => {
-    for (const hub of allHubs) await populateHub(hub)
-    await populateUnassigned()
-  }, 60000)
+  setInterval(async()=>{for(const h of allHubs) await populateHub(h); await populateUnassigned()}, 60000)
 }
 
 async function refreshDashboard() {
-  const btn = document.getElementById("refreshBtn")
-  btn.textContent = "Refreshing..."; btn.disabled = true; btn.style.opacity = "0.6"
-  for (const hub of allHubs) await populateHub(hub)
-  await populateUnassigned()
-  btn.textContent = "Updated"; btn.style.opacity = "1"
-  setTimeout(() => { btn.textContent = "Refresh"; btn.disabled = false }, 2000)
+  const btn=document.getElementById("refreshBtn")
+  btn.textContent="Refreshing..."; btn.disabled=true; btn.style.opacity="0.6"
+  for(const h of allHubs) await populateHub(h); await populateUnassigned()
+  btn.textContent="Updated"; btn.style.opacity="1"
+  setTimeout(()=>{btn.textContent="Refresh";btn.disabled=false},2000)
 }
 
-let editingHubId = null
+let editingHubId=null
 
 async function openEditModal(hubId) {
-  editingHubId = hubId
-  const hub     = allHubs.find(h => h.id === hubId)
-  const sensors = await loadSensorsForHub(hubId)
-  const body    = document.getElementById("editNamesBody")
-  const err     = document.getElementById("editNamesError")
+  editingHubId=hubId
+  const hub=allHubs.find(h=>h.id===hubId), sensors=await loadSensorsForHub(hubId)
+  const body=document.getElementById("editNamesBody"), err=document.getElementById("editNamesError")
   err.classList.add("hidden")
-  let html = `
-    <label class="text-sm font-semibold block mb-1">Hub Name</label>
-    <input id="edit-hub-name" class="modal-input mb-5" value="${hub.hub_name || ""}" placeholder="${hub.hub_hardware_id}">`
-  if (sensors.length > 0) {
-    html += `<p class="text-xs text-slate-400 uppercase tracking-wide mb-3">Sensors on this hub</p>`
-    for (const s of sensors) {
-      html += `
-        <label class="text-sm font-semibold block mb-1">
-          ${s.sensor_name || s.sensor_hardware_id} <span class="text-slate-500 font-normal">(${s.sensor_hardware_id})</span>
-        </label>
-        <input id="edit-sensor-${s.id}" class="modal-input mb-4" value="${s.sensor_name || ""}" placeholder="${s.sensor_hardware_id}">`
-    }
-  } else {
-    html += `<p class="text-slate-500 text-sm">No sensors assigned to this hub yet.</p>`
-  }
-  body.innerHTML = html
-  openModal("editNamesModal")
+  let html=`<label class="text-sm font-semibold block mb-1">Hub Name</label>
+    <input id="edit-hub-name" class="modal-input mb-5" value="${hub.hub_name||""}" placeholder="${hub.hub_hardware_id}">`
+  if (sensors.length) {
+    html+=`<p class="text-xs text-slate-400 uppercase tracking-wide mb-3">Sensors on this hub</p>`
+    for (const s of sensors) html+=`<label class="text-sm font-semibold block mb-1">${s.sensor_name||s.sensor_hardware_id} <span class="text-slate-500 font-normal">(${s.sensor_hardware_id})</span></label>
+      <input id="edit-sensor-${s.id}" class="modal-input mb-4" value="${s.sensor_name||""}" placeholder="${s.sensor_hardware_id}">`
+  } else { html+=`<p class="text-slate-500 text-sm">No sensors assigned to this hub yet.</p>` }
+  body.innerHTML=html; openModal("editNamesModal")
 }
 
 async function submitEditNames() {
-  const hub     = allHubs.find(h => h.id === editingHubId)
-  const sensors = await loadSensorsForHub(editingHubId)
-  const err     = document.getElementById("editNamesError")
-  const btn     = document.getElementById("editNamesSubmit")
-  err.classList.add("hidden"); btn.textContent = "Saving..."; btn.disabled = true
-
-  const newHubName = document.getElementById("edit-hub-name").value.trim()
-  const hubOk = await updateHubName(editingHubId, newHubName)
-  if (!hubOk) {
-    err.textContent = "Failed to save hub name."; err.classList.remove("hidden")
-    btn.textContent = "Save"; btn.disabled = false; return
+  const hub=allHubs.find(h=>h.id===editingHubId), sensors=await loadSensorsForHub(editingHubId)
+  const err=document.getElementById("editNamesError"), btn=document.getElementById("editNamesSubmit")
+  err.classList.add("hidden"); btn.textContent="Saving..."; btn.disabled=true
+  const newName=document.getElementById("edit-hub-name").value.trim()
+  if (!(await updateHubName(editingHubId,newName))) {
+    err.textContent="Failed to save hub name."; err.classList.remove("hidden")
+    btn.textContent="Save"; btn.disabled=false; return
   }
-  hub.hub_name = newHubName
-
+  hub.hub_name=newName
   for (const s of sensors) {
-    const input = document.getElementById(`edit-sensor-${s.id}`)
-    if (!input) continue
-    const ok = await updateSensorName(s.id, input.value.trim())
-    if (!ok) {
-      err.textContent = `Failed to save name for sensor ${s.sensor_hardware_id}.`
-      err.classList.remove("hidden"); btn.textContent = "Save"; btn.disabled = false; return
+    const inp=document.getElementById(`edit-sensor-${s.id}`); if(!inp) continue
+    if (!(await updateSensorName(s.id,inp.value.trim()))) {
+      err.textContent=`Failed to save name for sensor ${s.sensor_hardware_id}.`; err.classList.remove("hidden")
+      btn.textContent="Save"; btn.disabled=false; return
     }
-    const ls = allSensors.find(x => x.id === s.id)
-    if (ls) ls.sensor_name = input.value.trim()
+    const ls=allSensors.find(x=>x.id===s.id); if(ls) ls.sensor_name=inp.value.trim()
   }
-
-  btn.textContent = "Save"; btn.disabled = false
-  closeModal("editNamesModal")
-
-  const titleEl = document.querySelector(`#hub-${editingHubId} .hub-title div`)
-  if (titleEl) {
-    titleEl.innerHTML = `
-      <span class="hub-dot"></span>
-      ${hub.hub_name || hub.hub_hardware_id}
-      <span class="text-slate-500 text-xs font-normal ml-2">${hub.hub_hardware_id}</span>`
-  }
-  await populateHub(hub)
-  populateAssignDropdowns()
+  btn.textContent="Save"; btn.disabled=false; closeModal("editNamesModal")
+  const titleEl=document.querySelector(`#hub-${editingHubId} .hub-title div`)
+  if (titleEl) titleEl.innerHTML=`<span class="hub-dot"></span>${hub.hub_name||hub.hub_hardware_id}<span class="text-slate-500 text-xs font-normal ml-2">${hub.hub_hardware_id}</span>`
+  await populateHub(hub); populateAssignDropdowns()
 }
 
-loadDashboard().then(() => { subscribeRealtime(); startPolling() })
+loadDashboard().then(()=>{ subscribeRealtime(); startPolling() })
 </script>
 </body>
 </html>
