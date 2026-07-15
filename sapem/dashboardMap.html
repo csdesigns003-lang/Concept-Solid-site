@@ -713,6 +713,15 @@ async function initHubMap(hubId) {
     drawnItems, lineCount: 0
   }
 
+  // Whenever the map container's actual on-screen size changes for any
+  // reason (entering/exiting fullscreen, device rotation, layout shifts),
+  // tell Leaflet to re-measure and redraw immediately. Without this, Leaflet
+  // can keep using a stale, smaller size after the container is resized by
+  // CSS, leaving an unrendered gap that just shows the page background.
+  if ("ResizeObserver" in window) {
+    new ResizeObserver(() => map.invalidateSize()).observe(mapEl)
+  }
+
   // Load saved lines -- wrapped in try/catch so if auth.js functions are not
   // yet added the map still initialises and lines can be drawn (just not saved)
   try {
