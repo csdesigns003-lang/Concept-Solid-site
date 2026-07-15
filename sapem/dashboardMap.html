@@ -110,6 +110,8 @@ body.map-fs-lock { overflow: hidden !important; position: fixed !important; inse
 .leaflet-control-layers { background: rgba(15,23,42,0.92) !important; border: 1px solid #1e293b !important; border-radius: 7px !important; color: #cbd5e1 !important; box-shadow: 0 2px 8px rgba(0,0,0,0.5) !important; }
 .leaflet-control-layers-toggle { background-color: rgba(15,23,42,0.92) !important; }
 .leaflet-control-layers label { color: #cbd5e1 !important; font-size: 12px !important; }
+.leaflet-control a, .leaflet-control button, .leaflet-bar a, .leaflet-draw-toolbar a, .line-draw-banner button { touch-action: manipulation !important; -webkit-tap-highlight-color: transparent; }
+
 .leaflet-fs-btn { width: 34px; height: 34px; background: rgba(15,23,42,0.92) !important; border: 1px solid #1e293b !important; border-radius: 7px !important; color: #cbd5e1; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.5); transition: all 0.15s; }
 .leaflet-fs-btn:hover { background: #1e293b !important; color: white; }
 .leaflet-draw-toolbar a { background-color: rgba(15,23,42,0.92) !important; color: #cbd5e1 !important; border-color: #1e293b !important; }
@@ -480,25 +482,21 @@ function updateLineDrawBanner(hubId) {
     </div>`
 }
 
-// Edit/delete mode Save+Cancel banner -- replaces Leaflet.draw's own flyout
-const editActionsHandlers = {}
+// Edit/delete mode Save+Cancel dropdown -- a real Leaflet control (see
+// EditActionsCtrl in initHubMap) styled and positioned just like the Lines
+// dropdown, so it opens downward from the topleft control row and always
+// sits below the notch/status bar the same way Lines already does.
 function showEditActionsBanner(hubId, message, onSave, onCancel) {
-  editActionsHandlers[hubId] = { onSave, onCancel }
-  const b = document.getElementById(`editactions-banner-${hubId}`); if (!b) return
-  b.classList.remove("hidden")
-  b.innerHTML = `<div>${message}</div>
-    <div class="btn-row">
-      <button onclick="runEditAction('${hubId}','save')">Save</button>
-      <button onclick="runEditAction('${hubId}','cancel')">Cancel</button>
-    </div>`
+  const md = hubMaps[hubId]; if (!md || !md.editActionsCtrl) return
+  const c = md.editActionsCtrl.getContainer()
+  c._msg.textContent = message
+  c._panel.style.display = "flex"
+  c._saveBtn.onclick = () => { hideEditActionsBanner(hubId); try { onSave() } catch(e) { console.warn("save failed:", e) } }
+  c._cancelBtn.onclick = () => { hideEditActionsBanner(hubId); try { onCancel() } catch(e) { console.warn("cancel failed:", e) } }
 }
 function hideEditActionsBanner(hubId) {
-  const b = document.getElementById(`editactions-banner-${hubId}`); if (b) b.classList.add("hidden")
-}
-function runEditAction(hubId, which) {
-  const h = editActionsHandlers[hubId]; if (!h) return
-  hideEditActionsBanner(hubId)
-  try { which === "save" ? h.onSave() : h.onCancel() } catch(e) { console.warn("edit action failed:", e) }
+  const md = hubMaps[hubId]; if (!md || !md.editActionsCtrl) return
+  md.editActionsCtrl.getContainer()._panel.style.display = "none"
 }
 
 function createMarkerIcon(color) {
@@ -703,6 +701,39 @@ async function initHubMap(hubId) {
   }})
   new DlCtrl().addTo(map)
 
+  // Edit/delete Save+Cancel dropdown -- same control mechanism, styling and
+  // position as the Lines dropdown above, so it opens downward from the
+  // topleft control row and inherits the same below-the-notch placement
+  const EditActionsCtrl = L.Control.extend({ options: { position: "topleft" }, onAdd() {
+    const wrap = L.DomUtil.create("div")
+    wrap.style.cssText = "display:flex;flex-direction:column;gap:6px;"
+
+    const panel = L.DomUtil.create("div","",wrap)
+    panel.style.cssText = "display:none;flex-direction:column;gap:8px;background:rgba(15,23,42,0.95);border:1px solid #1e293b;border-radius:10px;padding:10px;backdrop-filter:blur(8px);box-shadow:0 2px 12px rgba(0,0,0,0.6);min-width:180px;max-width:230px;"
+
+    const msg = L.DomUtil.create("div","",panel)
+    msg.style.cssText = "font-size:11px;color:#94a3b8;font-weight:600;line-height:1.4;"
+
+    const btnRow = L.DomUtil.create("div","",panel)
+    btnRow.style.cssText = "display:flex;gap:6px;"
+
+    const saveBtn = L.DomUtil.create("button","",btnRow)
+    saveBtn.textContent = "Save"
+    saveBtn.style.cssText = "flex:1;font-size:12px;padding:6px 10px;border-radius:6px;border:none;color:#0f172a;background:#22c55e;font-weight:700;cursor:pointer;"
+
+    const cancelBtn = L.DomUtil.create("button","",btnRow)
+    cancelBtn.textContent = "Cancel"
+    cancelBtn.style.cssText = "flex:1;font-size:12px;padding:6px 10px;border-radius:6px;border:1px solid #475569;color:#cbd5e1;background:transparent;font-weight:600;cursor:pointer;"
+
+    L.DomEvent.on(saveBtn,"click",L.DomEvent.stopPropagation)
+    L.DomEvent.on(cancelBtn,"click",L.DomEvent.stopPropagation)
+    L.DomEvent.disableClickPropagation(wrap)
+
+    wrap._panel = panel; wrap._msg = msg; wrap._saveBtn = saveBtn; wrap._cancelBtn = cancelBtn
+    return wrap
+  }})
+  const editActionsCtrl = new EditActionsCtrl().addTo(map)
+
   // Legend -- commented out per request
   // const LgCtrl = L.Control.extend({ options: { position: "bottomleft" }, onAdd() {
   //   const d = L.DomUtil.create("div","map-legend")
@@ -724,12 +755,6 @@ async function initHubMap(hubId) {
   mapEl.appendChild(lineBanner)
   L.DomEvent.disableClickPropagation(lineBanner)
 
-  // Edit/delete mode Save+Cancel banner (replaces Leaflet.draw's own flyout)
-  const editBanner = document.createElement("div")
-  editBanner.id = `editactions-banner-${hubId}`; editBanner.className = "line-draw-banner hidden"
-  mapEl.appendChild(editBanner)
-  L.DomEvent.disableClickPropagation(editBanner)
-
   // drawnItems stored in hubMaps so CREATED handler uses same reference
   // even if function scope is long gone
   const drawnItems = new L.FeatureGroup()
@@ -738,7 +763,7 @@ async function initHubMap(hubId) {
   hubMaps[hubId] = {
     map, markers: {},
     activeLineType: { type: "mainline", color: "#3b82f6", weight: 5 },
-    drawnItems, lineCount: 0
+    drawnItems, lineCount: 0, editActionsCtrl
   }
 
   // Whenever the map container's actual on-screen size changes for any
