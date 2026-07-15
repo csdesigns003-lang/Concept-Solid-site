@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f172a">
 <title>SapEM Monitoring Dashboard</title>
 <link rel="icon" href="/images/favicon/sapem-favicon.ico" sizes="any">
@@ -578,50 +579,12 @@ function toggleFullscreen(mapEl, map) {
   if (mapEl.classList.contains("map-force-fullscreen")) {
     mapEl.classList.remove("map-force-fullscreen")
     document.body.classList.remove("map-fs-lock")
-    hideFsDebug()
     setTimeout(() => { map.invalidateSize(); forceRepaint() }, 100)
   } else {
     mapEl.classList.add("map-force-fullscreen")
     document.body.classList.add("map-fs-lock")
-    setTimeout(() => { map.invalidateSize(); showFsDebug(mapEl, map) }, 150)
+    setTimeout(() => map.invalidateSize(), 100)
   }
-}
-
-// TEMPORARY diagnostic readout -- shows the real numbers iOS is using so we
-// can pin down the portrait-only gap precisely instead of guessing again.
-// Safe to delete once the bottom-gap issue is resolved.
-function showFsDebug(mapEl, map) {
-  let el = document.getElementById("fs-debug")
-  if (!el) {
-    el = document.createElement("div")
-    el.id = "fs-debug"
-    el.style.cssText = "position:fixed;top:50%;left:8px;transform:translateY(-50%);z-index:999999;background:rgba(0,0,0,0.88);color:#4ade80;font:11px/1.5 monospace;padding:8px 10px;border-radius:8px;pointer-events:none;white-space:pre;"
-    document.body.appendChild(el)
-  }
-  const update = () => {
-    const test = document.createElement("div")
-    test.style.cssText = "position:fixed;bottom:0;left:0;height:0;padding-bottom:env(safe-area-inset-bottom);visibility:hidden;"
-    document.body.appendChild(test)
-    const safeBottom = getComputedStyle(test).paddingBottom
-    document.body.removeChild(test)
-    const rect = mapEl.getBoundingClientRect()
-    const sz = map.getSize()
-    const vv = window.visualViewport
-    el.textContent =
-      `orientation: ${window.innerWidth > window.innerHeight ? "landscape" : "portrait"}\n` +
-      `innerH: ${window.innerHeight}  vvH: ${vv ? vv.height.toFixed(0) : "-"}\n` +
-      `safe-bottom: ${safeBottom}\n` +
-      `mapRect top:${rect.top.toFixed(0)} bottom:${rect.bottom.toFixed(0)} h:${rect.height.toFixed(0)}\n` +
-      `mapEl.clientHeight: ${mapEl.clientHeight}\n` +
-      `leaflet size: ${sz.x}x${sz.y}`
-  }
-  update()
-  el._interval && clearInterval(el._interval)
-  el._interval = setInterval(update, 500)
-}
-function hideFsDebug() {
-  const el = document.getElementById("fs-debug")
-  if (el) { clearInterval(el._interval); el.remove() }
 }
 
 
