@@ -21,7 +21,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
 
 <style>
-html, body { overflow-x: hidden; }
+html, body { overflow-x: hidden; background: #0f172a; }
 #refreshBtn:focus { outline: none; }
 #refreshBtn { -webkit-tap-highlight-color: transparent; }
 body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
@@ -76,6 +76,15 @@ body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
    controls (attribution) above the home-indicator area, while fullscreen */
 .map-force-fullscreen .leaflet-top    { top: max(10px, env(safe-area-inset-top)) !important; }
 .map-force-fullscreen .leaflet-bottom { bottom: max(10px, env(safe-area-inset-bottom)) !important; }
+/* Buttons 25% bigger while fullscreen (easier to hit on a phone) */
+.map-force-fullscreen .leaflet-control-container { zoom: 1.25; }
+/* Leaflet's own container defaults to a light gray background -- force it
+   dark so no light/mismatched strip can show at the map edges before tiles
+   have painted there */
+.leaflet-container { background: #0f172a !important; }
+/* Kill iOS's default blue tap-highlight/text-selection tint so a stray
+   touch on empty space can never paint a blue bar anywhere on the map */
+.hub-map, .hub-map * { -webkit-tap-highlight-color: transparent !important; -webkit-user-select: none !important; user-select: none !important; }
 /* Lock page scroll while the forced-fullscreen map is open so iOS can't
    rubber-band and reveal its own background behind the fixed map div */
 body.map-fs-lock { overflow: hidden !important; position: fixed !important; width: 100% !important; }
@@ -121,6 +130,13 @@ body.map-fs-lock { overflow: hidden !important; position: fixed !important; widt
 .placement-banner { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); background: rgba(34,197,94,0.15); border: 1px solid #22c55e; border-radius: 8px; padding: 8px 16px; color: #22c55e; font-size: 13px; font-weight: 600; z-index: 1000; white-space: nowrap; display: flex; align-items: center; gap: 10px; pointer-events: none; }
 .placement-banner button { pointer-events: all; background: #334155; border: none; color: #94a3b8; border-radius: 5px; padding: 3px 8px; font-size: 12px; cursor: pointer; }
 .placement-banner button:hover { background: #475569; color: white; }
+
+/* Line-drawing banner (tap-to-place mode) */
+.line-draw-banner { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); background: rgba(34,197,94,0.15); border: 1px solid #22c55e; border-radius: 8px; padding: 8px 14px; color: #22c55e; font-size: 12px; font-weight: 600; z-index: 1000; display: flex; flex-direction: column; align-items: center; gap: 6px; max-width: 92%; text-align: center; pointer-events: none; }
+.line-draw-banner .btn-row { display: flex; gap: 6px; pointer-events: all; }
+.line-draw-banner button { background: #334155; border: none; color: #94a3b8; border-radius: 5px; padding: 5px 10px; font-size: 11px; font-weight: 600; cursor: pointer; }
+.line-draw-banner button:disabled { opacity: 0.4; cursor: default; }
+.line-draw-banner button:not(:disabled):hover { background: #475569; color: white; }
 </style>
 </head>
 <body>
@@ -379,10 +395,86 @@ function setLineType(hubId, type, color, weight) {
   })
 }
 
+let lineDrawState = {}
+
 function startDrawing(hubId) {
-  const md = hubMaps[hubId]; if (!md) return
-  const a  = md.activeLineType
-  new L.Draw.Polyline(md.map, { shapeOptions: { color: a.color, weight: a.weight, opacity: 1 }, showLength: false }).enable()
+  const md = hubMaps[hubId]; if (!md || (lineDrawState[hubId] && lineDrawState[hubId].active)) return
+  const active = md.activeLineType, map = md.map
+  const state = { points: [], tempLayer: null, vertexMarkers: [], active: true, type: active.type, color: active.color, weight: active.weight }
+  lineDrawState[hubId] = state
+
+  const onMapClick = e => {
+    state.points.push(e.latlng)
+    if (state.tempLayer) map.removeLayer(state.tempLayer)
+    if (state.points.length > 1) {
+      state.tempLayer = L.polyline(state.points, { color: state.color, weight: state.weight, opacity: 0.85, dashArray: "6,6" }).addTo(map)
+    }
+    const vm = L.circleMarker(e.latlng, { radius: 6, color: "#fff", weight: 2, fillColor: state.color, fillOpacity: 1 }).addTo(map)
+    state.vertexMarkers.push(vm)
+    updateLineDrawBanner(hubId)
+  }
+  state._onMapClick = onMapClick
+  map.on("click", onMapClick)
+  showLineDrawBanner(hubId)
+}
+
+function undoLinePoint(hubId) {
+  const state = lineDrawState[hubId]; if (!state || !state.points.length) return
+  const md = hubMaps[hubId]
+  state.points.pop()
+  const vm = state.vertexMarkers.pop(); if (vm) md.map.removeLayer(vm)
+  if (state.tempLayer) { md.map.removeLayer(state.tempLayer); state.tempLayer = null }
+  if (state.points.length > 1) {
+    state.tempLayer = L.polyline(state.points, { color: state.color, weight: state.weight, opacity: 0.85, dashArray: "6,6" }).addTo(md.map)
+  }
+  updateLineDrawBanner(hubId)
+}
+
+async function finishLineDraw(hubId) {
+  const state = lineDrawState[hubId]; if (!state || state.points.length < 2) return
+  const md = hubMaps[hubId]
+  const layer = L.polyline(state.points, { color: state.color, weight: state.weight, opacity: 1 })
+  md.drawnItems.addLayer(layer)
+  md.lineCount = (md.lineCount || 0) + 1
+  try {
+    if (typeof saveMapLine === "function") {
+      const saved = await saveMapLine(hubId, state.type, state.color, `${state.type} ${md.lineCount}`, layer.toGeoJSON())
+      if (saved) layer._dbId = saved.id
+    }
+  } catch(e) { console.warn("saveMapLine not available yet:", e) }
+  endLineDraw(hubId)
+}
+
+function cancelLineDraw(hubId) { endLineDraw(hubId) }
+
+function endLineDraw(hubId) {
+  const state = lineDrawState[hubId]; if (!state) return
+  const md = hubMaps[hubId]
+  if (md) {
+    md.map.off("click", state._onMapClick)
+    if (state.tempLayer) md.map.removeLayer(state.tempLayer)
+    state.vertexMarkers.forEach(vm => md.map.removeLayer(vm))
+  }
+  hideLineDrawBanner(hubId)
+  delete lineDrawState[hubId]
+}
+
+function showLineDrawBanner(hubId) {
+  const b = document.getElementById(`linedraw-banner-${hubId}`); if (!b) return
+  b.classList.remove("hidden"); updateLineDrawBanner(hubId)
+}
+function hideLineDrawBanner(hubId) {
+  const b = document.getElementById(`linedraw-banner-${hubId}`); if (b) b.classList.add("hidden")
+}
+function updateLineDrawBanner(hubId) {
+  const b = document.getElementById(`linedraw-banner-${hubId}`); if (!b) return
+  const n = (lineDrawState[hubId] || {}).points?.length || 0
+  b.innerHTML = `<div>Tap the map to place points &mdash; ${n} placed</div>
+    <div class="btn-row">
+      <button onclick="undoLinePoint('${hubId}')" ${n?"":"disabled"}>Undo point</button>
+      <button onclick="finishLineDraw('${hubId}')" ${n<2?"disabled":""}>Finish line</button>
+      <button onclick="cancelLineDraw('${hubId}')">Cancel</button>
+    </div>`
 }
 
 function createMarkerIcon(color) {
@@ -601,6 +693,13 @@ async function initHubMap(hubId) {
   banner.innerHTML = `Click anywhere on the map to place this sensor <button onclick="cancelPlacement('${hubId}')">Cancel</button>`
   mapEl.appendChild(banner)
 
+  // Line-drawing banner (tap-to-place mode) -- stop click propagation so
+  // tapping Undo/Finish/Cancel never also registers as a map tap/point
+  const lineBanner = document.createElement("div")
+  lineBanner.id = `linedraw-banner-${hubId}`; lineBanner.className = "line-draw-banner hidden"
+  mapEl.appendChild(lineBanner)
+  L.DomEvent.disableClickPropagation(lineBanner)
+
   // drawnItems stored in hubMaps so CREATED handler uses same reference
   // even if function scope is long gone
   const drawnItems = new L.FeatureGroup()
@@ -609,16 +708,15 @@ async function initHubMap(hubId) {
   hubMaps[hubId] = {
     map, markers: {},
     activeLineType: { type: "mainline", color: "#3b82f6", weight: 5 },
-    drawnItems
+    drawnItems, lineCount: 0
   }
 
   // Load saved lines -- wrapped in try/catch so if auth.js functions are not
   // yet added the map still initialises and lines can be drawn (just not saved)
-  let lineCount = 0
   try {
     if (typeof loadMapLines === "function") {
       const savedLines = await loadMapLines(hubId)
-      lineCount = savedLines.length
+      hubMaps[hubId].lineCount = savedLines.length
       for (const line of savedLines) {
         const layer = L.geoJSON(line.geojson, { style: { color: line.color, weight: weightForType(line.line_type), opacity: 1 } })
         layer.bindTooltip(line.name || line.line_type, { permanent: false })
@@ -628,25 +726,8 @@ async function initHubMap(hubId) {
     }
   } catch(e) { console.warn("loadMapLines not available yet:", e) }
 
-  // Edit/delete toolbar (no draw toolbar -- drawing via Lines button)
+  // Edit/delete toolbar (no draw toolbar -- drawing via Lines button / tap-to-place)
   map.addControl(new L.Control.Draw({ position: "topleft", edit: { featureGroup: drawnItems, remove: true }, draw: false }))
-
-  // CREATED -- references hubMaps[hubId].drawnItems directly (not closure var)
-  // so it always has the right reference regardless of timing
-  map.on(L.Draw.Event.CREATED, async e => {
-    const md    = hubMaps[hubId]
-    const active = md.activeLineType
-    const layer  = e.layer
-    layer.setStyle({ color: active.color, weight: active.weight, opacity: 1 })
-    md.drawnItems.addLayer(layer)
-    lineCount++
-    try {
-      if (typeof saveMapLine === "function") {
-        const saved = await saveMapLine(hubId, active.type, active.color, `${active.type} ${lineCount}`, layer.toGeoJSON())
-        if (saved) layer._dbId = saved.id
-      }
-    } catch(e) { console.warn("saveMapLine not available yet:", e) }
-  })
 
   map.on(L.Draw.Event.EDITED, async e => {
     if (typeof updateMapLine !== "function") return
