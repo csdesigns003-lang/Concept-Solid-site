@@ -251,6 +251,46 @@ async function updateSensorLocation(sensorId, lat, lng) {
   return !error
 }
 
+// ── Map lines (sap tubing) ────────────────────────────────
+
+async function saveMapLine(hubId, lineType, color, name, geojson) {
+  const { data: { user } } = await supabaseClient.auth.getUser()
+  const { data, error } = await supabaseClient
+    .from("hub_map_lines")
+    .insert({ hub_id: hubId, user_id: user.id, line_type: lineType, color, name, geojson })
+    .select()
+    .single()
+  if (error) { console.error("saveMapLine error:", error); return null }
+  return data
+}
+
+async function loadMapLines(hubId) {
+  const { data, error } = await supabaseClient
+    .from("hub_map_lines")
+    .select("*")
+    .eq("hub_id", hubId)
+  if (error) { console.error("loadMapLines error:", error); return [] }
+  return data
+}
+
+async function updateMapLine(lineId, geojson) {
+  const { error } = await supabaseClient
+    .from("hub_map_lines")
+    .update({ geojson })
+    .eq("id", lineId)
+  if (error) console.error("updateMapLine error:", error)
+  return !error
+}
+
+async function deleteMapLine(lineId) {
+  const { error } = await supabaseClient
+    .from("hub_map_lines")
+    .delete()
+    .eq("id", lineId)
+  if (error) console.error("deleteMapLine error:", error)
+  return !error
+}
+
 async function loadUserSensorsWithLocation() {
   const { data, error } = await supabaseClient
     .from("sensors")
