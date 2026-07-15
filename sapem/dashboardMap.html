@@ -76,15 +76,17 @@ body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
    controls (attribution) above the home-indicator area, while fullscreen */
 .map-force-fullscreen .leaflet-top    { top: max(10px, env(safe-area-inset-top)) !important; }
 .map-force-fullscreen .leaflet-bottom { bottom: max(10px, env(safe-area-inset-bottom)) !important; }
-/* Buttons 25% bigger while fullscreen (easier to hit on a phone) */
-.map-force-fullscreen .leaflet-control-container { zoom: 1.25; }
+/* Buttons ~25% bigger while fullscreen (easier to hit on a phone) --
+   real pixel sizes, not the non-standard `zoom` property, so touch
+   hit-testing on the buttons stays accurate */
+.map-force-fullscreen .leaflet-fs-btn { width: 42px !important; height: 42px !important; }
+.map-force-fullscreen .leaflet-fs-btn svg { width: 19px !important; height: 19px !important; }
+.map-force-fullscreen .leaflet-bar a,
+.map-force-fullscreen .leaflet-draw-toolbar a { width: 37px !important; height: 37px !important; line-height: 37px !important; }
 /* Leaflet's own container defaults to a light gray background -- force it
    dark so no light/mismatched strip can show at the map edges before tiles
    have painted there */
 .leaflet-container { background: #0f172a !important; }
-/* Kill iOS's default blue tap-highlight/text-selection tint so a stray
-   touch on empty space can never paint a blue bar anywhere on the map */
-.hub-map, .hub-map * { -webkit-tap-highlight-color: transparent !important; -webkit-user-select: none !important; user-select: none !important; }
 /* Lock page scroll while the forced-fullscreen map is open so iOS can't
    rubber-band and reveal its own background behind the fixed map div */
 body.map-fs-lock { overflow: hidden !important; position: fixed !important; width: 100% !important; }
