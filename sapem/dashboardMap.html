@@ -118,8 +118,7 @@ body.map-fs-lock { overflow: hidden !important; position: fixed !important; inse
 .leaflet-draw-toolbar.leaflet-bar a { border-radius: 0 !important; border-left-width: 0 !important; }
 .leaflet-draw-toolbar.leaflet-bar a:first-child { border-radius: 7px 0 0 7px !important; border-left-width: 1px !important; }
 .leaflet-draw-toolbar.leaflet-bar a:last-child  { border-radius: 0 7px 7px 0 !important; }
-.leaflet-draw-actions a { background-color: #1e293b !important; color: #cbd5e1 !important; }
-.leaflet-draw-actions a:hover { background-color: #334155 !important; }
+.leaflet-draw-actions { display: none !important; }
 
 /* Put topleft controls (zoom, Lines toggle, edit toolbar) in a row so the
    Lines control sits to the right of the zoom buttons instead of below */
@@ -480,6 +479,27 @@ function updateLineDrawBanner(hubId) {
     </div>`
 }
 
+// Edit/delete mode Save+Cancel banner -- replaces Leaflet.draw's own flyout
+const editActionsHandlers = {}
+function showEditActionsBanner(hubId, message, onSave, onCancel) {
+  editActionsHandlers[hubId] = { onSave, onCancel }
+  const b = document.getElementById(`editactions-banner-${hubId}`); if (!b) return
+  b.classList.remove("hidden")
+  b.innerHTML = `<div>${message}</div>
+    <div class="btn-row">
+      <button onclick="runEditAction('${hubId}','save')">Save</button>
+      <button onclick="runEditAction('${hubId}','cancel')">Cancel</button>
+    </div>`
+}
+function hideEditActionsBanner(hubId) {
+  const b = document.getElementById(`editactions-banner-${hubId}`); if (b) b.classList.add("hidden")
+}
+function runEditAction(hubId, which) {
+  const h = editActionsHandlers[hubId]; if (!h) return
+  hideEditActionsBanner(hubId)
+  try { which === "save" ? h.onSave() : h.onCancel() } catch(e) { console.warn("edit action failed:", e) }
+}
+
 function createMarkerIcon(color) {
   return L.divIcon({
     className: "",
@@ -703,6 +723,12 @@ async function initHubMap(hubId) {
   mapEl.appendChild(lineBanner)
   L.DomEvent.disableClickPropagation(lineBanner)
 
+  // Edit/delete mode Save+Cancel banner (replaces Leaflet.draw's own flyout)
+  const editBanner = document.createElement("div")
+  editBanner.id = `editactions-banner-${hubId}`; editBanner.className = "line-draw-banner hidden"
+  mapEl.appendChild(editBanner)
+  L.DomEvent.disableClickPropagation(editBanner)
+
   // drawnItems stored in hubMaps so CREATED handler uses same reference
   // even if function scope is long gone
   const drawnItems = new L.FeatureGroup()
@@ -739,7 +765,28 @@ async function initHubMap(hubId) {
   } catch(e) { console.warn("loadMapLines not available yet:", e) }
 
   // Edit/delete toolbar (no draw toolbar -- drawing via Lines button / tap-to-place)
-  map.addControl(new L.Control.Draw({ position: "topleft", edit: { featureGroup: drawnItems, remove: true }, draw: false }))
+  const drawControl = new L.Control.Draw({ position: "topleft", edit: { featureGroup: drawnItems, remove: true }, draw: false })
+  map.addControl(drawControl)
+
+  // Leaflet.draw's own Save/Cancel flyout positions itself with a fixed
+  // offset from the toolbar button, which breaks down with our custom
+  // control layout (it can land under/behind other buttons). Replace it
+  // with our own reliably-centered banner instead.
+  const editHandler = () => drawControl._toolbars.edit._modes.edit.handler
+  const removeHandler = () => drawControl._toolbars.edit._modes.remove.handler
+
+  map.on(L.Draw.Event.EDITSTART, () => showEditActionsBanner(hubId, "Drag the line's points, then Save", () => {
+    editHandler().save(); editHandler().disable()
+  }, () => {
+    editHandler().revertLayers(); editHandler().disable()
+  }))
+  map.on(L.Draw.Event.DELETESTART, () => showEditActionsBanner(hubId, "Tap a line to mark it for deletion, then Save", () => {
+    removeHandler().save(); removeHandler().disable()
+  }, () => {
+    removeHandler().revertLayers(); removeHandler().disable()
+  }))
+  map.on(L.Draw.Event.EDITSTOP, () => hideEditActionsBanner(hubId))
+  map.on(L.Draw.Event.DELETESTOP, () => hideEditActionsBanner(hubId))
 
   map.on(L.Draw.Event.EDITED, async e => {
     if (typeof updateMapLine !== "function") return
