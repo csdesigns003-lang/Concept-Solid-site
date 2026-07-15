@@ -58,9 +58,10 @@ body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
 @media (max-width: 767px) {
   .hub-map { height: 420px; }
 }
-.hub-map:fullscreen          { height: 100vh !important; border-radius: 0 !important; }
-.hub-map:-webkit-full-screen { height: 100vh !important; border-radius: 0 !important; }
-/* iOS CSS fullscreen -- use inset instead of explicit h/w to avoid gray bar */
+/* All "fullscreen" is our own CSS-driven overlay now -- the native browser
+   Fullscreen API is intentionally not used (see toggleFullscreen JS), since
+   it produced an unfixable status-bar strip and bottom exit-affordance bar
+   inside an iOS home-screen web app. */
 .hub-map.map-force-fullscreen {
   position: fixed !important;
   top: 0 !important; left: 0 !important;
@@ -70,9 +71,11 @@ body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
   height: auto !important;
   width: auto !important;
   background: #0f172a !important;
-  padding-top: env(safe-area-inset-top) !important;
-  box-sizing: border-box !important;
 }
+/* Push Leaflet's top controls below the notch/status bar, and its bottom
+   controls (attribution) above the home-indicator area, while fullscreen */
+.map-force-fullscreen .leaflet-top    { top: max(10px, env(safe-area-inset-top)) !important; }
+.map-force-fullscreen .leaflet-bottom { bottom: max(10px, env(safe-area-inset-bottom)) !important; }
 /* Lock page scroll while the forced-fullscreen map is open so iOS can't
    rubber-band and reveal its own background behind the fixed map div */
 body.map-fs-lock { overflow: hidden !important; position: fixed !important; width: 100% !important; }
@@ -98,6 +101,11 @@ body.map-fs-lock { overflow: hidden !important; position: fixed !important; widt
 .leaflet-fs-btn:hover { background: #1e293b !important; color: white; }
 .leaflet-draw-toolbar a { background-color: rgba(15,23,42,0.92) !important; color: #cbd5e1 !important; border-color: #1e293b !important; }
 .leaflet-draw-toolbar a:hover { background-color: #1e293b !important; }
+/* Edit/delete toolbar: horizontal instead of the default vertical stack */
+.leaflet-draw-toolbar.leaflet-bar { display: flex !important; flex-direction: row !important; }
+.leaflet-draw-toolbar.leaflet-bar a { border-radius: 0 !important; border-left-width: 0 !important; }
+.leaflet-draw-toolbar.leaflet-bar a:first-child { border-radius: 7px 0 0 7px !important; border-left-width: 1px !important; }
+.leaflet-draw-toolbar.leaflet-bar a:last-child  { border-radius: 0 7px 7px 0 !important; }
 .leaflet-draw-actions a { background-color: #1e293b !important; color: #cbd5e1 !important; }
 .leaflet-draw-actions a:hover { background-color: #334155 !important; }
 
@@ -456,16 +464,15 @@ function cancelPlacement(hubId) {
   if (b) b.classList.add("hidden")
 }
 
-// iOS home-screen web apps ("Add to Home Screen" -> standalone) have a buggy
-// native Fullscreen API that can leave a stale gray status-bar-height strip
-// behind after exiting. When running standalone, always use the CSS-driven
-// forced-fullscreen path instead, which we fully control.
-const isStandaloneApp = window.navigator.standalone === true ||
-  (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches)
+// The native browser Fullscreen API is intentionally never used here. On an
+// iOS home-screen web app it produces a status-bar strip that can get stuck,
+// a blue system exit-affordance bar, and it ignores safe-area insets so
+// controls end up pinned under the notch. Our own CSS overlay (below) gives
+// full control over all of that instead.
 
 // Forces the browser to repaint the page. iOS WebKit can leave a leftover
-// compositing artifact (the gray bar) after a fixed-position fullscreen
-// overlay is removed; toggling display off/on forces a fresh layout+paint.
+// compositing artifact after a fixed-position fullscreen overlay is removed;
+// toggling display off/on forces a fresh layout+paint.
 function forceRepaint() {
   const el = document.documentElement
   el.style.display = "none"
@@ -473,27 +480,19 @@ function forceRepaint() {
   el.style.display = ""
 }
 
-function enterForcedFullscreen(mapEl, map) {
-  mapEl.classList.add("map-force-fullscreen")
-  document.body.classList.add("map-fs-lock")
-  setTimeout(() => map.invalidateSize(), 100)
-}
-
-function exitForcedFullscreen(mapEl, map) {
-  mapEl.classList.remove("map-force-fullscreen")
-  document.body.classList.remove("map-fs-lock")
-  setTimeout(() => { map.invalidateSize(); forceRepaint() }, 100)
-}
-
 function toggleFullscreen(mapEl, map) {
-  if (mapEl.classList.contains("map-force-fullscreen")) { exitForcedFullscreen(mapEl, map); return }
-  if (!isStandaloneApp && document.fullscreenEnabled) {
-    if (document.fullscreenElement === mapEl) { document.exitFullscreen() }
-    else { mapEl.requestFullscreen() }
+  if (mapEl.classList.contains("map-force-fullscreen")) {
+    mapEl.classList.remove("map-force-fullscreen")
+    document.body.classList.remove("map-fs-lock")
+    setTimeout(() => { map.invalidateSize(); forceRepaint() }, 100)
   } else {
-    enterForcedFullscreen(mapEl, map)
+    mapEl.classList.add("map-force-fullscreen")
+    document.body.classList.add("map-fs-lock")
+    setTimeout(() => map.invalidateSize(), 100)
   }
 }
+
+
 
 // ── Initialize Leaflet map
 async function initHubMap(hubId) {
@@ -601,12 +600,6 @@ async function initHubMap(hubId) {
   banner.id = `placement-banner-${hubId}`; banner.className = "placement-banner hidden"
   banner.innerHTML = `Click anywhere on the map to place this sensor <button onclick="cancelPlacement('${hubId}')">Cancel</button>`
   mapEl.appendChild(banner)
-
-  document.addEventListener("fullscreenchange", () => {
-    if (document.fullscreenElement === mapEl) { document.body.classList.add("map-fs-lock") }
-    else { document.body.classList.remove("map-fs-lock"); setTimeout(forceRepaint, 100) }
-    setTimeout(() => map.invalidateSize(), 100)
-  })
 
   // drawnItems stored in hubMaps so CREATED handler uses same reference
   // even if function scope is long gone
