@@ -801,16 +801,32 @@ async function initHubMap(hubId) {
   const editHandler = () => drawControl._toolbars.edit._modes.edit.handler
   const removeHandler = () => drawControl._toolbars.edit._modes.remove.handler
 
-  map.on(L.Draw.Event.EDITSTART, () => showEditActionsBanner(hubId, "Drag the line's points, then Save", () => {
-    editHandler().save(); editHandler().disable()
-  }, () => {
-    editHandler().revertLayers(); editHandler().disable()
-  }))
-  map.on(L.Draw.Event.DELETESTART, () => showEditActionsBanner(hubId, "Tap a line to mark it for deletion, then Save", () => {
-    removeHandler().save(); removeHandler().disable()
-  }, () => {
-    removeHandler().revertLayers(); removeHandler().disable()
-  }))
+  // Canvas rendering (used for a wider touch tap-tolerance on thin lines)
+  // computes each layer's hit-test geometry lazily. If Edit/Delete mode
+  // starts before that's happened, dragging/tapping silently does nothing
+  // until some other redraw occurs -- force it explicitly every time so it
+  // never depends on incidental interaction first.
+  const forceLineRedraw = () => {
+    map.invalidateSize()
+    drawnItems.eachLayer(l => { if (l.redraw) l.redraw() })
+  }
+
+  map.on(L.Draw.Event.EDITSTART, () => {
+    forceLineRedraw()
+    showEditActionsBanner(hubId, "Drag the line's points, then Save", () => {
+      editHandler().save(); editHandler().disable()
+    }, () => {
+      editHandler().revertLayers(); editHandler().disable()
+    })
+  })
+  map.on(L.Draw.Event.DELETESTART, () => {
+    forceLineRedraw()
+    showEditActionsBanner(hubId, "Tap a line to mark it for deletion, then Save", () => {
+      removeHandler().save(); removeHandler().disable()
+    }, () => {
+      removeHandler().revertLayers(); removeHandler().disable()
+    })
+  })
   map.on(L.Draw.Event.EDITSTOP, () => hideEditActionsBanner(hubId))
   map.on(L.Draw.Event.DELETESTOP, () => hideEditActionsBanner(hubId))
 
