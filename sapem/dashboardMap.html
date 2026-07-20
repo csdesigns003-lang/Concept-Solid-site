@@ -18,8 +18,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
 
 <style>
 html, body { overflow-x: hidden; background: #0f172a; }
@@ -83,8 +81,7 @@ body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
    hit-testing on the buttons stays accurate */
 .map-force-fullscreen .leaflet-fs-btn { width: 42px !important; height: 42px !important; }
 .map-force-fullscreen .leaflet-fs-btn svg { width: 19px !important; height: 19px !important; }
-.map-force-fullscreen .leaflet-bar a,
-.map-force-fullscreen .leaflet-draw-toolbar a { width: 37px !important; height: 37px !important; line-height: 37px !important; }
+.map-force-fullscreen .leaflet-bar a { width: 37px !important; height: 37px !important; line-height: 37px !important; }
 /* Leaflet's own container defaults to a light gray background -- force it
    dark so no light/mismatched strip can show at the map edges before tiles
    have painted there */
@@ -110,19 +107,10 @@ body.map-fs-lock { overflow: hidden !important; position: fixed !important; inse
 .leaflet-control-layers { background: rgba(15,23,42,0.92) !important; border: 1px solid #1e293b !important; border-radius: 7px !important; color: #cbd5e1 !important; box-shadow: 0 2px 8px rgba(0,0,0,0.5) !important; }
 .leaflet-control-layers-toggle { background-color: rgba(15,23,42,0.92) !important; }
 .leaflet-control-layers label { color: #cbd5e1 !important; font-size: 12px !important; }
-.leaflet-control a, .leaflet-control button, .leaflet-bar a, .leaflet-draw-toolbar a, .line-draw-banner button { touch-action: manipulation !important; -webkit-tap-highlight-color: transparent; }
+.leaflet-control a, .leaflet-control button, .leaflet-bar a, .line-draw-banner button { touch-action: manipulation !important; -webkit-tap-highlight-color: transparent; }
 
 .leaflet-fs-btn { width: 34px; height: 34px; background: rgba(15,23,42,0.92) !important; border: 1px solid #1e293b !important; border-radius: 7px !important; color: #cbd5e1; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.5); transition: all 0.15s; }
 .leaflet-fs-btn:hover { background: #1e293b !important; color: white; }
-.leaflet-draw-toolbar a { background-color: rgba(15,23,42,0.92) !important; color: #cbd5e1 !important; border-color: #1e293b !important; }
-.leaflet-draw-toolbar a:hover { background-color: #1e293b !important; }
-/* Edit/delete toolbar: horizontal instead of the default vertical stack */
-.leaflet-draw-toolbar.leaflet-bar { display: flex !important; flex-direction: row !important; }
-.leaflet-draw-toolbar.leaflet-bar a { border-radius: 0 !important; border-left-width: 0 !important; }
-.leaflet-draw-toolbar.leaflet-bar a:first-child { border-radius: 7px 0 0 7px !important; border-left-width: 1px !important; }
-.leaflet-draw-toolbar.leaflet-bar a:last-child  { border-radius: 0 7px 7px 0 !important; }
-.leaflet-draw-actions { display: none !important; }
-
 /* Put topleft controls (zoom, Lines toggle, edit toolbar) in a row so the
    Lines control sits to the right of the zoom buttons instead of below */
 .leaflet-top.leaflet-left { display: flex !important; flex-direction: row !important; flex-wrap: wrap !important; align-items: flex-start !important; gap: 6px !important; }
@@ -439,11 +427,15 @@ async function finishLineDraw(hubId) {
   const state = lineDrawState[hubId]; if (!state || state.points.length < 2) return
   const md = hubMaps[hubId]
   const layer = L.polyline(state.points, { color: state.color, weight: state.weight, opacity: 1 })
-  md.drawnItems.addLayer(layer)
   md.lineCount = (md.lineCount || 0) + 1
+  const name = `${state.type} ${md.lineCount}`
+  layer._name = name
+  layer.bindTooltip(name, { permanent: false })
+  attachLineSelectHandler(hubId, layer)
+  md.drawnItems.addLayer(layer)
   try {
     if (typeof saveMapLine === "function") {
-      const saved = await saveMapLine(hubId, state.type, state.color, `${state.type} ${md.lineCount}`, layer.toGeoJSON())
+      const saved = await saveMapLine(hubId, state.type, state.color, name, layer.toGeoJSON())
       if (saved) layer._dbId = saved.id
     }
   } catch(e) { console.warn("saveMapLine not available yet:", e) }
@@ -482,21 +474,118 @@ function updateLineDrawBanner(hubId) {
     </div>`
 }
 
-// Edit/delete mode Save+Cancel dropdown -- a real Leaflet control (see
-// EditActionsCtrl in initHubMap) styled and positioned just like the Lines
-// dropdown, so it opens downward from the topleft control row and always
-// sits below the notch/status bar the same way Lines already does.
-function showEditActionsBanner(hubId, message, onSave, onCancel) {
+// Line-actions dropdown -- a real Leaflet control (see EditActionsCtrl in
+// initHubMap) styled and positioned just like the Lines dropdown, so it
+// opens downward from the topleft control row and always sits below the
+// notch/status bar the same way Lines already does. Used for the tap-a-line
+// picker (Edit/Delete/Cancel) as well as the Save/Cancel steps within each.
+const BTN_GREEN = "flex:1;font-size:12px;padding:6px 10px;border-radius:6px;border:none;color:#0f172a;background:#22c55e;font-weight:700;cursor:pointer;"
+const BTN_SLATE = "flex:1;font-size:12px;padding:6px 10px;border-radius:6px;border:1px solid #475569;color:#cbd5e1;background:transparent;font-weight:600;cursor:pointer;"
+const BTN_RED   = "flex:1;font-size:12px;padding:6px 10px;border-radius:6px;border:none;color:white;background:#dc2626;font-weight:700;cursor:pointer;"
+
+function showLineActionsPanel(hubId, message, buttons) {
   const md = hubMaps[hubId]; if (!md || !md.editActionsCtrl) return
   const c = md.editActionsCtrl.getContainer()
   c._msg.textContent = message
+  c._btnRow.innerHTML = ""
+  buttons.forEach(b => {
+    const btn = document.createElement("button")
+    btn.textContent = b.label
+    btn.style.cssText = b.style
+    btn.onclick = () => { try { b.onClick() } catch(e) { console.warn("line action failed:", e) } }
+    c._btnRow.appendChild(btn)
+  })
   c._panel.style.display = "flex"
-  c._saveBtn.onclick = () => { hideEditActionsBanner(hubId); try { onSave() } catch(e) { console.warn("save failed:", e) } }
-  c._cancelBtn.onclick = () => { hideEditActionsBanner(hubId); try { onCancel() } catch(e) { console.warn("cancel failed:", e) } }
 }
-function hideEditActionsBanner(hubId) {
+function hideLineActionsPanel(hubId) {
   const md = hubMaps[hubId]; if (!md || !md.editActionsCtrl) return
   md.editActionsCtrl.getContainer()._panel.style.display = "none"
+}
+
+// ── Tap-to-select line Edit/Delete (replaces Leaflet.draw's built-in
+// EditToolbar/DeleteToolbar -- see mobile-debugging-summary for why: that
+// plugin is effectively unmaintained and has a long history of touch-input
+// bugs on iOS. This is built the same way the custom tap-to-place drawing
+// mode already is: plain Leaflet primitives we fully control.)
+let lineSelectState = {}
+
+function attachLineSelectHandler(hubId, layer) {
+  layer.on("click", e => { L.DomEvent.stopPropagation(e); selectLine(hubId, layer) })
+}
+
+function selectLine(hubId, layer) {
+  const md = hubMaps[hubId]; if (!md) return
+  if (lineDrawState[hubId] && lineDrawState[hubId].active) return // busy drawing a new line
+  const cur = lineSelectState[hubId]
+  if (cur && cur.mode !== "picker") return // busy editing/deleting another line -- ignore other taps
+  if (cur && cur.layer === layer) return
+  if (cur) deselectLine(hubId)
+
+  const highlight = L.polyline(layer.getLatLngs(), {
+    color: "#facc15", weight: (layer.options.weight || 5) + 6, opacity: 0.45
+  }).addTo(md.map)
+  layer.bringToFront()
+  lineSelectState[hubId] = { layer, mode: "picker", highlight }
+
+  showLineActionsPanel(hubId, layer._name || "Line", [
+    { label: "Edit",   style: BTN_GREEN, onClick: () => startEditLine(hubId) },
+    { label: "Delete", style: BTN_RED,   onClick: () => startDeleteLine(hubId) },
+    { label: "Cancel", style: BTN_SLATE, onClick: () => deselectLine(hubId) },
+  ])
+}
+
+function startEditLine(hubId) {
+  const md = hubMaps[hubId], sel = lineSelectState[hubId]; if (!md || !sel) return
+  const layer = sel.layer
+  const originalLatLngs = layer.getLatLngs().map(ll => L.latLng(ll.lat, ll.lng))
+  const handles = originalLatLngs.map(ll => L.marker(ll, {
+    draggable: true,
+    icon: L.divIcon({
+      className: "",
+      html: `<div style="width:16px;height:16px;border-radius:50%;background:#fff;border:3px solid ${layer.options.color};box-shadow:0 2px 6px rgba(0,0,0,0.5);"></div>`,
+      iconSize: [16,16], iconAnchor: [8,8]
+    })
+  }).addTo(md.map))
+  handles.forEach(h => h.on("drag", () => {
+    const pts = handles.map(m => m.getLatLng())
+    layer.setLatLngs(pts)
+    if (sel.highlight) sel.highlight.setLatLngs(pts)
+  }))
+  sel.mode = "edit"; sel.handles = handles
+
+  showLineActionsPanel(hubId, "Drag the points, then Save", [
+    { label: "Save", style: BTN_GREEN, onClick: async () => {
+      if (layer._dbId && typeof updateMapLine === "function") await updateMapLine(layer._dbId, layer.toGeoJSON()).catch(()=>{})
+      deselectLine(hubId)
+    }},
+    { label: "Cancel", style: BTN_SLATE, onClick: () => {
+      layer.setLatLngs(originalLatLngs)
+      deselectLine(hubId)
+    }},
+  ])
+}
+
+function startDeleteLine(hubId) {
+  const md = hubMaps[hubId], sel = lineSelectState[hubId]; if (!md || !sel) return
+  const layer = sel.layer
+  sel.mode = "delete"
+
+  showLineActionsPanel(hubId, `Delete "${layer._name || "this line"}"? This can't be undone.`, [
+    { label: "Delete", style: BTN_RED, onClick: async () => {
+      if (layer._dbId && typeof deleteMapLine === "function") await deleteMapLine(layer._dbId).catch(()=>{})
+      md.drawnItems.removeLayer(layer)
+      deselectLine(hubId)
+    }},
+    { label: "Cancel", style: BTN_SLATE, onClick: () => deselectLine(hubId) },
+  ])
+}
+
+function deselectLine(hubId) {
+  const md = hubMaps[hubId], sel = lineSelectState[hubId]; if (!md || !sel) return
+  if (sel.handles) sel.handles.forEach(h => md.map.removeLayer(h))
+  if (sel.highlight) md.map.removeLayer(sel.highlight)
+  hideLineActionsPanel(hubId)
+  delete lineSelectState[hubId]
 }
 
 function createMarkerIcon(color) {
@@ -714,22 +803,14 @@ async function initHubMap(hubId) {
     const msg = L.DomUtil.create("div","",panel)
     msg.style.cssText = "font-size:11px;color:#94a3b8;font-weight:600;line-height:1.4;"
 
+    // Buttons are filled in dynamically per use (2 for Save/Cancel steps,
+    // 3 for the initial Edit/Delete/Cancel picker) via showLineActionsPanel
     const btnRow = L.DomUtil.create("div","",panel)
     btnRow.style.cssText = "display:flex;gap:6px;"
-
-    const saveBtn = L.DomUtil.create("button","",btnRow)
-    saveBtn.textContent = "Save"
-    saveBtn.style.cssText = "flex:1;font-size:12px;padding:6px 10px;border-radius:6px;border:none;color:#0f172a;background:#22c55e;font-weight:700;cursor:pointer;"
-
-    const cancelBtn = L.DomUtil.create("button","",btnRow)
-    cancelBtn.textContent = "Cancel"
-    cancelBtn.style.cssText = "flex:1;font-size:12px;padding:6px 10px;border-radius:6px;border:1px solid #475569;color:#cbd5e1;background:transparent;font-weight:600;cursor:pointer;"
-
-    L.DomEvent.on(saveBtn,"click",L.DomEvent.stopPropagation)
-    L.DomEvent.on(cancelBtn,"click",L.DomEvent.stopPropagation)
+    L.DomEvent.on(btnRow,"click",L.DomEvent.stopPropagation)
     L.DomEvent.disableClickPropagation(wrap)
 
-    wrap._panel = panel; wrap._msg = msg; wrap._saveBtn = saveBtn; wrap._cancelBtn = cancelBtn
+    wrap._panel = panel; wrap._msg = msg; wrap._btnRow = btnRow
     return wrap
   }})
   const editActionsCtrl = new EditActionsCtrl().addTo(map)
@@ -782,62 +863,26 @@ async function initHubMap(hubId) {
       const savedLines = await loadMapLines(hubId)
       hubMaps[hubId].lineCount = savedLines.length
       for (const line of savedLines) {
-        const layer = L.geoJSON(line.geojson, { style: { color: line.color, weight: weightForType(line.line_type), opacity: 1 } })
+        // L.geoJSON gives back a FeatureGroup wrapper -- pull out the actual
+        // polyline layer inside it, since getLatLngs/setLatLngs/options
+        // (used by tap-to-select edit below) only exist on the real layer
+        const geo = L.geoJSON(line.geojson, { style: { color: line.color, weight: weightForType(line.line_type), opacity: 1 } })
+        const layer = geo.getLayers()[0]
         layer.bindTooltip(line.name || line.line_type, { permanent: false })
         layer._dbId = line.id
+        layer._name = line.name || line.line_type
+        attachLineSelectHandler(hubId, layer)
         drawnItems.addLayer(layer)
       }
     }
   } catch(e) { console.warn("loadMapLines not available yet:", e) }
 
-  // Edit/delete toolbar (no draw toolbar -- drawing via Lines button / tap-to-place)
-  const drawControl = new L.Control.Draw({ position: "topleft", edit: { featureGroup: drawnItems, remove: true }, draw: false })
-  map.addControl(drawControl)
-
-  // Leaflet.draw's own Save/Cancel flyout positions itself with a fixed
-  // offset from the toolbar button, which breaks down with our custom
-  // control layout (it can land under/behind other buttons). Replace it
-  // with our own reliably-centered banner instead.
-  const editHandler = () => drawControl._toolbars.edit._modes.edit.handler
-  const removeHandler = () => drawControl._toolbars.edit._modes.remove.handler
-
-  // Canvas rendering (used for a wider touch tap-tolerance on thin lines)
-  // computes each layer's hit-test geometry lazily. If Edit/Delete mode
-  // starts before that's happened, dragging/tapping silently does nothing
-  // until some other redraw occurs -- force it explicitly every time so it
-  // never depends on incidental interaction first.
-  const forceLineRedraw = () => {
-    map.invalidateSize()
-    drawnItems.eachLayer(l => { if (l.redraw) l.redraw() })
-  }
-
-  map.on(L.Draw.Event.EDITSTART, () => {
-    forceLineRedraw()
-    showEditActionsBanner(hubId, "Drag the line's points, then Save", () => {
-      editHandler().save(); editHandler().disable()
-    }, () => {
-      editHandler().revertLayers(); editHandler().disable()
-    })
-  })
-  map.on(L.Draw.Event.DELETESTART, () => {
-    forceLineRedraw()
-    showEditActionsBanner(hubId, "Tap a line to mark it for deletion, then Save", () => {
-      removeHandler().save(); removeHandler().disable()
-    }, () => {
-      removeHandler().revertLayers(); removeHandler().disable()
-    })
-  })
-  map.on(L.Draw.Event.EDITSTOP, () => hideEditActionsBanner(hubId))
-  map.on(L.Draw.Event.DELETESTOP, () => hideEditActionsBanner(hubId))
-
-  map.on(L.Draw.Event.EDITED, async e => {
-    if (typeof updateMapLine !== "function") return
-    e.layers.eachLayer(async l => { if (l._dbId) await updateMapLine(l._dbId, l.toGeoJSON()).catch(()=>{}) })
-  })
-
-  map.on(L.Draw.Event.DELETED, async e => {
-    if (typeof deleteMapLine !== "function") return
-    e.layers.eachLayer(async l => { if (l._dbId) await deleteMapLine(l._dbId).catch(()=>{}) })
+  // Tapping empty map background dismisses the Edit/Delete/Cancel picker
+  // (but not once the user is actively mid-Edit or mid-Delete -- only Save
+  // or Cancel in that panel should end those)
+  map.on("click", () => {
+    const sel = lineSelectState[hubId]
+    if (sel && sel.mode === "picker") deselectLine(hubId)
   })
 
   // Place existing sensor markers
