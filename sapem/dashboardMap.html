@@ -613,7 +613,7 @@ async function initHubMap(hubId) {
   const mapEl = document.getElementById(`map-${hubId}`)
   if (!mapEl || hubMaps[hubId]) return
 
-  const map = L.map(mapEl, { zoomControl: false, renderer: L.canvas({ tolerance: 15 }) })
+  const map = L.map(mapEl, { zoomControl: false })
 
   const satellite = L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
