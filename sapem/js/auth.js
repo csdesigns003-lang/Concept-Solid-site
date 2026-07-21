@@ -297,3 +297,8 @@ async function loadUserSensorsWithLocation() {
     .select("id, sensor_hardware_id, sensor_name, lat, lng")
   return error ? [] : data
 }
+
+async function updateMapLineName(lineId, name) {
+  const { error } = await supabaseClient.from("hub_map_lines").update({ name }).eq("id", lineId)
+  return !error
+}
