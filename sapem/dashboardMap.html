@@ -565,22 +565,44 @@ function startEditLine(hubId) {
   }))
   sel.mode = "edit"; sel.handles = handles
 
-  showLineActionsPanel(hubId, "Drag the points and/or rename, then Save", [
-    { label: "Save", style: BTN_GREEN, onClick: async () => {
-      const typed = md.editActionsCtrl.getContainer()._input.value.trim()
-      const newName = typed || originalName
-      layer._name = newName
-      layer.setTooltipContent(newName)
-      if (layer._dbId) {
-        if (typeof updateMapLine === "function") await updateMapLine(layer._dbId, layer.toGeoJSON()).catch(()=>{})
-        if (newName !== originalName && typeof updateMapLineName === "function") await updateMapLineName(layer._dbId, newName).catch(()=>{})
+  const doSave = async () => {
+    const typed = md.editActionsCtrl.getContainer()._input.value.trim()
+    const newName = typed || originalName
+    let ok = true
+    if (layer._dbId) {
+      if (typeof updateMapLine === "function") {
+        const r = await updateMapLine(layer._dbId, layer.toGeoJSON()).catch(() => false)
+        if (r === false) ok = false
       }
-      deselectLine(hubId)
-    }},
-    { label: "Cancel", style: BTN_SLATE, onClick: () => {
-      layer.setLatLngs(originalLatLngs)
-      deselectLine(hubId)
-    }},
+      if (newName !== originalName) {
+        if (typeof updateMapLineName === "function") {
+          const r = await updateMapLineName(layer._dbId, newName).catch(() => false)
+          if (r === false) ok = false
+        } else {
+          ok = false
+          console.warn("updateMapLineName is not defined -- add it to auth.js")
+        }
+      }
+    }
+    if (!ok) {
+      showLineActionsPanel(hubId, "Save failed - check your connection and try again.", [
+        { label: "Retry",  style: BTN_GREEN, onClick: doSave },
+        { label: "Cancel", style: BTN_SLATE, onClick: doCancel },
+      ], { value: newName, placeholder: "Line name" })
+      return
+    }
+    layer._name = newName
+    layer.setTooltipContent(newName)
+    deselectLine(hubId)
+  }
+  const doCancel = () => {
+    layer.setLatLngs(originalLatLngs)
+    deselectLine(hubId)
+  }
+
+  showLineActionsPanel(hubId, "Drag the points and/or rename, then Save", [
+    { label: "Save",   style: BTN_GREEN, onClick: doSave },
+    { label: "Cancel", style: BTN_SLATE, onClick: doCancel },
   ], { value: originalName, placeholder: "Line name" })
 }
 
@@ -589,12 +611,27 @@ function startDeleteLine(hubId) {
   const layer = sel.layer
   sel.mode = "delete"
 
+  const doDelete = async () => {
+    let ok = true
+    if (layer._dbId) {
+      if (typeof deleteMapLine === "function") {
+        const r = await deleteMapLine(layer._dbId).catch(() => false)
+        if (r === false) ok = false
+      } else { ok = false }
+    }
+    if (!ok) {
+      showLineActionsPanel(hubId, "Delete failed - check your connection and try again.", [
+        { label: "Retry",  style: BTN_RED,   onClick: doDelete },
+        { label: "Cancel", style: BTN_SLATE, onClick: () => deselectLine(hubId) },
+      ])
+      return
+    }
+    md.drawnItems.removeLayer(layer)
+    deselectLine(hubId)
+  }
+
   showLineActionsPanel(hubId, `Delete "${layer._name || "this line"}"? This can't be undone.`, [
-    { label: "Delete", style: BTN_RED, onClick: async () => {
-      if (layer._dbId && typeof deleteMapLine === "function") await deleteMapLine(layer._dbId).catch(()=>{})
-      md.drawnItems.removeLayer(layer)
-      deselectLine(hubId)
-    }},
+    { label: "Delete", style: BTN_RED, onClick: doDelete },
     { label: "Cancel", style: BTN_SLATE, onClick: () => deselectLine(hubId) },
   ])
 }
