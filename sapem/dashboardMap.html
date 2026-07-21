@@ -271,6 +271,10 @@ body.map-fs-lock { overflow: hidden !important; position: fixed !important; inse
     const { error } = await supabaseClient.from("hub_map_lines").update({ geojson }).eq("id", lineId)
     return !error
   }
+  async function updateMapLineName(lineId, name) {
+    const { error } = await supabaseClient.from("hub_map_lines").update({ name }).eq("id", lineId)
+    return !error
+  }
   async function deleteMapLine(lineId) {
     const { error } = await supabaseClient.from("hub_map_lines").delete().eq("id", lineId)
     return !error
@@ -483,10 +487,17 @@ const BTN_GREEN = "flex:1;font-size:12px;padding:6px 10px;border-radius:6px;bord
 const BTN_SLATE = "flex:1;font-size:12px;padding:6px 10px;border-radius:6px;border:1px solid #475569;color:#cbd5e1;background:transparent;font-weight:600;cursor:pointer;"
 const BTN_RED   = "flex:1;font-size:12px;padding:6px 10px;border-radius:6px;border:none;color:white;background:#dc2626;font-weight:700;cursor:pointer;"
 
-function showLineActionsPanel(hubId, message, buttons) {
+function showLineActionsPanel(hubId, message, buttons, inputConfig) {
   const md = hubMaps[hubId]; if (!md || !md.editActionsCtrl) return
   const c = md.editActionsCtrl.getContainer()
   c._msg.textContent = message
+  if (inputConfig) {
+    c._input.style.display = "block"
+    c._input.value = inputConfig.value || ""
+    c._input.placeholder = inputConfig.placeholder || ""
+  } else {
+    c._input.style.display = "none"
+  }
   c._btnRow.innerHTML = ""
   buttons.forEach(b => {
     const btn = document.createElement("button")
@@ -538,6 +549,7 @@ function startEditLine(hubId) {
   const md = hubMaps[hubId], sel = lineSelectState[hubId]; if (!md || !sel) return
   const layer = sel.layer
   const originalLatLngs = layer.getLatLngs().map(ll => L.latLng(ll.lat, ll.lng))
+  const originalName = layer._name || ""
   const handles = originalLatLngs.map(ll => L.marker(ll, {
     draggable: true,
     icon: L.divIcon({
@@ -553,16 +565,23 @@ function startEditLine(hubId) {
   }))
   sel.mode = "edit"; sel.handles = handles
 
-  showLineActionsPanel(hubId, "Drag the points, then Save", [
+  showLineActionsPanel(hubId, "Drag the points and/or rename, then Save", [
     { label: "Save", style: BTN_GREEN, onClick: async () => {
-      if (layer._dbId && typeof updateMapLine === "function") await updateMapLine(layer._dbId, layer.toGeoJSON()).catch(()=>{})
+      const typed = md.editActionsCtrl.getContainer()._input.value.trim()
+      const newName = typed || originalName
+      layer._name = newName
+      layer.setTooltipContent(newName)
+      if (layer._dbId) {
+        if (typeof updateMapLine === "function") await updateMapLine(layer._dbId, layer.toGeoJSON()).catch(()=>{})
+        if (newName !== originalName && typeof updateMapLineName === "function") await updateMapLineName(layer._dbId, newName).catch(()=>{})
+      }
       deselectLine(hubId)
     }},
     { label: "Cancel", style: BTN_SLATE, onClick: () => {
       layer.setLatLngs(originalLatLngs)
       deselectLine(hubId)
     }},
-  ])
+  ], { value: originalName, placeholder: "Line name" })
 }
 
 function startDeleteLine(hubId) {
@@ -803,6 +822,14 @@ async function initHubMap(hubId) {
     const msg = L.DomUtil.create("div","",panel)
     msg.style.cssText = "font-size:11px;color:#94a3b8;font-weight:600;line-height:1.4;"
 
+    // Rename field -- hidden unless showLineActionsPanel is called with an
+    // inputConfig (only the Edit step uses it)
+    const input = L.DomUtil.create("input","",panel)
+    input.type = "text"
+    input.style.cssText = "display:none;width:100%;box-sizing:border-box;font-size:12px;padding:6px 8px;border-radius:6px;border:1px solid #475569;background:#0f172a;color:white;"
+    L.DomEvent.on(input,"click",L.DomEvent.stopPropagation)
+    L.DomEvent.disableClickPropagation(input)
+
     // Buttons are filled in dynamically per use (2 for Save/Cancel steps,
     // 3 for the initial Edit/Delete/Cancel picker) via showLineActionsPanel
     const btnRow = L.DomUtil.create("div","",panel)
@@ -810,7 +837,7 @@ async function initHubMap(hubId) {
     L.DomEvent.on(btnRow,"click",L.DomEvent.stopPropagation)
     L.DomEvent.disableClickPropagation(wrap)
 
-    wrap._panel = panel; wrap._msg = msg; wrap._btnRow = btnRow
+    wrap._panel = panel; wrap._msg = msg; wrap._input = input; wrap._btnRow = btnRow
     return wrap
   }})
   const editActionsCtrl = new EditActionsCtrl().addTo(map)
