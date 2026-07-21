@@ -300,5 +300,6 @@ async function loadUserSensorsWithLocation() {
 
 async function updateMapLineName(lineId, name) {
   const { error } = await supabaseClient.from("hub_map_lines").update({ name }).eq("id", lineId)
+  if (error) console.error("updateMapLineName error:", error)
   return !error
 }
