@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Install SapEM</title>
+<link rel="icon" href="/images/favicon/sapem-favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon/sapem-favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/images/favicon/sapem-favicon-192.png">
+<link rel="apple-touch-icon-precomposed" sizes="180x180" href="/images/favicon/sapem-apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/sapem-apple-touch-icon.png">
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+
+body{
+font-family:"Microsoft Sans Serif", Arial, sans-serif;
+background:#f0fdf4;
+}
+
+.step-card{
+background:#ecfdf5;
+padding:1.75rem;
+border-radius:1rem;
+box-shadow:0 6px 15px rgba(0,0,0,0.08);
+}
+
+.step-num{
+display:inline-flex;
+align-items:center;
+justify-content:center;
+width:2.25rem;
+height:2.25rem;
+border-radius:9999px;
+background:#22c55e;
+color:white;
+font-weight:700;
+flex-shrink:0;
+}
+
+</style>
+
+</head>
+
+<body class="flex flex-col min-h-screen">
+
+
+<!-- HEADER -->
+
+<header class="bg-white/90 backdrop-blur shadow sticky top-0 z-50">
+
+<div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+
+<!-- LEFT NAV (Desktop) -->
+<div class="hidden md:flex space-x-6 text-lg">
+
+<a href="products.html" class="hover:text-[#006400]">
+Products
+</a>
+
+<a href="resources.html" class="hover:text-[#006400]">
+Resources
+</a>
+
+</div>
+
+
+<!-- LOGO -->
+<a href="index.html"
+class="flex items-center gap-3 hover:opacity-90">
+
+<img src="../images/sapemlogo.png"
+class="h-10 md:h-12">
+
+<span class="text-2xl md:text-4xl font-extrabold tracking-tight">
+SapEM Systems
+</span>
+
+</a>
+
+
+
+<!-- RIGHT NAV (Desktop) -->
+
+<div class="hidden md:flex items-center space-x-6">
+
+<a href="../index.html"
+class="text-gray-700 hover:text-[#006400]">
+
+Concept Solid
+
+</a>
+
+<a href="login.html"
+class="hover:text-[#006400]">
+
+Login
+
+</a>
+
+<a href="../cart.html"
+class="font-semibold">
+
+Cart (<span class="cart-count">0</span>)
+
+</a>
+
+</div>
+
+
+<!-- MOBILE MENU BUTTON -->
+
+<button onclick="toggleMenu()" class="md:hidden text-3xl">
+
+☰
+
+</button>
+
+</div>
+
+
+<!-- MOBILE DROPDOWN -->
+
+<div id="mobileMenu" class="hidden md:hidden bg-white border-t">
+
+<a href="products.html" class="block px-6 py-4 border-b">
+Products
+</a>
+
+<a href="resources.html" class="block px-6 py-4 border-b">
+Resources
+</a>
+
+<a href="../index.html" class="block px-6 py-4 border-b">
+Concept Solid
+</a>
+
+<a href="login.html" class="block px-6 py-4 border-b">
+Login
+</a>
+
+<a href="../cart.html" class="block px-6 py-4">
+Cart
+</a>
+
+</div>
+
+</header>
+</header>
+
+
+
+<!-- INSTALL CONTENT -->
+
+<section class="max-w-4xl mx-auto px-6 py-24">
+
+<h1 class="text-5xl font-bold mb-6">
+Install the SapEM App
+</h1>
+
+<p class="text-gray-700 mb-4">
+SapEM works like an app on your phone. Add it to your home screen
+once and you'll get a full-screen icon that opens straight to your
+dashboard — no browser bars, no typing the address every time.
+</p>
+
+<p class="text-gray-700 mb-14">
+This only takes about 30 seconds and works on both iPhone and Android.
+</p>
+
+
+<!-- iPHONE -->
+
+<h2 class="text-2xl font-semibold mb-6">
+iPhone / iPad (Safari)
+</h2>
+
+<div class="grid md:grid-cols-2 gap-6 mb-16">
+
+<div class="step-card flex gap-4">
+<span class="step-num">1</span>
+<p class="text-gray-700">
+Open
+<a href="https://concept-solid.com/sapem/index.html" class="text-[#006400] font-semibold underline">
+concept-solid.com/sapem
+</a>
+in <strong>Safari</strong>. (It has to be Safari — Chrome on iPhone
+can't add to your home screen.)
+</p>
+</div>
+
+<div class="step-card flex gap-4">
+<span class="step-num">2</span>
+<p class="text-gray-700">
+Tap the <strong>Share</strong> icon in the toolbar
+(the square with an arrow pointing up).
+</p>
+</div>
+
+<div class="step-card flex gap-4">
+<span class="step-num">3</span>
+<p class="text-gray-700">
+Scroll down the share menu and tap
+<strong>"Add to Home Screen."</strong>
+</p>
+</div>
+
+<div class="step-card flex gap-4">
+<span class="step-num">4</span>
+<p class="text-gray-700">
+Confirm the name and tap <strong>"Add"</strong> in the top right.
+The SapEM icon will appear on your home screen.
+</p>
+</div>
+
+</div>
+
+
+<!-- ANDROID -->
+
+<h2 class="text-2xl font-semibold mb-6">
+Android (Chrome)
+</h2>
+
+<div class="grid md:grid-cols-2 gap-6 mb-16">
+
+<div class="step-card flex gap-4">
+<span class="step-num">1</span>
+<p class="text-gray-700">
+Open
+<a href="https://concept-solid.com/sapem/index.html" class="text-[#006400] font-semibold underline">
+concept-solid.com/sapem
+</a>
+in <strong>Chrome</strong>.
+</p>
+</div>
+
+<div class="step-card flex gap-4">
+<span class="step-num">2</span>
+<p class="text-gray-700">
+Tap the <strong>three-dot menu</strong> in the top right corner.
+</p>
+</div>
+
+<div class="step-card flex gap-4">
+<span class="step-num">3</span>
+<p class="text-gray-700">
+Tap <strong>"Add to Home screen"</strong>
+(sometimes shown as "Install app").
+</p>
+</div>
+
+<div class="step-card flex gap-4">
+<span class="step-num">4</span>
+<p class="text-gray-700">
+Confirm by tapping <strong>"Add"</strong> or <strong>"Install."</strong>
+The SapEM icon will appear on your home screen.
+</p>
+</div>
+
+</div>
+
+
+<p class="text-gray-600 text-sm">
+Once installed, opening the SapEM icon launches your dashboard directly —
+you can still log in and check sensors exactly as you would in a browser.
+</p>
+
+
+</section>
+
+
+<!-- FOOTER -->
+
+<footer class="bg-gray-900 text-gray-300 py-16">
+
+<div class="max-w-7xl mx-auto px-6 grid md:grid-cols-3 gap-10">
+
+<div>
+
+<h3 class="text-xl font-bold mb-4">
+
+SapEM Systems
+
+</h3>
+
+<p>
+
+Simple wireless monitoring for maple sap systems so producers can track vacuum pressure without the high cost of traditional systems.
+
+</p>
+
+</div>
+
+<div>
+
+<h3 class="font-semibold mb-3">
+
+Contact
+
+</h3>
+
+<p>Email: sapemsystems@gmail.com</p>
+
+
+</div>
+
+<div>
+
+<h3 class="font-semibold mb-3">
+
+Links
+
+</h3>
+
+<p><a href="products.html">Products</a></p>
+<p><a href="resources.html">Resources</a></p>
+<p><a href="../index.html">Concept Solid</a></p>
+
+</div>
+
+</div>
+
+</footer>
+
+<script>
+function toggleMenu(){
+  const menu = document.getElementById("mobileMenu");
+  menu.classList.toggle("hidden");
+}
+</script>
+  
+</body>
+</html>
