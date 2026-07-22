@@ -20,6 +20,64 @@ font-family:"Microsoft Sans Serif", Arial, sans-serif;
 background:#f0fdf4;
 }
 
+.step-card{
+background:#ffffff;
+border:1px solid #dcfce7;
+border-radius:0.85rem;
+padding:1.1rem 1.35rem;
+box-shadow:0 3px 10px rgba(0,0,0,0.05);
+display:flex;
+gap:1rem;
+align-items:flex-start;
+}
+
+.step-num{
+display:inline-flex;
+align-items:center;
+justify-content:center;
+width:2rem;
+height:2rem;
+border-radius:9999px;
+background:#22c55e;
+color:white;
+font-weight:700;
+font-size:0.95rem;
+flex-shrink:0;
+}
+
+.section-block{
+background:#ecfdf5;
+border-radius:1.25rem;
+padding:2rem;
+margin-bottom:2.5rem;
+box-shadow:0 6px 18px rgba(0,0,0,0.06);
+}
+
+.section-icon{
+display:inline-flex;
+align-items:center;
+justify-content:center;
+width:3rem;
+height:3rem;
+border-radius:9999px;
+background:#22c55e;
+color:white;
+font-weight:800;
+font-size:1.4rem;
+flex-shrink:0;
+}
+
+.note-card{
+background:#fffbeb;
+border:1px solid #fde68a;
+border-radius:0.85rem;
+padding:1.1rem 1.35rem;
+}
+
+.led-diagram{
+flex-shrink:0;
+}
+
 </style>
 
 </head>
@@ -135,61 +193,204 @@ Cart
 
 <section class="max-w-4xl mx-auto px-6 py-24">
 
-<h1 class="text-5xl font-bold mb-10">
+<h1 class="text-5xl font-bold mb-4">
 SapEM System Setup Guide
 </h1>
 
-<p class="text-gray-700 mb-10">
+<p class="text-gray-700 mb-16 text-lg">
 Follow these steps to install and activate your SapEM wireless monitoring system.
 </p>
 
 
-<h2 class="text-2xl font-semibold mt-10 mb-4">
-1. Setup Receiving Hub
+<!-- SECTION 1 -->
+<div class="section-block">
+
+<div class="flex items-center gap-4 mb-6">
+<span class="section-icon">1</span>
+<h2 class="text-2xl font-bold">
+Setup Receiving Hub
 </h2>
-  
-<ol class="list-none pl-6 text-gray-700 mb-12 space-y-2">
-  <li>1.1. Install the antenna.</li>
-  <li>1.2. Plug in the HDMI cable to the board (either port) and desired display device.</li>
-  <li>1.3. Plug in powerblock and turn the switch on (if your version has one).</li>
-  <li>1.4. Plug in ethernet (recommended). If not using ethernet connect the hub to WiFi by clicking the WiFi symbol in the top right corner (mouse not included, can be installed in any USB port).</li>
-</ol>
+</div>
+
+<div class="space-y-3">
+
+<div class="step-card">
+<span class="step-num">1</span>
+<p class="text-gray-700">Install the antenna.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">2</span>
+<p class="text-gray-700">Plug in the HDMI cable to the board (either port) and desired display device.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">3</span>
+<p class="text-gray-700">Plug in powerblock and turn the switch on (if your version has one).</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">4</span>
+<p class="text-gray-700">Plug in ethernet (recommended). If not using ethernet connect the hub to WiFi by clicking the WiFi symbol in the top right corner (mouse not included, can be installed in any USB port).</p>
+</div>
+
+</div>
+</div>
 
 
-<h2 class="text-2xl font-semibold mt-10 mb-4">
-2. Create SapEM Account
+<!-- SECTION 2 -->
+<div class="section-block">
+
+<div class="flex items-center gap-4 mb-6">
+<span class="section-icon">2</span>
+<h2 class="text-2xl font-bold">
+Create SapEM Account
 </h2>
+</div>
 
-<ol class="list-none pl-6 text-gray-700 mb-12 space-y-2">
-  <li>2.1. On any device (besides the hub) go to www.concept-solid.com/sapem and click Login in the top right corner.</li>
-  <li>2.2. Click Create Account.</li>
-  <li>2.3. Follow directions on screen. Once completed, login to your dashboard.</li>
-</ol>
+<div class="space-y-3">
+
+<div class="step-card">
+<span class="step-num">1</span>
+<p class="text-gray-700">On any device (besides the hub) go to www.concept-solid.com/sapem and click Login in the top right corner.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">2</span>
+<p class="text-gray-700">Click Create Account.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">3</span>
+<p class="text-gray-700">Follow directions on screen. Once completed, login to your dashboard.</p>
+</div>
+
+</div>
+</div>
 
 
-<h2 class="text-2xl font-semibold mt-10 mb-4">
-3. Connecting Hub to Account
+<!-- SECTION 3 -->
+<div class="section-block">
+
+<div class="flex items-center gap-4 mb-6">
+<span class="section-icon">3</span>
+<h2 class="text-2xl font-bold">
+Connecting Hub to Account
 </h2>
-<ol class="list-none pl-6 text-gray-700 mb-12 space-y-2">
-  <li>3.1. Ensure hub is powered on, wait 5 minutes to ensure all setup has completed.</li>
-  <li>3.2. On the dashboard press the "+ Add Hub" button.</li>
-  <li>3.3. Enter the number found on the inside of the hub enclosure and add your desired name (name can be changed anytime). Press "Add Hub" and the dashboard will populate.</li>
-</ol>
-  
+</div>
 
-<h2 class="text-2xl font-semibold mt-10 mb-4">
-4. Connecting Sensors to Account
+<div class="space-y-3">
+
+<div class="step-card">
+<span class="step-num">1</span>
+<p class="text-gray-700">Ensure hub is powered on, wait 5 minutes to ensure all setup has completed.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">2</span>
+<p class="text-gray-700">On the dashboard press the "+ Add Hub" button.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">3</span>
+<p class="text-gray-700">Enter the number found on the inside of the hub enclosure and add your desired name (name can be changed anytime). Press "Add Hub" and the dashboard will populate.</p>
+</div>
+
+</div>
+</div>
+
+
+<!-- SECTION 4 -->
+<div class="section-block">
+
+<div class="flex items-center gap-4 mb-6">
+<span class="section-icon">4</span>
+<h2 class="text-2xl font-bold">
+Connecting Sensors to Account
 </h2>
-<ol class="list-none pl-6 text-gray-700 mb-12 space-y-2">
-  <li>4.1. Install the antenna.</li>
-  <li>4.2. Power on the sensor by pressing in the metal button on the side of the enclosure. Make sure the initial binding is done in close proximity to the hub.</li>
-  <li>4.3. Wait 30 seconds, on the dashboard press the "+ Add Sensor" button.</li>
-  <li>4.4. Enter the number found on the inside of the sensor enclosure and your desired name (name can be changed anytime). Press "Add Sensor" and the sensor will populate in the Unclaimed Sensor bin at the bottom of the screen.</li>
-  <li>4.5. Press "Assign Sensor" at the top of the screen and select the new sensor and hub you desire it to be paired to, press "Apply". The process is the same to remove a sensor from a hub and reassign it to a different hub.</li>
-  <li>NOTES: </li>
-  <li>  Wait 30 seconds before turning on more sensors to allow the binding to fully initiate.</li>
-  <li>  Charge the sensor fully before deploying for a season. Charging port for sensors is found in the bottom right corner of the circuit board inside the box (USBC cable included with every hub).</li>
-</ol>
+</div>
+
+<div class="space-y-3 mb-8">
+
+<div class="step-card">
+<span class="step-num">1</span>
+<p class="text-gray-700">Install the antenna.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">2</span>
+<p class="text-gray-700">Power on the sensor by pressing in the metal button on the side of the enclosure. Make sure the initial binding is done in close proximity to the hub.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">3</span>
+<p class="text-gray-700">Wait 30 seconds, on the dashboard press the "+ Add Sensor" button.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">4</span>
+<p class="text-gray-700">Enter the number found on the inside of the sensor enclosure and your desired name (name can be changed anytime). Press "Add Sensor" and the sensor will populate in the Unclaimed Sensor bin at the bottom of the screen.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">5</span>
+<p class="text-gray-700">Press "Assign Sensor" at the top of the screen and select the new sensor and hub you desire it to be paired to, press "Apply". The process is the same to remove a sensor from a hub and reassign it to a different hub.</p>
+</div>
+
+</div>
+
+<h3 class="text-lg font-bold mb-4 text-gray-800">
+Notes
+</h3>
+
+<div class="space-y-4">
+
+<div class="note-card">
+<p class="text-gray-800">
+Wait 30 seconds before turning on more sensors to allow the binding to fully initiate.
+</p>
+</div>
+
+<div class="note-card flex flex-col sm:flex-row items-center sm:items-stretch gap-5">
+
+<img src="../images/charging-port.jpg"
+alt="SapEM sensor board showing the USB-C charging port"
+class="w-32 h-32 sm:w-28 sm:h-28 object-cover rounded-lg shadow-md flex-shrink-0">
+
+<div class="flex-1">
+<p class="text-gray-800">
+Charge the sensor fully before deploying for a season. The charging
+port for sensors is found in the bottom right corner of the circuit
+board inside the box (USB‑C cable included with every hub). While
+charging, the small indicator light in the top right on the board glows
+<strong class="text-red-600">red</strong>. Once the battery is
+fully charged, that same light switches to
+<strong class="text-blue-600">blue</strong> — that's your signal
+it's ready to deploy.
+</p>
+</div>
+
+<div class="led-diagram mx-auto sm:mx-0">
+<svg width="150" height="90" viewBox="0 0 150 90" xmlns="http://www.w3.org/2000/svg">
+
+<rect x="2" y="10" width="60" height="70" rx="8" fill="#0f172a"/>
+<circle cx="32" cy="35" r="9" fill="#ef4444"/>
+<text x="32" y="66" text-anchor="middle" fill="#e2e8f0" font-size="9" font-family="Arial, sans-serif">Charging</text>
+
+<polygon points="70,38 70,52 86,45" fill="#22c55e"/>
+
+<rect x="88" y="10" width="60" height="70" rx="8" fill="#0f172a"/>
+<circle cx="118" cy="35" r="9" fill="#3b82f6"/>
+<text x="118" y="66" text-anchor="middle" fill="#e2e8f0" font-size="8.5" font-family="Arial, sans-serif">Fully Charged</text>
+
+</svg>
+</div>
+
+</div>
+
+</div>
+
+</div>
 
 </section>
 
