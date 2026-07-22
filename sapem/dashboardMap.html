@@ -863,7 +863,7 @@ async function initHubMap(hubId) {
     // inputConfig (only the Edit step uses it)
     const input = L.DomUtil.create("input","",panel)
     input.type = "text"
-    input.style.cssText = "display:none;width:100%;box-sizing:border-box;font-size:12px;padding:6px 8px;border-radius:6px;border:1px solid #475569;background:#0f172a;color:white;"
+    input.style.cssText = "display:none;width:100%;box-sizing:border-box;font-size:16px;padding:6px 8px;border-radius:6px;border:1px solid #475569;background:#0f172a;color:white;"
     L.DomEvent.on(input,"click",L.DomEvent.stopPropagation)
     L.DomEvent.disableClickPropagation(input)
 
