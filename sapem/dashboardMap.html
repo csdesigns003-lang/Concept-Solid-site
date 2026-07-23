@@ -119,17 +119,11 @@ body.map-fs-lock { overflow: hidden !important; position: fixed !important; inse
 /* Map legend -- commented out per request */
 /* .map-legend { ... } */
 
-/* Placement banner */
-.placement-banner { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); background: rgba(34,197,94,0.15); border: 1px solid #22c55e; border-radius: 8px; padding: 8px 16px; color: #22c55e; font-size: 13px; font-weight: 600; z-index: 1000; white-space: nowrap; display: flex; align-items: center; gap: 10px; pointer-events: none; }
-.placement-banner button { pointer-events: all; background: #334155; border: none; color: #94a3b8; border-radius: 5px; padding: 3px 8px; font-size: 12px; cursor: pointer; }
-.placement-banner button:hover { background: #475569; color: white; }
-
-/* Line-drawing banner (tap-to-place mode) */
-.line-draw-banner { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); background: rgba(34,197,94,0.15); border: 1px solid #22c55e; border-radius: 8px; padding: 8px 14px; color: #22c55e; font-size: 12px; font-weight: 600; z-index: 1000; display: flex; flex-direction: column; align-items: center; gap: 6px; max-width: 92%; text-align: center; pointer-events: none; }
+/* Line-drawing banner (tap-to-place mode) -- same dark panel theme as the
+   line-editor Save/Cancel panel, so every one of these dialogs looks the same */
+.line-draw-banner { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); background: rgba(15,23,42,0.95); border: 1px solid #1e293b; border-radius: 10px; padding: 10px 14px; color: #94a3b8; font-size: 12px; font-weight: 600; z-index: 1000; display: flex; flex-direction: column; align-items: center; gap: 8px; max-width: 92%; text-align: center; pointer-events: none; backdrop-filter: blur(8px); box-shadow: 0 2px 12px rgba(0,0,0,0.6); }
 .line-draw-banner .btn-row { display: flex; gap: 6px; pointer-events: all; }
-.line-draw-banner button { background: #334155; border: none; color: #94a3b8; border-radius: 5px; padding: 5px 10px; font-size: 11px; font-weight: 600; cursor: pointer; }
 .line-draw-banner button:disabled { opacity: 0.4; cursor: default; }
-.line-draw-banner button:not(:disabled):hover { background: #475569; color: white; }
 </style>
 </head>
 <body>
@@ -502,9 +496,9 @@ function updateLineDrawBanner(hubId) {
   const n = (lineDrawState[hubId] || {}).points?.length || 0
   b.innerHTML = `<div>Tap the map to place points &mdash; ${n} placed</div>
     <div class="btn-row">
-      <button onclick="undoLinePoint('${hubId}')" ${n?"":"disabled"}>Undo point</button>
-      <button onclick="finishLineDraw('${hubId}')" ${n<2?"disabled":""}>Finish line</button>
-      <button onclick="cancelLineDraw('${hubId}')">Cancel</button>
+      <button style="${BTN_SLATE}" onclick="undoLinePoint('${hubId}')" ${n?"":"disabled"}>Undo</button>
+      <button style="${BTN_GREEN}" onclick="finishLineDraw('${hubId}')" ${n<2?"disabled":""}>Finish</button>
+      <button style="${BTN_SLATE}" onclick="cancelLineDraw('${hubId}')">Cancel</button>
     </div>`
 }
 
@@ -551,11 +545,34 @@ function hideLineActionsPanel(hubId) {
 let lineSelectState = {}
 
 function attachLineSelectHandler(hubId, layer) {
+  const md = hubMaps[hubId]
+  // A thin visible line is hard to tap precisely, especially on touch --
+  // layer an invisible, much wider "hit" line on top that forwards taps to
+  // the same select handler. Fixed width regardless of line type/thickness,
+  // so mainline/lateral/dropline are all equally easy to grab. The visible
+  // line's width and color never change; this is purely a bigger tappable
+  // target sitting over it.
+  const hit = L.polyline(layer.getLatLngs(), {
+    weight: 30, opacity: 0.02, color: "#000"
+  })
+  hit.on("click", e => { L.DomEvent.stopPropagation(e); selectLine(hubId, layer) })
+  layer._hitLayer = hit
+  if (md) hit.addTo(md.map)
   layer.on("click", e => { L.DomEvent.stopPropagation(e); selectLine(hubId, layer) })
+}
+
+// Keeps the invisible hit-line aligned with the visible line -- call this
+// anywhere the line's coordinates change (vertex drag, bend-point add,
+// cancel-revert), or the wider tap target would drift out of place.
+function syncLineGeometry(layer, sel, latlngs) {
+  layer.setLatLngs(latlngs)
+  if (sel && sel.highlight) sel.highlight.setLatLngs(latlngs)
+  if (layer._hitLayer) layer._hitLayer.setLatLngs(latlngs)
 }
 
 function selectLine(hubId, layer) {
   const md = hubMaps[hubId]; if (!md) return
+  if (placementState) return // busy repositioning a sensor marker
   if (lineDrawState[hubId] && lineDrawState[hubId].active) return // busy drawing a new line
   const cur = lineSelectState[hubId]
   if (cur && cur.mode !== "picker") return // busy editing/deleting another line -- ignore other taps
@@ -581,21 +598,21 @@ function startEditLine(hubId) {
   const originalLatLngs = layer.getLatLngs().map(ll => L.latLng(ll.lat, ll.lng))
   const originalName = layer._name || ""
 
-  // Bend-point (midpoint) markers -- deliberately tap-to-add rather than
-  // Leaflet.draw's drag-to-create gesture. Re-parenting an in-flight drag
-  // from a "ghost" midpoint into a real vertex marker is exactly the class
-  // of fragile touch hack that caused the original priming-tap bug, so
-  // instead a tap on a lighter, smaller marker splices a new point into the
-  // line at that spot, then rebuilds all handles from the updated array.
+  // Bend-point (midpoint) markers -- draggable like an existing point: grab
+  // one and it immediately splices a new vertex in at that spot and follows
+  // your drag; releasing rebuilds all handles from the updated array so the
+  // new point becomes a permanent vertex with fresh midpoints on either
+  // side. A plain tap (no movement) still works too, adding the point at
+  // the exact midpoint without needing a follow-up drag.
   const vertexIcon = () => L.divIcon({
     className: "",
-    html: `<div style="width:34px;height:34px;display:flex;align-items:center;justify-content:center;touch-action:none;"><div style="width:16px;height:16px;border-radius:50%;background:#fff;border:3px solid ${layer.options.color};box-shadow:0 2px 6px rgba(0,0,0,0.5);"></div></div>`,
-    iconSize: [34,34], iconAnchor: [17,17]
+    html: `<div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;touch-action:none;"><div style="width:16px;height:16px;border-radius:50%;background:#fff;border:3px solid ${layer.options.color};box-shadow:0 2px 6px rgba(0,0,0,0.5);"></div></div>`,
+    iconSize: [44,44], iconAnchor: [22,22]
   })
   const midpointIcon = () => L.divIcon({
     className: "",
-    html: `<div style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;touch-action:none;"><div style="width:11px;height:11px;border-radius:50%;background:${layer.options.color};opacity:0.55;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.4);"></div></div>`,
-    iconSize: [28,28], iconAnchor: [14,14]
+    html: `<div style="width:38px;height:38px;display:flex;align-items:center;justify-content:center;touch-action:none;"><div style="width:11px;height:11px;border-radius:50%;background:${layer.options.color};opacity:0.55;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.4);"></div></div>`,
+    iconSize: [38,38], iconAnchor: [19,19]
   })
   const midLatLng = (a, b) => L.latLng((a.lat + b.lat) / 2, (a.lng + b.lng) / 2)
 
@@ -615,21 +632,34 @@ function startEditLine(hubId) {
       const marker = L.marker(ll, { draggable: true, icon: vertexIcon() }).addTo(md.map)
       marker.on("drag", () => {
         const cur = sel.handles.map(m => m.getLatLng())
-        layer.setLatLngs(cur)
-        if (sel.highlight) sel.highlight.setLatLngs(cur)
+        syncLineGeometry(layer, sel, cur)
         if (sel.midpoints[i - 1]) sel.midpoints[i - 1].setLatLng(midLatLng(cur[i - 1], cur[i]))
         if (sel.midpoints[i])     sel.midpoints[i].setLatLng(midLatLng(cur[i], cur[i + 1]))
       })
       sel.handles.push(marker)
     })
     for (let i = 0; i < pts.length - 1; i++) {
-      const mm = L.marker(midLatLng(pts[i], pts[i + 1]), { icon: midpointIcon() }).addTo(md.map)
+      const mm = L.marker(midLatLng(pts[i], pts[i + 1]), { draggable: true, icon: midpointIcon() }).addTo(md.map)
+      let insertedIndex = null
+      mm.on("dragstart", () => {
+        const cur = layer.getLatLngs()
+        insertedIndex = i + 1
+        cur.splice(insertedIndex, 0, mm.getLatLng())
+        syncLineGeometry(layer, sel, cur)
+      })
+      mm.on("drag", () => {
+        if (insertedIndex == null) return
+        const cur = layer.getLatLngs()
+        cur[insertedIndex] = mm.getLatLng()
+        syncLineGeometry(layer, sel, cur)
+      })
+      mm.on("dragend", () => rebuildHandles())
       mm.on("click", e => {
         L.DomEvent.stopPropagation(e)
+        if (insertedIndex != null) return // a drag already handled the insert
         const cur = layer.getLatLngs()
         cur.splice(i + 1, 0, mm.getLatLng())
-        layer.setLatLngs(cur)
-        if (sel.highlight) sel.highlight.setLatLngs(cur)
+        syncLineGeometry(layer, sel, cur)
         rebuildHandles()
       })
       sel.midpoints.push(mm)
@@ -670,7 +700,7 @@ function startEditLine(hubId) {
     deselectLine(hubId)
   }
   const doCancel = () => {
-    layer.setLatLngs(originalLatLngs)
+    syncLineGeometry(layer, sel, originalLatLngs)
     deselectLine(hubId)
   }
 
@@ -701,6 +731,7 @@ function startDeleteLine(hubId) {
       return
     }
     md.drawnItems.removeLayer(layer)
+    if (layer._hitLayer) md.map.removeLayer(layer._hitLayer)
     deselectLine(hubId)
   }
 
@@ -746,6 +777,7 @@ function addMarkerToMap(hubId, sensor) {
   marker.bindPopup(popup, { maxWidth: 220 })
   marker.on("click", () => marker.setPopupContent(popup()))
   marker.on("dragend", async () => {
+    if (placementState && placementState.sensorId === sensor.id) return // placement panel's Save button commits instead
     const p = marker.getLatLng()
     if (typeof updateSensorLocation === "function") await updateSensorLocation(sensor.id, p.lat, p.lng)
     sensor.lat = p.lat; sensor.lng = p.lng
@@ -777,25 +809,66 @@ function updateUnplacedBar(hubId) {
 
 function startPlacement(hubId, sensorId) {
   const md = hubMaps[hubId]; if (!md) return
-  md.map.closePopup(); placementState = { hubId, sensorId }
-  const banner = document.getElementById(`placement-banner-${hubId}`)
-  if (banner) banner.classList.remove("hidden")
-  md.map.once("click", async e => {
-    if (!placementState) return
-    const sensor = allSensors.find(s => s.id === sensorId)
-    if (!sensor) { cancelPlacement(hubId); return }
-    if (typeof updateSensorLocation === "function") await updateSensorLocation(sensorId, e.latlng.lat, e.latlng.lng)
-    sensor.lat = e.latlng.lat; sensor.lng = e.latlng.lng
-    if (md.markers[sensorId]) md.markers[sensorId].setLatLng([sensor.lat, sensor.lng])
-    else addMarkerToMap(hubId, sensor)
-    cancelPlacement(hubId); updateUnplacedBar(hubId)
-  })
+  // Don't hijack the shared panel out from under an in-progress line edit --
+  // clean that up first so its handles don't get orphaned on the map.
+  if (lineSelectState[hubId]) deselectLine(hubId)
+  if (lineDrawState[hubId] && lineDrawState[hubId].active) return
+  if (placementState) cancelPlacement()
+  md.map.closePopup()
+  const sensor = allSensors.find(s => s.id === sensorId)
+  if (!sensor) return
+
+  const hadLocation = !!(sensor.lat && sensor.lng)
+  const originalLatLng = hadLocation ? L.latLng(sensor.lat, sensor.lng) : null
+  let marker = md.markers[sensorId]
+  let createdNew = false
+  if (!marker) {
+    createdNew = true
+    const color = pressureColor((latestReadingsCache[sensorId] || {}).pressure_1)
+    marker = L.marker(md.map.getCenter(), {
+      icon: createMarkerIcon(color), draggable: true, title: sensor.sensor_name || sensor.sensor_hardware_id
+    }).addTo(md.map)
+    md.markers[sensorId] = marker
+  }
+
+  const onMapClick = e => marker.setLatLng(e.latlng)
+  md.map.on("click", onMapClick)
+
+  placementState = { hubId, sensorId, marker, hadLocation, originalLatLng, createdNew, onMapClick }
+
+  showLineActionsPanel(hubId, "Click or drag to reposition", [
+    { label: "Save",   style: BTN_GREEN, onClick: savePlacement },
+    { label: "Cancel", style: BTN_SLATE, onClick: cancelPlacement },
+  ])
 }
 
-function cancelPlacement(hubId) {
+async function savePlacement() {
+  const ps = placementState; if (!ps) return
+  const { lat, lng } = ps.marker.getLatLng()
+  const sensor = allSensors.find(s => s.id === ps.sensorId)
+  if (typeof updateSensorLocation === "function") await updateSensorLocation(ps.sensorId, lat, lng)
+  if (sensor) { sensor.lat = lat; sensor.lng = lng }
+  endPlacement()
+  updateUnplacedBar(SHARED_KEY)
+}
+
+function cancelPlacement() {
+  const ps = placementState; if (!ps) return
+  if (ps.createdNew) {
+    ps.marker.remove()
+    delete hubMaps[ps.hubId].markers[ps.sensorId]
+  } else if (ps.hadLocation) {
+    ps.marker.setLatLng(ps.originalLatLng)
+  }
+  endPlacement()
+}
+
+function endPlacement() {
+  const ps = placementState; if (!ps) return
+  const md = hubMaps[ps.hubId]
+  if (md) md.map.off("click", ps.onMapClick)
+  hideLineActionsPanel(ps.hubId)
   placementState = null
-  const b = document.getElementById(`placement-banner-${hubId}`)
-  if (b) b.classList.add("hidden")
 }
 
 // The native browser Fullscreen API is intentionally never used here. On an
@@ -980,12 +1053,6 @@ async function initHubMap(hubId) {
   //   L.DomEvent.disableClickPropagation(d); return d
   // }})
   // new LgCtrl().addTo(map)
-
-  // Placement banner
-  const banner = document.createElement("div")
-  banner.id = `placement-banner-${hubId}`; banner.className = "placement-banner hidden"
-  banner.innerHTML = `Click anywhere on the map to place this sensor <button onclick="cancelPlacement('${hubId}')">Cancel</button>`
-  mapEl.appendChild(banner)
 
   // Line-drawing banner (tap-to-place mode) -- stop click propagation so
   // tapping Undo/Finish/Cancel never also registers as a map tap/point
