@@ -147,19 +147,6 @@ body.map-fs-lock { overflow: hidden !important; position: fixed !important; inse
   </div>
 </header>
 
-<div id="sharedMapSection" class="max-w-7xl mx-auto px-6 pt-6 hidden">
-  <div class="hub-section">
-    <div class="hub-title"><span class="hub-dot"></span>All Hubs Map</div>
-    <div id="unplaced-bar-shared" class="hidden mb-3 p-3 rounded-xl border border-slate-700 bg-slate-900">
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-        <span class="text-xs text-slate-400" style="flex-shrink:0;">Not yet placed on map:</span>
-        <div id="unplaced-list-shared" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
-      </div>
-    </div>
-    <div id="map-shared" class="hub-map"></div>
-  </div>
-</div>
-
 <div id="hubsContainer" class="max-w-7xl mx-auto p-6"></div>
 
 <div id="unassignedSection" class="max-w-7xl mx-auto px-6 pb-10 hidden">
@@ -175,6 +162,19 @@ body.map-fs-lock { overflow: hidden !important; position: fixed !important; inse
       </thead>
       <tbody id="unassignedTable"></tbody>
     </table>
+  </div>
+</div>
+
+<div id="sharedMapSection" class="max-w-7xl mx-auto px-6 pb-10 hidden">
+  <div class="hub-section">
+    <div class="hub-title"><span class="hub-dot"></span>Map</div>
+    <div id="unplaced-bar-shared" class="hidden mb-3 p-3 rounded-xl border border-slate-700 bg-slate-900">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <span class="text-xs text-slate-400" style="flex-shrink:0;">Not yet placed on map:</span>
+        <div id="unplaced-list-shared" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+      </div>
+    </div>
+    <div id="map-shared" class="hub-map"></div>
   </div>
 </div>
 
