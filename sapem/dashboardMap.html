@@ -1,0 +1,1388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f172a">
+<title>SapEM Monitoring Dashboard</title>
+<link rel="icon" href="/images/favicon/sapem-favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon/sapem-favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/images/favicon/sapem-favicon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/sapem-apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+html, body { overflow-x: hidden; background: #0f172a; }
+#refreshBtn:focus { outline: none; }
+#refreshBtn { -webkit-tap-highlight-color: transparent; }
+body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
+.card { background: #1e293b; border-radius: 14px; padding: 20px; }
+.gauge-wrap { position: relative; width: 100%; max-width: 400px; aspect-ratio: 1/1; margin: 0 auto; }
+.gauge-wrap img { width: 100%; height: 100%; display: block; }
+.gauge-wrap canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+.rssi-bar { width: 4px; margin-right: 1px; background: #22c55e; }
+.modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; align-items: center; justify-content: center; }
+.modal-backdrop.open { display: flex; }
+.modal-box { background: #1e293b; border-radius: 14px; padding: 32px; width: 100%; max-width: 440px; border: 1px solid #334155; }
+.modal-input { width: 100%; background: #0f172a; border: 1px solid #475569; border-radius: 8px; padding: 10px 14px; color: white; margin-top: 6px; }
+.modal-input:focus { outline: none; border-color: #22c55e; }
+.modal-input option { background: #1e293b; }
+.btn-green { background: #16a34a; color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; }
+.btn-green:hover { background: #15803d; }
+.btn-slate { background: #334155; color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; }
+.btn-slate:hover { background: #475569; }
+.hub-section { border: 1px solid #334155; border-radius: 14px; padding: 24px; margin-bottom: 32px; }
+.hub-title { font-size: 1.2rem; font-weight: 700; color: #22c55e; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+.hub-dot { width: 10px; height: 10px; border-radius: 50%; background: #22c55e; display: inline-block; }
+.tab-bar { display: flex; gap: 4px; background: #0f172a; border-radius: 10px; padding: 4px; width: fit-content; margin-bottom: 20px; border: 1px solid #1e293b; }
+.tab-btn { padding: 7px 18px; border-radius: 7px; border: none; background: transparent; color: #64748b; font-weight: 500; font-size: 13px; cursor: pointer; transition: all 0.15s; }
+.tab-btn:hover:not(.active-tab) { color: #cbd5e1; background: #1e293b; }
+.tab-btn.active-tab { background: #22c55e; color: #0f172a; font-weight: 700; }
+
+/* Map -- large square on desktop, rectangle on mobile */
+.hub-map {
+  width: 100%;
+  height: clamp(420px, 60vw, 720px);
+  border-radius: 12px;
+  z-index: 0;
+}
+@media (max-width: 767px) {
+  .hub-map { height: 420px; }
+}
+/* All "fullscreen" is our own CSS-driven overlay now -- the native browser
+   Fullscreen API is intentionally not used (see toggleFullscreen JS), since
+   it produced an unfixable status-bar strip and bottom exit-affordance bar
+   inside an iOS home-screen web app. */
+.hub-map.map-force-fullscreen {
+  position: fixed !important;
+  top: 0 !important; left: 0 !important;
+  right: 0 !important; bottom: 0 !important;
+  z-index: 9999 !important;
+  border-radius: 0 !important;
+  height: auto !important;
+  width: auto !important;
+  background: #0f172a !important;
+}
+/* Push Leaflet's top controls below the notch/status bar, and its bottom
+   controls (attribution) above the home-indicator area, while fullscreen */
+.map-force-fullscreen .leaflet-top    { top: max(10px, env(safe-area-inset-top)) !important; }
+.map-force-fullscreen .line-draw-banner { top: max(12px, env(safe-area-inset-top)) !important; }
+.map-force-fullscreen .leaflet-bottom { bottom: max(10px, env(safe-area-inset-bottom)) !important; }
+/* Buttons ~25% bigger while fullscreen (easier to hit on a phone) --
+   real pixel sizes, not the non-standard `zoom` property, so touch
+   hit-testing on the buttons stays accurate */
+.map-force-fullscreen .leaflet-fs-btn { width: 42px !important; height: 42px !important; }
+.map-force-fullscreen .leaflet-fs-btn svg { width: 19px !important; height: 19px !important; }
+.map-force-fullscreen .leaflet-bar a { width: 37px !important; height: 37px !important; line-height: 37px !important; }
+/* Leaflet's own container defaults to a light gray background -- force it
+   dark so no light/mismatched strip can show at the map edges before tiles
+   have painted there */
+.leaflet-container { background: #0f172a !important; }
+/* Lock page scroll while the forced-fullscreen map is open so iOS can't
+   rubber-band and reveal its own background behind the fixed map div */
+body.map-fs-lock { overflow: hidden !important; position: fixed !important; inset: 0 !important; width: 100% !important; height: 100% !important; }
+
+/* Leaflet dark theme */
+.leaflet-popup-content-wrapper { background: #1e293b !important; color: white !important; border: 1px solid #334155 !important; border-radius: 10px !important; box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important; }
+.leaflet-popup-tip { background: #1e293b !important; }
+.leaflet-popup-content { margin: 14px 16px !important; font-size: 13px !important; line-height: 1.6 !important; }
+.leaflet-popup-close-button { color: #64748b !important; }
+.leaflet-popup-close-button:hover { color: white !important; }
+.leaflet-control-zoom a { background: rgba(15,23,42,0.92) !important; color: #cbd5e1 !important; border-color: #1e293b !important; }
+.leaflet-control-zoom a:hover { background: #1e293b !important; color: white !important; }
+.leaflet-bar { border: none !important; box-shadow: 0 2px 8px rgba(0,0,0,0.5) !important; }
+.leaflet-bar a:first-child { border-radius: 7px 7px 0 0 !important; }
+.leaflet-bar a:last-child  { border-radius: 0 0 7px 7px !important; }
+.leaflet-attribution-flag { display: none !important; }
+.leaflet-control-attribution { background: rgba(15,23,42,0.7) !important; color: #475569 !important; font-size: 10px !important; }
+.leaflet-control-attribution a { color: #64748b !important; }
+.leaflet-control-layers { background: rgba(15,23,42,0.92) !important; border: 1px solid #1e293b !important; border-radius: 7px !important; color: #cbd5e1 !important; box-shadow: 0 2px 8px rgba(0,0,0,0.5) !important; }
+.leaflet-control-layers-toggle { background-color: rgba(15,23,42,0.92) !important; }
+.leaflet-control-layers label { color: #cbd5e1 !important; font-size: 12px !important; }
+.leaflet-control a, .leaflet-control button, .leaflet-bar a, .line-draw-banner button { touch-action: manipulation !important; -webkit-tap-highlight-color: transparent; }
+
+.leaflet-fs-btn { width: 34px; height: 34px; background: rgba(15,23,42,0.92) !important; border: 1px solid #1e293b !important; border-radius: 7px !important; color: #cbd5e1; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.5); transition: all 0.15s; }
+.leaflet-fs-btn:hover { background: #1e293b !important; color: white; }
+/* Put topleft controls (zoom, Lines toggle, edit toolbar) in a row so the
+   Lines control sits to the right of the zoom buttons instead of below */
+.leaflet-top.leaflet-left { display: flex !important; flex-direction: row !important; flex-wrap: wrap !important; align-items: flex-start !important; gap: 6px !important; }
+.leaflet-top.leaflet-left .leaflet-control { margin: 10px 0 0 10px !important; }
+
+/* Map legend -- commented out per request */
+/* .map-legend { ... } */
+
+/* Placement banner */
+.placement-banner { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); background: rgba(34,197,94,0.15); border: 1px solid #22c55e; border-radius: 8px; padding: 8px 16px; color: #22c55e; font-size: 13px; font-weight: 600; z-index: 1000; white-space: nowrap; display: flex; align-items: center; gap: 10px; pointer-events: none; }
+.placement-banner button { pointer-events: all; background: #334155; border: none; color: #94a3b8; border-radius: 5px; padding: 3px 8px; font-size: 12px; cursor: pointer; }
+.placement-banner button:hover { background: #475569; color: white; }
+
+/* Line-drawing banner (tap-to-place mode) */
+.line-draw-banner { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); background: rgba(34,197,94,0.15); border: 1px solid #22c55e; border-radius: 8px; padding: 8px 14px; color: #22c55e; font-size: 12px; font-weight: 600; z-index: 1000; display: flex; flex-direction: column; align-items: center; gap: 6px; max-width: 92%; text-align: center; pointer-events: none; }
+.line-draw-banner .btn-row { display: flex; gap: 6px; pointer-events: all; }
+.line-draw-banner button { background: #334155; border: none; color: #94a3b8; border-radius: 5px; padding: 5px 10px; font-size: 11px; font-weight: 600; cursor: pointer; }
+.line-draw-banner button:disabled { opacity: 0.4; cursor: default; }
+.line-draw-banner button:not(:disabled):hover { background: #475569; color: white; }
+</style>
+</head>
+<body>
+
+<header class="bg-slate-900 border-b border-slate-700" style="padding-top: env(safe-area-inset-top);">
+  <div class="max-w-7xl mx-auto px-4 py-4">
+    <h1 class="text-2xl font-bold text-center mb-3">SapEM Systems</h1>
+    <div class="grid grid-cols-4 gap-2 mb-2">
+      <button onclick="openModal('hubModal')" class="btn-green text-sm py-4 rounded-xl text-center leading-tight">+ Add<br>Hub</button>
+      <button onclick="openModal('sensorModal')" class="btn-green text-sm py-4 rounded-xl text-center leading-tight">+ Add<br>Sensor</button>
+      <button onclick="openModal('assignModal')" class="btn-slate text-sm py-4 rounded-xl text-center leading-tight">Assign<br>Sensor</button>
+      <button onclick="logout()" class="btn-slate text-sm py-4 rounded-xl text-center leading-tight">Log<br>Out</button>
+    </div>
+    <button id="refreshBtn" onclick="refreshDashboard()" class="btn-slate w-full text-sm py-2 rounded-xl text-center">&#8635; Refresh</button>
+  </div>
+</header>
+
+<div id="sharedMapSection" class="max-w-7xl mx-auto px-6 pt-6 hidden">
+  <div class="hub-section">
+    <div class="hub-title"><span class="hub-dot"></span>All Hubs Map</div>
+    <div id="unplaced-bar-shared" class="hidden mb-3 p-3 rounded-xl border border-slate-700 bg-slate-900">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <span class="text-xs text-slate-400" style="flex-shrink:0;">Not yet placed on map:</span>
+        <div id="unplaced-list-shared" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+      </div>
+    </div>
+    <div id="map-shared" class="hub-map"></div>
+  </div>
+</div>
+
+<div id="hubsContainer" class="max-w-7xl mx-auto p-6"></div>
+
+<div id="unassignedSection" class="max-w-7xl mx-auto px-6 pb-10 hidden">
+  <div class="hub-section">
+    <div class="hub-title"><span class="hub-dot" style="background:#94a3b8"></span>Unassigned Sensors</div>
+    <table class="w-full text-sm">
+      <thead class="text-slate-400 border-b border-slate-700">
+        <tr>
+          <th class="py-2 text-left">Sensor</th><th class="text-center">P1 (inHg)</th>
+          <th class="text-center">P2 (inHg)</th><th class="text-center">Temp (degF)</th>
+          <th class="text-center">Signal</th><th class="text-center">Last Seen</th>
+        </tr>
+      </thead>
+      <tbody id="unassignedTable"></tbody>
+    </table>
+  </div>
+</div>
+
+<div id="emptyState" class="max-w-7xl mx-auto p-6 text-center hidden">
+  <div class="card py-20">
+    <p class="text-slate-400 text-lg mb-6">No hubs connected yet.</p>
+    <button onclick="openModal('hubModal')" class="btn-green">+ Add Your First Hub</button>
+  </div>
+</div>
+
+<div id="hubModal" class="modal-backdrop">
+  <div class="modal-box">
+    <h2 class="text-xl font-bold mb-6">Add Receiving Hub</h2>
+    <p class="text-slate-400 text-sm mb-6">Enter the hardware ID printed on your Raspberry Pi hub, then give it a friendly name.</p>
+    <label class="text-sm font-semibold">Hub Hardware ID</label>
+    <input id="hubHardwareId" class="modal-input mb-4" placeholder="e.g. 0001">
+    <label class="text-sm font-semibold">Hub Name <span class="text-slate-400 font-normal">(optional)</span></label>
+    <input id="hubName" class="modal-input mb-6" placeholder="e.g. North Sugarbush">
+    <p id="hubError" class="text-red-400 text-sm mb-4 hidden"></p>
+    <div class="flex gap-3 justify-end">
+      <button onclick="closeModal('hubModal')" class="btn-slate">Cancel</button>
+      <button onclick="submitHub()" class="btn-green">Add Hub</button>
+    </div>
+  </div>
+</div>
+
+<div id="sensorModal" class="modal-backdrop">
+  <div class="modal-box">
+    <h2 class="text-xl font-bold mb-6">Add Sensor Node</h2>
+    <p class="text-slate-400 text-sm mb-6">Enter the 4-digit serial number on your sensor, then give it a name.</p>
+    <label class="text-sm font-semibold">Sensor Serial Number</label>
+    <input id="sensorHardwareId" class="modal-input mb-4" placeholder="e.g. 0042">
+    <label class="text-sm font-semibold">Sensor Name <span class="text-slate-400 font-normal">(optional)</span></label>
+    <input id="sensorName" class="modal-input mb-6" placeholder="e.g. Line 3 Mainline">
+    <p id="sensorError" class="text-red-400 text-sm mb-4 hidden"></p>
+    <div class="flex gap-3 justify-end">
+      <button onclick="closeModal('sensorModal')" class="btn-slate">Cancel</button>
+      <button onclick="submitSensor()" class="btn-green">Add Sensor</button>
+    </div>
+  </div>
+</div>
+
+<div id="assignModal" class="modal-backdrop">
+  <div class="modal-box">
+    <h2 class="text-xl font-bold mb-6">Assign Sensor to Hub</h2>
+    <p class="text-slate-400 text-sm mb-6">A sensor can appear on one hub, multiple hubs, or none (unassigned).</p>
+    <label class="text-sm font-semibold">Select Sensor</label>
+    <select id="assignSensorSelect" class="modal-input mb-4"><option value="">choose sensor</option></select>
+    <label class="text-sm font-semibold">Select Hub</label>
+    <select id="assignHubSelect" class="modal-input mb-4"><option value="">choose hub</option></select>
+    <label class="text-sm font-semibold">Action</label>
+    <select id="assignAction" class="modal-input mb-6">
+      <option value="assign">Assign to this hub</option>
+      <option value="remove">Remove from this hub</option>
+    </select>
+    <p id="assignError"   class="text-red-400   text-sm mb-4 hidden"></p>
+    <p id="assignSuccess" class="text-green-400 text-sm mb-4 hidden"></p>
+    <div class="flex gap-3 justify-end">
+      <button onclick="closeModal('assignModal')" class="btn-slate">Close</button>
+      <button onclick="submitAssign()" class="btn-green">Apply</button>
+    </div>
+  </div>
+</div>
+
+<div id="editNamesModal" class="modal-backdrop">
+  <div class="modal-box">
+    <h2 class="text-xl font-bold mb-6">Edit Names</h2>
+    <div id="editNamesBody"></div>
+    <p id="editNamesError" class="text-red-400 text-sm mt-4 hidden"></p>
+    <div class="flex gap-3 justify-end mt-6">
+      <button onclick="closeModal('editNamesModal')" class="btn-slate">Cancel</button>
+      <button id="editNamesSubmit" onclick="submitEditNames()" class="btn-green">Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/auth.js"></script>
+<script>
+/*
+  ================================================================
+  REQUIRED ADDITIONS TO auth.js
+  ----------------------------------------------------------------
+  async function updateHubName(hubId, name) {
+    const { error } = await supabaseClient.from("hubs").update({ hub_name: name }).eq("id", hubId)
+    return !error
+  }
+  async function updateSensorName(sensorId, name) {
+    const { error } = await supabaseClient.from("sensors").update({ sensor_name: name }).eq("id", sensorId)
+    return !error
+  }
+  async function updateSensorLocation(sensorId, lat, lng) {
+    const { error } = await supabaseClient.from("sensors").update({ lat, lng }).eq("id", sensorId)
+    return !error
+  }
+  async function saveMapLine(hubId, lineType, color, name, geojson) {
+    const { data: { user } } = await supabaseClient.auth.getUser()
+    const { data, error } = await supabaseClient.from("hub_map_lines")
+      .insert({ hub_id: hubId, user_id: user.id, line_type: lineType, color, name, geojson })
+      .select().single()
+    return error ? null : data
+  }
+  async function loadMapLines(hubId) {
+    const { data, error } = await supabaseClient.from("hub_map_lines").select("*").eq("hub_id", hubId)
+    return error ? [] : data
+  }
+  async function updateMapLine(lineId, geojson) {
+    const { error } = await supabaseClient.from("hub_map_lines").update({ geojson }).eq("id", lineId)
+    return !error
+  }
+  async function updateMapLineName(lineId, name) {
+    const { error } = await supabaseClient.from("hub_map_lines").update({ name }).eq("id", lineId)
+    return !error
+  }
+  async function deleteMapLine(lineId) {
+    const { error } = await supabaseClient.from("hub_map_lines").delete().eq("id", lineId)
+    return !error
+  }
+
+  REQUIRED SUPABASE SQL (run once):
+    alter table public.sensors add column lat numeric(10,7) default null;
+    alter table public.sensors add column lng numeric(10,7) default null;
+    create table public.hub_map_lines (
+      id uuid primary key default gen_random_uuid(),
+      hub_id uuid not null references public.hubs(id) on delete cascade,
+      user_id uuid not null references auth.users(id) on delete cascade,
+      name text, line_type text default 'mainline',
+      color text default '#3b82f6', geojson jsonb not null,
+      created_at timestamptz not null default now()
+    );
+    alter table public.hub_map_lines enable row level security;
+    create policy "Users manage own lines" on public.hub_map_lines
+      for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+  ================================================================
+*/
+
+const GAUGE_MIN_DEG = 48, GAUGE_MAX_DEG = -228, PRESSURE_MAX = 30
+
+function fmt(d) {
+  if (!d) return "---"
+  return new Date(d).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+}
+
+function pressureColor(p) {
+  if (p == null) return "#64748b"
+  const a = Math.abs(p)
+  if (a >= 18) return "#22c55e"
+  if (a >= 14) return "#f59e0b"
+  return "#ef4444"
+}
+
+function weightForType(t) {
+  return t === "mainline" ? 8 : t === "lateral" ? 5 : 3
+}
+
+function drawNeedle(id, value) {
+  const c = document.getElementById(id); if (!c) return
+  const ctx = c.getContext("2d"), W = c.width, H = c.height
+  ctx.clearRect(0, 0, W, H)
+  const frac = Math.max(0, Math.min(PRESSURE_MAX, Math.abs(value))) / PRESSURE_MAX
+  const rad  = ((GAUGE_MIN_DEG + frac * (GAUGE_MAX_DEG - GAUGE_MIN_DEG)) * Math.PI) / 180
+  const cx = W/2, cy = H/2, len = W*0.38
+  ctx.shadowColor = "rgba(0,0,0,0.6)"; ctx.shadowBlur = 6
+  ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + len*Math.cos(rad), cy + len*Math.sin(rad))
+  ctx.strokeStyle = "#ef4444"; ctx.lineWidth = W*0.022; ctx.lineCap = "round"; ctx.stroke()
+  ctx.shadowBlur = 0
+  ctx.beginPath(); ctx.arc(cx, cy, W*0.045, 0, Math.PI*2)
+  ctx.fillStyle = "#cbd5e1"; ctx.fill()
+}
+
+function openModal(id)  { document.getElementById(id).classList.add("open") }
+function closeModal(id) { document.getElementById(id).classList.remove("open") }
+document.querySelectorAll(".modal-backdrop").forEach(el => {
+  el.addEventListener("click", e => { if (e.target === el) el.classList.remove("open") })
+})
+
+async function logout() {
+  await supabaseClient.auth.signOut()
+  window.location.href = "login.html"
+}
+
+let allHubs = [], allSensors = [], hubCharts = {}, hubTabs = {}, hubMaps = {}
+let hubSensorsCache = {}, latestReadingsCache = {}, placementState = null
+
+// SHARED_KEY is the constant "hubId" used to key the one consolidated map
+// (hubMaps[SHARED_KEY], lineDrawState[SHARED_KEY], lineSelectState[SHARED_KEY],
+// DOM ids like map-shared / unplaced-bar-shared). Passing this through all
+// the same hubId-keyed functions that used to run per-hub keeps the diff
+// small instead of rewriting every function signature.
+const SHARED_KEY = "shared"
+
+// For the shared map, sensors come from every hub the user owns (allSensors)
+// rather than one hub's cache -- sensor ids are globally unique so this is safe.
+function sensorsForKey(hubId) {
+  return hubId === SHARED_KEY ? allSensors : (hubSensorsCache[hubId] || [])
+}
+
+function rssiBars(rssi) {
+  if (rssi == null) return "<span class='text-slate-500'>---</span>"
+  const s = Math.max(0, Math.min(5, Math.floor((rssi + 120) / 10)))
+  let b = ""
+  for (let i = 0; i < 5; i++) b += `<div class="rssi-bar" style="height:${(i+1)*5}px;opacity:${i < s ? 1 : 0.2}"></div>`
+  return `<div style="display:flex;align-items:flex-end;justify-content:center;height:25px">${b}</div>`
+}
+
+// ── Tab switching
+// Uses double requestAnimationFrame before initHubMap so the map div has
+// real dimensions when Leaflet measures it -- this fixes gray tile issue
+async function switchTab(hubId, tab) {
+  hubTabs[hubId] = tab
+  const dv = document.getElementById(`dataview-${hubId}`)
+  const mv = document.getElementById(`mapview-${hubId}`)
+  const db = document.getElementById(`tab-data-${hubId}`)
+  const mb = document.getElementById(`tab-map-${hubId}`)
+  if (!dv || !mv) return
+  if (tab === "data") {
+    dv.classList.remove("hidden"); mv.classList.add("hidden")
+    db.classList.add("active-tab"); mb.classList.remove("active-tab")
+  } else {
+    dv.classList.add("hidden"); mv.classList.remove("hidden")
+    db.classList.remove("active-tab"); mb.classList.add("active-tab")
+    // Wait for two animation frames -- ensures the div is painted with real
+    // dimensions before Leaflet initializes and loads tiles
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))
+    await initHubMap(hubId)
+    // invalidateSize + auto-recenter after short delay for tile load
+    setTimeout(() => {
+      const md = hubMaps[hubId]; if (!md) return
+      md.map.invalidateSize()
+      const placed = sensorsForKey(hubId).filter(s => s.lat && s.lng)
+      if (placed.length) md.map.fitBounds(placed.map(s => [s.lat, s.lng]), { padding: [50, 50] })
+    }, 150)
+  }
+}
+
+function setLineType(hubId, type, color, weight) {
+  if (hubMaps[hubId]) hubMaps[hubId].activeLineType = { type, color, weight }
+  ;["mainline","lateral","dropline"].forEach(t => {
+    const btn = document.getElementById(`lt-${t}-${hubId}`); if (!btn) return
+    btn.style.background = t === type ? color + "20" : "transparent"
+    btn.style.fontWeight = t === type ? "700" : "600"
+  })
+}
+
+let lineDrawState = {}
+
+function startDrawing(hubId) {
+  const md = hubMaps[hubId]; if (!md || (lineDrawState[hubId] && lineDrawState[hubId].active)) return
+  const active = md.activeLineType, map = md.map
+  const state = { points: [], tempLayer: null, vertexMarkers: [], active: true, type: active.type, color: active.color, weight: active.weight }
+  lineDrawState[hubId] = state
+
+  const onMapClick = e => {
+    state.points.push(e.latlng)
+    if (state.tempLayer) map.removeLayer(state.tempLayer)
+    if (state.points.length > 1) {
+      state.tempLayer = L.polyline(state.points, { color: state.color, weight: state.weight, opacity: 0.85, dashArray: "6,6" }).addTo(map)
+    }
+    const vm = L.circleMarker(e.latlng, { radius: 6, color: "#fff", weight: 2, fillColor: state.color, fillOpacity: 1 }).addTo(map)
+    state.vertexMarkers.push(vm)
+    updateLineDrawBanner(hubId)
+  }
+  state._onMapClick = onMapClick
+  map.on("click", onMapClick)
+  showLineDrawBanner(hubId)
+}
+
+function undoLinePoint(hubId) {
+  const state = lineDrawState[hubId]; if (!state || !state.points.length) return
+  const md = hubMaps[hubId]
+  state.points.pop()
+  const vm = state.vertexMarkers.pop(); if (vm) md.map.removeLayer(vm)
+  if (state.tempLayer) { md.map.removeLayer(state.tempLayer); state.tempLayer = null }
+  if (state.points.length > 1) {
+    state.tempLayer = L.polyline(state.points, { color: state.color, weight: state.weight, opacity: 0.85, dashArray: "6,6" }).addTo(md.map)
+  }
+  updateLineDrawBanner(hubId)
+}
+
+async function finishLineDraw(hubId) {
+  const state = lineDrawState[hubId]; if (!state || state.points.length < 2) return
+  const md = hubMaps[hubId]
+  const layer = L.polyline(state.points, { color: state.color, weight: state.weight, opacity: 1 })
+  md.lineCount = (md.lineCount || 0) + 1
+  const name = `${state.type} ${md.lineCount}`
+  layer._name = name
+  layer.bindTooltip(name, { permanent: false })
+  attachLineSelectHandler(hubId, layer)
+  md.drawnItems.addLayer(layer)
+  // On the shared map, a new line still needs a single owning hub_id for the
+  // database row -- use whichever hub is selected in the Lines panel dropdown
+  // (defaults to the user's only/first hub when there's nothing to choose).
+  const targetHubId = hubId === SHARED_KEY ? (md.currentLineHub || (allHubs[0] && allHubs[0].id)) : hubId
+  try {
+    if (typeof saveMapLine === "function") {
+      const saved = await saveMapLine(targetHubId, state.type, state.color, name, layer.toGeoJSON())
+      if (saved) layer._dbId = saved.id
+    }
+  } catch(e) { console.warn("saveMapLine not available yet:", e) }
+  endLineDraw(hubId)
+}
+
+function cancelLineDraw(hubId) { endLineDraw(hubId) }
+
+function endLineDraw(hubId) {
+  const state = lineDrawState[hubId]; if (!state) return
+  const md = hubMaps[hubId]
+  if (md) {
+    md.map.off("click", state._onMapClick)
+    if (state.tempLayer) md.map.removeLayer(state.tempLayer)
+    state.vertexMarkers.forEach(vm => md.map.removeLayer(vm))
+  }
+  hideLineDrawBanner(hubId)
+  delete lineDrawState[hubId]
+}
+
+function showLineDrawBanner(hubId) {
+  const b = document.getElementById(`linedraw-banner-${hubId}`); if (!b) return
+  b.classList.remove("hidden"); updateLineDrawBanner(hubId)
+}
+function hideLineDrawBanner(hubId) {
+  const b = document.getElementById(`linedraw-banner-${hubId}`); if (b) b.classList.add("hidden")
+}
+function updateLineDrawBanner(hubId) {
+  const b = document.getElementById(`linedraw-banner-${hubId}`); if (!b) return
+  const n = (lineDrawState[hubId] || {}).points?.length || 0
+  b.innerHTML = `<div>Tap the map to place points &mdash; ${n} placed</div>
+    <div class="btn-row">
+      <button onclick="undoLinePoint('${hubId}')" ${n?"":"disabled"}>Undo point</button>
+      <button onclick="finishLineDraw('${hubId}')" ${n<2?"disabled":""}>Finish line</button>
+      <button onclick="cancelLineDraw('${hubId}')">Cancel</button>
+    </div>`
+}
+
+// Line-actions dropdown -- a real Leaflet control (see EditActionsCtrl in
+// initHubMap) styled and positioned just like the Lines dropdown, so it
+// opens downward from the topleft control row and always sits below the
+// notch/status bar the same way Lines already does. Used for the tap-a-line
+// picker (Edit/Delete/Cancel) as well as the Save/Cancel steps within each.
+const BTN_GREEN = "flex:1;font-size:12px;padding:6px 10px;border-radius:6px;border:none;color:#0f172a;background:#22c55e;font-weight:700;cursor:pointer;"
+const BTN_SLATE = "flex:1;font-size:12px;padding:6px 10px;border-radius:6px;border:1px solid #475569;color:#cbd5e1;background:transparent;font-weight:600;cursor:pointer;"
+const BTN_RED   = "flex:1;font-size:12px;padding:6px 10px;border-radius:6px;border:none;color:white;background:#dc2626;font-weight:700;cursor:pointer;"
+
+function showLineActionsPanel(hubId, message, buttons, inputConfig) {
+  const md = hubMaps[hubId]; if (!md || !md.editActionsCtrl) return
+  const c = md.editActionsCtrl.getContainer()
+  c._msg.textContent = message
+  if (inputConfig) {
+    c._input.style.display = "block"
+    c._input.value = inputConfig.value || ""
+    c._input.placeholder = inputConfig.placeholder || ""
+  } else {
+    c._input.style.display = "none"
+  }
+  c._btnRow.innerHTML = ""
+  buttons.forEach(b => {
+    const btn = document.createElement("button")
+    btn.textContent = b.label
+    btn.style.cssText = b.style
+    btn.onclick = () => { try { b.onClick() } catch(e) { console.warn("line action failed:", e) } }
+    c._btnRow.appendChild(btn)
+  })
+  c._panel.style.display = "flex"
+}
+function hideLineActionsPanel(hubId) {
+  const md = hubMaps[hubId]; if (!md || !md.editActionsCtrl) return
+  md.editActionsCtrl.getContainer()._panel.style.display = "none"
+}
+
+// ── Tap-to-select line Edit/Delete (replaces Leaflet.draw's built-in
+// EditToolbar/DeleteToolbar -- see mobile-debugging-summary for why: that
+// plugin is effectively unmaintained and has a long history of touch-input
+// bugs on iOS. This is built the same way the custom tap-to-place drawing
+// mode already is: plain Leaflet primitives we fully control.)
+let lineSelectState = {}
+
+function attachLineSelectHandler(hubId, layer) {
+  layer.on("click", e => { L.DomEvent.stopPropagation(e); selectLine(hubId, layer) })
+}
+
+function selectLine(hubId, layer) {
+  const md = hubMaps[hubId]; if (!md) return
+  if (lineDrawState[hubId] && lineDrawState[hubId].active) return // busy drawing a new line
+  const cur = lineSelectState[hubId]
+  if (cur && cur.mode !== "picker") return // busy editing/deleting another line -- ignore other taps
+  if (cur && cur.layer === layer) return
+  if (cur) deselectLine(hubId)
+
+  const highlight = L.polyline(layer.getLatLngs(), {
+    color: "#facc15", weight: (layer.options.weight || 5) + 6, opacity: 0.45
+  }).addTo(md.map)
+  layer.bringToFront()
+  lineSelectState[hubId] = { layer, mode: "picker", highlight }
+
+  showLineActionsPanel(hubId, layer._name || "Line", [
+    { label: "Edit",   style: BTN_GREEN, onClick: () => startEditLine(hubId) },
+    { label: "Delete", style: BTN_RED,   onClick: () => startDeleteLine(hubId) },
+    { label: "Cancel", style: BTN_SLATE, onClick: () => deselectLine(hubId) },
+  ])
+}
+
+function startEditLine(hubId) {
+  const md = hubMaps[hubId], sel = lineSelectState[hubId]; if (!md || !sel) return
+  const layer = sel.layer
+  const originalLatLngs = layer.getLatLngs().map(ll => L.latLng(ll.lat, ll.lng))
+  const originalName = layer._name || ""
+
+  // Bend-point (midpoint) markers -- deliberately tap-to-add rather than
+  // Leaflet.draw's drag-to-create gesture. Re-parenting an in-flight drag
+  // from a "ghost" midpoint into a real vertex marker is exactly the class
+  // of fragile touch hack that caused the original priming-tap bug, so
+  // instead a tap on a lighter, smaller marker splices a new point into the
+  // line at that spot, then rebuilds all handles from the updated array.
+  const vertexIcon = () => L.divIcon({
+    className: "",
+    html: `<div style="width:16px;height:16px;border-radius:50%;background:#fff;border:3px solid ${layer.options.color};box-shadow:0 2px 6px rgba(0,0,0,0.5);"></div>`,
+    iconSize: [16,16], iconAnchor: [8,8]
+  })
+  const midpointIcon = () => L.divIcon({
+    className: "",
+    html: `<div style="width:11px;height:11px;border-radius:50%;background:${layer.options.color};opacity:0.55;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.4);"></div>`,
+    iconSize: [11,11], iconAnchor: [5,5]
+  })
+  const midLatLng = (a, b) => L.latLng((a.lat + b.lat) / 2, (a.lng + b.lng) / 2)
+
+  const clearHandles = () => {
+    ;(sel.handles || []).forEach(h => md.map.removeLayer(h))
+    ;(sel.midpoints || []).forEach(h => md.map.removeLayer(h))
+    sel.handles = []; sel.midpoints = []
+  }
+
+  // Dragging an existing vertex only repositions its 1-2 adjacent midpoints
+  // (cheap update) -- a full rebuild mid-drag would destroy the marker
+  // currently being dragged.
+  const rebuildHandles = () => {
+    clearHandles()
+    const pts = layer.getLatLngs()
+    pts.forEach((ll, i) => {
+      const marker = L.marker(ll, { draggable: true, icon: vertexIcon() }).addTo(md.map)
+      marker.on("drag", () => {
+        const cur = sel.handles.map(m => m.getLatLng())
+        layer.setLatLngs(cur)
+        if (sel.highlight) sel.highlight.setLatLngs(cur)
+        if (sel.midpoints[i - 1]) sel.midpoints[i - 1].setLatLng(midLatLng(cur[i - 1], cur[i]))
+        if (sel.midpoints[i])     sel.midpoints[i].setLatLng(midLatLng(cur[i], cur[i + 1]))
+      })
+      sel.handles.push(marker)
+    })
+    for (let i = 0; i < pts.length - 1; i++) {
+      const mm = L.marker(midLatLng(pts[i], pts[i + 1]), { icon: midpointIcon() }).addTo(md.map)
+      mm.on("click", e => {
+        L.DomEvent.stopPropagation(e)
+        const cur = layer.getLatLngs()
+        cur.splice(i + 1, 0, mm.getLatLng())
+        layer.setLatLngs(cur)
+        if (sel.highlight) sel.highlight.setLatLngs(cur)
+        rebuildHandles()
+      })
+      sel.midpoints.push(mm)
+    }
+  }
+
+  sel.mode = "edit"; sel.handles = []; sel.midpoints = []
+  rebuildHandles()
+
+  const doSave = async () => {
+    const typed = md.editActionsCtrl.getContainer()._input.value.trim()
+    const newName = typed || originalName
+    let ok = true
+    if (layer._dbId) {
+      if (typeof updateMapLine === "function") {
+        const r = await updateMapLine(layer._dbId, layer.toGeoJSON()).catch(() => false)
+        if (r === false) ok = false
+      }
+      if (newName !== originalName) {
+        if (typeof updateMapLineName === "function") {
+          const r = await updateMapLineName(layer._dbId, newName).catch(() => false)
+          if (r === false) ok = false
+        } else {
+          ok = false
+          console.warn("updateMapLineName is not defined -- add it to auth.js")
+        }
+      }
+    }
+    if (!ok) {
+      showLineActionsPanel(hubId, "Save failed - check your connection and try again.", [
+        { label: "Retry",  style: BTN_GREEN, onClick: doSave },
+        { label: "Cancel", style: BTN_SLATE, onClick: doCancel },
+      ], { value: newName, placeholder: "Line name" })
+      return
+    }
+    layer._name = newName
+    layer.setTooltipContent(newName)
+    deselectLine(hubId)
+  }
+  const doCancel = () => {
+    layer.setLatLngs(originalLatLngs)
+    deselectLine(hubId)
+  }
+
+  showLineActionsPanel(hubId, "Drag the points and/or rename, then Save", [
+    { label: "Save",   style: BTN_GREEN, onClick: doSave },
+    { label: "Cancel", style: BTN_SLATE, onClick: doCancel },
+  ], { value: originalName, placeholder: "Line name" })
+}
+
+function startDeleteLine(hubId) {
+  const md = hubMaps[hubId], sel = lineSelectState[hubId]; if (!md || !sel) return
+  const layer = sel.layer
+  sel.mode = "delete"
+
+  const doDelete = async () => {
+    let ok = true
+    if (layer._dbId) {
+      if (typeof deleteMapLine === "function") {
+        const r = await deleteMapLine(layer._dbId).catch(() => false)
+        if (r === false) ok = false
+      } else { ok = false }
+    }
+    if (!ok) {
+      showLineActionsPanel(hubId, "Delete failed - check your connection and try again.", [
+        { label: "Retry",  style: BTN_RED,   onClick: doDelete },
+        { label: "Cancel", style: BTN_SLATE, onClick: () => deselectLine(hubId) },
+      ])
+      return
+    }
+    md.drawnItems.removeLayer(layer)
+    deselectLine(hubId)
+  }
+
+  showLineActionsPanel(hubId, `Delete "${layer._name || "this line"}"? This can't be undone.`, [
+    { label: "Delete", style: BTN_RED, onClick: doDelete },
+    { label: "Cancel", style: BTN_SLATE, onClick: () => deselectLine(hubId) },
+  ])
+}
+
+function deselectLine(hubId) {
+  const md = hubMaps[hubId], sel = lineSelectState[hubId]; if (!md || !sel) return
+  if (sel.handles) sel.handles.forEach(h => md.map.removeLayer(h))
+  if (sel.midpoints) sel.midpoints.forEach(h => md.map.removeLayer(h))
+  if (sel.highlight) md.map.removeLayer(sel.highlight)
+  hideLineActionsPanel(hubId)
+  delete lineSelectState[hubId]
+}
+
+function createMarkerIcon(color) {
+  return L.divIcon({
+    className: "",
+    html: `<div style="width:15px;height:15px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 0 0 2px ${color},0 2px 8px rgba(0,0,0,0.5);"></div>`,
+    iconSize: [15,15], iconAnchor: [7,7], popupAnchor: [0,-11],
+  })
+}
+
+function addMarkerToMap(hubId, sensor) {
+  const md = hubMaps[hubId]; if (!md || md.markers[sensor.id]) return
+  const color = pressureColor((latestReadingsCache[sensor.id] || {}).pressure_1)
+  const name  = sensor.sensor_name || sensor.sensor_hardware_id
+  const marker = L.marker([sensor.lat, sensor.lng], { icon: createMarkerIcon(color), draggable: true, title: name }).addTo(md.map)
+  const popup = () => {
+    const l = latestReadingsCache[sensor.id] || {}, col = pressureColor(l.pressure_1)
+    return `<div style="min-width:160px">
+      <div style="font-weight:700;margin-bottom:6px;color:white">${name}</div>
+      <div style="color:${col};font-size:15px;font-weight:600;margin-bottom:4px">${l.pressure_1 != null ? l.pressure_1.toFixed(2) : "---"} inHg</div>
+      <div style="color:#7dd3fc;font-size:13px;margin-bottom:4px">${l.temperature != null ? l.temperature.toFixed(1) : "---"} degF</div>
+      <div style="color:#64748b;font-size:11px;margin-bottom:10px">Last seen ${fmt(l.received_at)}</div>
+      <button onclick="startPlacement('${hubId}','${sensor.id}')"
+        style="background:#334155;border:none;color:#cbd5e1;padding:6px 10px;border-radius:6px;font-size:12px;cursor:pointer;width:100%">
+        Reposition marker</button></div>`
+  }
+  marker.bindPopup(popup, { maxWidth: 220 })
+  marker.on("click", () => marker.setPopupContent(popup()))
+  marker.on("dragend", async () => {
+    const p = marker.getLatLng()
+    if (typeof updateSensorLocation === "function") await updateSensorLocation(sensor.id, p.lat, p.lng)
+    sensor.lat = p.lat; sensor.lng = p.lng
+  })
+  md.markers[sensor.id] = marker
+}
+
+function updateHubMapMarkers(hubId) {
+  const md = hubMaps[hubId]; if (!md) return
+  for (const [sid, marker] of Object.entries(md.markers)) {
+    marker.setIcon(createMarkerIcon(pressureColor((latestReadingsCache[sid] || {}).pressure_1)))
+  }
+}
+
+function updateUnplacedBar(hubId) {
+  const bar  = document.getElementById(`unplaced-bar-${hubId}`)
+  const list = document.getElementById(`unplaced-list-${hubId}`)
+  const unplaced = sensorsForKey(hubId).filter(s => !s.lat || !s.lng)
+  if (!bar || !list) return
+  if (unplaced.length === 0) { bar.classList.add("hidden"); return }
+  bar.classList.remove("hidden")
+  list.innerHTML = unplaced.map(s => `
+    <button onclick="startPlacement('${hubId}','${s.id}')"
+      style="font-size:12px;background:#334155;border:none;color:#94a3b8;padding:5px 10px;border-radius:6px;cursor:pointer;"
+      onmouseover="this.style.background='#475569';this.style.color='white'"
+      onmouseout="this.style.background='#334155';this.style.color='#94a3b8'">
+      Place ${s.sensor_name || s.sensor_hardware_id}</button>`).join("")
+}
+
+function startPlacement(hubId, sensorId) {
+  const md = hubMaps[hubId]; if (!md) return
+  md.map.closePopup(); placementState = { hubId, sensorId }
+  const banner = document.getElementById(`placement-banner-${hubId}`)
+  if (banner) banner.classList.remove("hidden")
+  md.map.once("click", async e => {
+    if (!placementState) return
+    const sensor = allSensors.find(s => s.id === sensorId)
+    if (!sensor) { cancelPlacement(hubId); return }
+    if (typeof updateSensorLocation === "function") await updateSensorLocation(sensorId, e.latlng.lat, e.latlng.lng)
+    sensor.lat = e.latlng.lat; sensor.lng = e.latlng.lng
+    if (md.markers[sensorId]) md.markers[sensorId].setLatLng([sensor.lat, sensor.lng])
+    else addMarkerToMap(hubId, sensor)
+    cancelPlacement(hubId); updateUnplacedBar(hubId)
+  })
+}
+
+function cancelPlacement(hubId) {
+  placementState = null
+  const b = document.getElementById(`placement-banner-${hubId}`)
+  if (b) b.classList.add("hidden")
+}
+
+// The native browser Fullscreen API is intentionally never used here. On an
+// iOS home-screen web app it produces a status-bar strip that can get stuck,
+// a blue system exit-affordance bar, and it ignores safe-area insets so
+// controls end up pinned under the notch. Our own CSS overlay (below) gives
+// full control over all of that instead.
+
+// Forces the browser to repaint the page. iOS WebKit can leave a leftover
+// compositing artifact after a fixed-position fullscreen overlay is removed;
+// toggling display off/on forces a fresh layout+paint.
+function forceRepaint() {
+  const el = document.documentElement
+  el.style.display = "none"
+  void el.offsetHeight
+  el.style.display = ""
+}
+
+function toggleFullscreen(mapEl, map) {
+  if (mapEl.classList.contains("map-force-fullscreen")) {
+    mapEl.classList.remove("map-force-fullscreen")
+    document.body.classList.remove("map-fs-lock")
+    setTimeout(() => { map.invalidateSize(); forceRepaint() }, 100)
+  } else {
+    mapEl.classList.add("map-force-fullscreen")
+    document.body.classList.add("map-fs-lock")
+    setTimeout(() => map.invalidateSize(), 100)
+  }
+}
+
+
+
+// ── Initialize Leaflet map
+async function initHubMap(hubId) {
+  const mapEl = document.getElementById(`map-${hubId}`)
+  if (!mapEl || hubMaps[hubId]) return
+
+  const map = L.map(mapEl, { zoomControl: false })
+
+  const satellite = L.tileLayer(
+    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    { attribution: "Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics", maxZoom: 19 }
+  )
+  const labels = L.tileLayer(
+    "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+    { maxZoom: 19, opacity: 0.8 }
+  )
+  const roads = L.tileLayer(
+    "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}",
+    { maxZoom: 19, opacity: 0.6 }
+  )
+  satellite.addTo(map); labels.addTo(map); roads.addTo(map)
+
+  L.control.zoom({ position: "topleft" }).addTo(map)
+  L.control.layers({}, { "Labels & Boundaries": labels, "Roads": roads }, { position: "topright", collapsed: true }).addTo(map)
+
+  // Fullscreen button
+  const FsCtrl = L.Control.extend({ options: { position: "topright" }, onAdd() {
+    const btn = L.DomUtil.create("button", "leaflet-fs-btn")
+    btn.title = "Toggle fullscreen"
+    btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V3h4"/><path d="M21 7V3h-4"/><path d="M3 17v4h4"/><path d="M21 17v4h-4"/></svg>'
+    L.DomEvent.on(btn, "click", L.DomEvent.stopPropagation)
+    L.DomEvent.on(btn, "click", () => toggleFullscreen(mapEl, map))
+    return btn
+  }})
+  new FsCtrl().addTo(map)
+
+  // Recenter button
+  const RcCtrl = L.Control.extend({ options: { position: "topright" }, onAdd() {
+    const btn = L.DomUtil.create("button", "leaflet-fs-btn")
+    btn.title = "Recenter on sensors"
+    btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>'
+    L.DomEvent.on(btn, "click", L.DomEvent.stopPropagation)
+    L.DomEvent.on(btn, "click", () => {
+      const placed = sensorsForKey(hubId).filter(s => s.lat && s.lng)
+      if (placed.length) map.fitBounds(placed.map(s => [s.lat, s.lng]), { padding: [50, 50] })
+    })
+    return btn
+  }})
+  new RcCtrl().addTo(map)
+
+  // Draw lines collapsible control -- positioned topleft, to the right of the zoom buttons
+  const DlCtrl = L.Control.extend({ options: { position: "topleft" }, onAdd() {
+    const wrap = L.DomUtil.create("div")
+    wrap.style.cssText = "display:flex;flex-direction:column;align-items:flex-end;gap:4px;"
+
+    const toggle = L.DomUtil.create("button", "leaflet-fs-btn", wrap)
+    toggle.title = "Draw tap lines"
+    toggle.style.cssText = "width:auto !important;padding:0 10px !important;font-size:12px !important;font-weight:600 !important;white-space:nowrap;"
+    toggle.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:4px"><path d="M3 17l4-4 4 4 4-8 4 4"/></svg>Lines`
+
+    const panel = L.DomUtil.create("div","",wrap)
+    panel.style.cssText = "display:none;flex-direction:column;gap:6px;background:rgba(15,23,42,0.95);border:1px solid #1e293b;border-radius:10px;padding:10px;backdrop-filter:blur(8px);box-shadow:0 2px 12px rgba(0,0,0,0.6);min-width:130px;"
+
+    const lbl = L.DomUtil.create("div","",panel)
+    lbl.textContent = "Line type:"
+    lbl.style.cssText = "font-size:11px;color:#64748b;font-weight:600;letter-spacing:0.05em;"
+
+    // On the shared map, a new line needs to know which hub owns it (only
+    // shown when there's an actual choice -- auto-defaults to the only hub
+    // otherwise). Selection is stored on the map's own state object and read
+    // by finishLineDraw when calling saveMapLine.
+    if (hubId === SHARED_KEY && allHubs.length > 1) {
+      const hubLbl = L.DomUtil.create("div","",panel)
+      hubLbl.textContent = "Hub for new lines:"
+      hubLbl.style.cssText = "font-size:11px;color:#64748b;font-weight:600;letter-spacing:0.05em;margin-top:2px;"
+      const hubSelect = L.DomUtil.create("select","",panel)
+      hubSelect.style.cssText = "font-size:12px;padding:5px 8px;border-radius:6px;border:1px solid #475569;background:#0f172a;color:white;"
+      allHubs.forEach(h => {
+        const opt = document.createElement("option")
+        opt.value = h.id; opt.textContent = h.hub_name || h.hub_hardware_id
+        hubSelect.appendChild(opt)
+      })
+      L.DomEvent.on(hubSelect,"click",L.DomEvent.stopPropagation)
+      L.DomEvent.on(hubSelect,"change",() => { if (hubMaps[SHARED_KEY]) hubMaps[SHARED_KEY].currentLineHub = hubSelect.value })
+    }
+
+    ;[{type:"mainline",color:"#3b82f6",weight:8,label:"Mainline"},
+      {type:"lateral", color:"#22c55e",weight:5,label:"Lateral"},
+      {type:"dropline",color:"#94a3b8",weight:3,label:"Dropline"}].forEach(lt => {
+      const b = L.DomUtil.create("button","",panel)
+      b.id = `lt-${lt.type}-${hubId}`; b.textContent = lt.label
+      b.style.cssText = `font-size:12px;padding:5px 10px;border-radius:6px;border:1px solid ${lt.color};color:${lt.color};background:${lt.type==="mainline"?lt.color+"20":"transparent"};font-weight:${lt.type==="mainline"?"700":"600"};cursor:pointer;text-align:left;`
+      L.DomEvent.on(b,"click",L.DomEvent.stopPropagation)
+      L.DomEvent.on(b,"click",() => setLineType(hubId, lt.type, lt.color, lt.weight))
+    })
+
+    const div = L.DomUtil.create("div","",panel)
+    div.style.cssText = "border-top:1px solid #1e293b;margin:2px 0;"
+
+    const drawBtn = L.DomUtil.create("button","",panel)
+    drawBtn.textContent = "+ Draw Line"
+    drawBtn.style.cssText = "font-size:12px;padding:6px 10px;border-radius:6px;border:none;color:#0f172a;background:#22c55e;font-weight:700;cursor:pointer;"
+    L.DomEvent.on(drawBtn,"click",L.DomEvent.stopPropagation)
+    L.DomEvent.on(drawBtn,"click",() => { startDrawing(hubId); isOpen=false; panel.style.display="none" })
+
+    let isOpen = false
+    L.DomEvent.on(toggle,"click",L.DomEvent.stopPropagation)
+    L.DomEvent.on(toggle,"click",() => { isOpen=!isOpen; panel.style.display=isOpen?"flex":"none" })
+    L.DomEvent.disableClickPropagation(wrap)
+    return wrap
+  }})
+  new DlCtrl().addTo(map)
+
+  // Edit/delete Save+Cancel dropdown -- same control mechanism, styling and
+  // position as the Lines dropdown above, so it opens downward from the
+  // topleft control row and inherits the same below-the-notch placement
+  const EditActionsCtrl = L.Control.extend({ options: { position: "topleft" }, onAdd() {
+    const wrap = L.DomUtil.create("div")
+    wrap.style.cssText = "display:flex;flex-direction:column;gap:6px;"
+
+    const panel = L.DomUtil.create("div","",wrap)
+    panel.style.cssText = "display:none;flex-direction:column;gap:8px;background:rgba(15,23,42,0.95);border:1px solid #1e293b;border-radius:10px;padding:10px;backdrop-filter:blur(8px);box-shadow:0 2px 12px rgba(0,0,0,0.6);min-width:180px;max-width:230px;"
+
+    const msg = L.DomUtil.create("div","",panel)
+    msg.style.cssText = "font-size:11px;color:#94a3b8;font-weight:600;line-height:1.4;"
+
+    // Rename field -- hidden unless showLineActionsPanel is called with an
+    // inputConfig (only the Edit step uses it)
+    const input = L.DomUtil.create("input","",panel)
+    input.type = "text"
+    input.style.cssText = "display:none;width:100%;box-sizing:border-box;font-size:16px;padding:6px 8px;border-radius:6px;border:1px solid #475569;background:#0f172a;color:white;"
+    L.DomEvent.on(input,"click",L.DomEvent.stopPropagation)
+    L.DomEvent.disableClickPropagation(input)
+
+    // Buttons are filled in dynamically per use (2 for Save/Cancel steps,
+    // 3 for the initial Edit/Delete/Cancel picker) via showLineActionsPanel
+    const btnRow = L.DomUtil.create("div","",panel)
+    btnRow.style.cssText = "display:flex;gap:6px;"
+    L.DomEvent.on(btnRow,"click",L.DomEvent.stopPropagation)
+    L.DomEvent.disableClickPropagation(wrap)
+
+    wrap._panel = panel; wrap._msg = msg; wrap._input = input; wrap._btnRow = btnRow
+    return wrap
+  }})
+  const editActionsCtrl = new EditActionsCtrl().addTo(map)
+
+  // Legend -- commented out per request
+  // const LgCtrl = L.Control.extend({ options: { position: "bottomleft" }, onAdd() {
+  //   const d = L.DomUtil.create("div","map-legend")
+  //   d.innerHTML = `...`
+  //   L.DomEvent.disableClickPropagation(d); return d
+  // }})
+  // new LgCtrl().addTo(map)
+
+  // Placement banner
+  const banner = document.createElement("div")
+  banner.id = `placement-banner-${hubId}`; banner.className = "placement-banner hidden"
+  banner.innerHTML = `Click anywhere on the map to place this sensor <button onclick="cancelPlacement('${hubId}')">Cancel</button>`
+  mapEl.appendChild(banner)
+
+  // Line-drawing banner (tap-to-place mode) -- stop click propagation so
+  // tapping Undo/Finish/Cancel never also registers as a map tap/point
+  const lineBanner = document.createElement("div")
+  lineBanner.id = `linedraw-banner-${hubId}`; lineBanner.className = "line-draw-banner hidden"
+  mapEl.appendChild(lineBanner)
+  L.DomEvent.disableClickPropagation(lineBanner)
+
+  // drawnItems stored in hubMaps so CREATED handler uses same reference
+  // even if function scope is long gone
+  const drawnItems = new L.FeatureGroup()
+  map.addLayer(drawnItems)
+
+  hubMaps[hubId] = {
+    map, markers: {},
+    activeLineType: { type: "mainline", color: "#3b82f6", weight: 5 },
+    drawnItems, lineCount: 0, editActionsCtrl,
+    currentLineHub: hubId === SHARED_KEY ? (allHubs[0] && allHubs[0].id) : hubId
+  }
+
+  // Whenever the map container's actual on-screen size changes for any
+  // reason (entering/exiting fullscreen, device rotation, layout shifts),
+  // tell Leaflet to re-measure and redraw immediately. Without this, Leaflet
+  // can keep using a stale, smaller size after the container is resized by
+  // CSS, leaving an unrendered gap that just shows the page background.
+  if ("ResizeObserver" in window) {
+    new ResizeObserver(() => map.invalidateSize()).observe(mapEl)
+  }
+
+  // Load saved lines -- wrapped in try/catch so if auth.js functions are not
+  // yet added the map still initialises and lines can be drawn (just not saved)
+  try {
+    if (typeof loadMapLines === "function") {
+      // Shared map: loop over every hub and merge results -- avoids needing
+      // any new "load all lines" auth.js function since hub_map_lines is
+      // still fetched per-hub, just called once per hub instead of once total.
+      const hubIdsToLoad = hubId === SHARED_KEY ? allHubs.map(h => h.id) : [hubId]
+      let totalLines = 0
+      for (const hid of hubIdsToLoad) {
+        const savedLines = await loadMapLines(hid)
+        totalLines += savedLines.length
+        for (const line of savedLines) {
+          // L.geoJSON gives back a FeatureGroup wrapper -- pull out the actual
+          // polyline layer inside it, since getLatLngs/setLatLngs/options
+          // (used by tap-to-select edit below) only exist on the real layer
+          const geo = L.geoJSON(line.geojson, { style: { color: line.color, weight: weightForType(line.line_type), opacity: 1 } })
+          const layer = geo.getLayers()[0]
+          layer.bindTooltip(line.name || line.line_type, { permanent: false })
+          layer._dbId = line.id
+          layer._name = line.name || line.line_type
+          attachLineSelectHandler(hubId, layer)
+          drawnItems.addLayer(layer)
+        }
+      }
+      hubMaps[hubId].lineCount = totalLines
+    }
+  } catch(e) { console.warn("loadMapLines not available yet:", e) }
+
+  // Tapping empty map background dismisses the Edit/Delete/Cancel picker
+  // (but not once the user is actively mid-Edit or mid-Delete -- only Save
+  // or Cancel in that panel should end those)
+  map.on("click", () => {
+    const sel = lineSelectState[hubId]
+    if (sel && sel.mode === "picker") deselectLine(hubId)
+  })
+
+  // Place existing sensor markers -- for the shared map this pulls from every
+  // sensor the user owns (allSensors), not one hub's cache
+  const sensors = sensorsForKey(hubId)
+  const bounds  = []
+  for (const s of sensors) {
+    if (!s.lat || !s.lng) continue
+    addMarkerToMap(hubId, s); bounds.push([s.lat, s.lng])
+  }
+  if (bounds.length) map.fitBounds(bounds, { padding: [50, 50] })
+  else map.setView([44.5, -93.0], 14)
+}
+
+// ── Render hub section
+function renderHubSection(hub) {
+  if (document.getElementById(`hub-${hub.id}`)) return
+  hubTabs[hub.id] = "data"
+  const pcId = `pchart-${hub.id}`, tcId = `tchart-${hub.id}`
+  const gcId = `gauge-canvas-${hub.id}`, gvId = `gval-${hub.id}`, tbId = `table-${hub.id}`
+  const div = document.createElement("div")
+  div.id = `hub-${hub.id}`; div.className = "hub-section"
+  div.innerHTML = `
+    <div class="hub-title" style="justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="hub-dot"></span>${hub.hub_name||hub.hub_hardware_id}
+        <span class="text-slate-500 text-xs font-normal ml-2">${hub.hub_hardware_id}</span>
+      </div>
+      <button onclick="openEditModal('${hub.id}')" title="Edit names"
+        style="background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:6px;color:#64748b;flex-shrink:0;"
+        onmouseover="this.style.color='#22c55e'" onmouseout="this.style.color='#64748b'">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+      </button>
+    </div>
+    <div id="dataview-${hub.id}">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div class="card text-center md:col-span-3">
+          <h3 class="text-sm text-slate-400 mb-3">System Vacuum</h3>
+          <div class="gauge-wrap"><img src="assets/gauge.png" alt="gauge"><canvas id="${gcId}" width="400" height="400"></canvas></div>
+          <p id="${gvId}" class="text-3xl font-bold mt-2">0.00</p><p class="text-slate-400 text-sm">inHg</p>
+        </div>
+        <div class="card">
+          <h3 class="text-sm text-slate-400 mb-4">Hub Stats</h3>
+          <div class="space-y-3 text-sm">
+            <div>Sensors on this hub: <span id="count-${hub.id}" class="text-white font-semibold">0</span></div>
+            <div>Avg Temperature: <span id="avgtemp-${hub.id}" class="text-white font-semibold">---</span> degF</div>
+            <div>Avg Pressure: <span id="avgpres-${hub.id}" class="text-white font-semibold">---</span> inHg</div>
+            <div>Last data: <span id="lastseen-${hub.id}" class="text-white font-semibold">---</span></div>
+          </div>
+          <div class="mt-4 pt-4 border-t border-slate-700">
+            <label class="text-xs text-slate-400 block mb-2">Alert if sensor is
+              <input id="threshold-${hub.id}" type="number" min="1" max="99" placeholder="--"
+                class="inline-block w-14 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs mx-1 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                oninput="this.value=this.value.replace(/[^0-9]/g,'')" onchange="applyThreshold('${hub.id}')">
+              % below average</label>
+            <div id="lowlist-${hub.id}" class="mt-2 space-y-1 hidden">
+              <p class="text-xs text-amber-400 font-semibold mb-1">Low pressure sensors:</p>
+              <div id="lowlist-items-${hub.id}"></div>
+            </div>
+          </div>
+        </div>
+        <div class="card"><h3 class="text-sm text-slate-400 mb-4">Temperature History</h3><canvas id="${tcId}"></canvas></div>
+        <div class="card"><h3 class="text-sm text-slate-400 mb-4">Pressure History</h3><canvas id="${pcId}"></canvas></div>
+      </div>
+      <table class="w-full text-sm">
+        <thead class="text-slate-400 border-b border-slate-700">
+          <tr><th class="py-2 text-left">Sensor</th><th class="text-center">P1 (inHg)</th>
+          <th class="text-center">P2 (inHg)</th><th class="text-center">Temp (degF)</th>
+          <th class="text-center">Signal</th><th class="text-center">Last Seen</th></tr>
+        </thead>
+        <tbody id="${tbId}"></tbody>
+      </table>
+    </div>`
+  document.getElementById("hubsContainer").appendChild(div)
+
+  const cd = { plugins:{legend:{display:false}}, scales:{
+    x:{ticks:{color:"#64748b"},grid:{color:"#1e293b"}},
+    y:{ticks:{color:"#64748b"},grid:{color:"#334155"},title:{display:true,color:"#64748b",font:{size:11}}}
+  }}
+  hubCharts[hub.id] = {}
+  hubCharts[hub.id].pressure = new Chart(document.getElementById(pcId), {
+    type:"line", data:{labels:[],datasets:[{data:[],borderColor:"#22c55e",borderWidth:2,tension:0.3,pointRadius:2}]},
+    options:{...cd, scales:{...cd.scales, y:{...cd.scales.y,reverse:true,title:{display:true,text:"inHg",color:"#64748b",font:{size:11}}}}}
+  })
+  hubCharts[hub.id].temp = new Chart(document.getElementById(tcId), {
+    type:"line", data:{labels:[],datasets:[{data:[],borderColor:"#7dd3fc",borderWidth:2,tension:0.3,pointRadius:2}]},
+    options:{...cd, scales:{...cd.scales, y:{...cd.scales.y,title:{display:true,text:"degF",color:"#64748b",font:{size:11}}}}}
+  })
+
+  loadHubThreshold(hub.id).then(val => {
+    const inp = document.getElementById(`threshold-${hub.id}`)
+    if (inp && val != null) { inp.value = val; const h = allHubs.find(h=>h.id===hub.id); if(h) populateHub(h) }
+  })
+}
+
+async function populateHub(hub) {
+  const sensors = await loadSensorsForHub(hub.id)
+  const tableEl = document.getElementById(`table-${hub.id}`)
+  const pChart  = hubCharts[hub.id] && hubCharts[hub.id].pressure
+  const tChart  = hubCharts[hub.id] && hubCharts[hub.id].temp
+  if (!tableEl) return
+  hubSensorsCache[hub.id] = sensors
+  tableEl.innerHTML = ""
+  if (sensors.length === 0) {
+    tableEl.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-500">No sensors assigned to this hub yet.</td></tr>`
+    document.getElementById(`count-${hub.id}`).textContent = "0"
+    drawNeedle(`gauge-canvas-${hub.id}`, 0); updateUnplacedBar(SHARED_KEY); return
+  }
+  let pSum=0,pCnt=0,tSum=0,tCnt=0,lastT=null
+  const rows = []
+  for (const sensor of sensors) {
+    const readings = await loadLatestReadings(sensor.id)
+    const latest   = readings[0] || null
+    rows.push({sensor,readings,latest})
+    if (latest) latestReadingsCache[sensor.id] = latest
+    if (latest?.pressure_1 != null)  { pSum += latest.pressure_1; pCnt++ }
+    if (latest?.temperature != null)  { tSum += latest.temperature; tCnt++ }
+    if (latest?.received_at && (!lastT || latest.received_at > lastT)) lastT = latest.received_at
+  }
+  const avgP = pCnt ? pSum/pCnt : null, avgT = tCnt ? tSum/tCnt : null
+  const pct  = parseFloat((document.getElementById(`threshold-${hub.id}`) || {}).value)
+  const lowIds = new Set()
+  if (avgP != null && pct > 0) {
+    const cut = avgP * (1 - pct/100)
+    for (const {sensor,latest} of rows) if (latest?.pressure_1 != null && latest.pressure_1 > cut) lowIds.add(sensor.id)
+  }
+  for (const {sensor,readings,latest} of rows) {
+    const p1=latest?.pressure_1??null, p2=latest?.pressure_2??null
+    const temp=latest?.temperature??null, rssi=latest?.signal_strength??null
+    const low=lowIds.has(sensor.id)
+    tableEl.innerHTML += `<tr id="row-${sensor.id}" class="border-b border-slate-700 ${low?"bg-amber-900/30":""}">
+      <td class="py-2 ${low?"text-amber-400 font-semibold":""}">${low?"WARNING ":""}${sensor.sensor_name||sensor.sensor_hardware_id}</td>
+      <td class="text-center ${low?"text-amber-400 font-semibold":""}">${p1!=null?p1.toFixed(2):"---"}</td>
+      <td class="text-center">${p2!=null?p2.toFixed(2):"---"}</td>
+      <td class="text-center">${temp!=null?temp.toFixed(1):"---"}</td>
+      <td class="text-center">${rssiBars(rssi)}</td>
+      <td class="text-center text-slate-400">${fmt(latest?.received_at)}</td></tr>`
+    if (sensor===sensors[0] && readings.length && pChart && tChart) {
+      const sl=readings.slice(0,18).reverse(), lb=sl.map(r=>fmt(r.received_at))
+      pChart.data.labels=lb; pChart.data.datasets[0].data=sl.map(r=>r.pressure_1??null); pChart.update()
+      tChart.data.labels=lb; tChart.data.datasets[0].data=sl.map(r=>r.temperature??null); tChart.update()
+    }
+  }
+  document.getElementById(`count-${hub.id}`).textContent    = sensors.length
+  document.getElementById(`avgtemp-${hub.id}`).textContent  = avgT!=null?avgT.toFixed(1):"---"
+  document.getElementById(`avgpres-${hub.id}`).textContent  = avgP!=null?avgP.toFixed(2):"---"
+  document.getElementById(`lastseen-${hub.id}`).textContent = fmt(lastT)
+  document.getElementById(`gval-${hub.id}`).textContent     = avgP!=null?avgP.toFixed(2):"---"
+  drawNeedle(`gauge-canvas-${hub.id}`, avgP??0)
+  updateLowList(hub.id, rows, lowIds)
+  updateHubMapMarkers(SHARED_KEY)
+  updateUnplacedBar(SHARED_KEY)
+}
+
+function updateLowList(hubId, rows, lowIds) {
+  const wrap = document.getElementById(`lowlist-${hubId}`)
+  const items = document.getElementById(`lowlist-items-${hubId}`)
+  if (!wrap || !items) return
+  if (lowIds.size===0) { wrap.classList.add("hidden"); return }
+  wrap.classList.remove("hidden"); items.innerHTML = ""
+  for (const {sensor,latest} of rows) {
+    if (!lowIds.has(sensor.id)) continue
+    const p1 = latest?.pressure_1??null
+    items.innerHTML += `<div class="flex justify-between text-xs text-amber-300 py-1 border-b border-slate-700">
+      <span>${sensor.sensor_name||sensor.sensor_hardware_id}</span>
+      <span class="font-semibold">${p1!=null?p1.toFixed(2)+" inHg":"---"}</span></div>`
+  }
+}
+
+function applyThreshold(hubId) {
+  const inp = document.getElementById(`threshold-${hubId}`)
+  if (inp) saveHubThreshold(hubId, inp.value)
+  const h = allHubs.find(h=>h.id===hubId); if(h) populateHub(h)
+}
+
+async function populateUnassigned() {
+  const {data:assigned} = await supabaseClient.from("hub_sensors").select("sensor_id")
+  const ids = (assigned||[]).map(r=>r.sensor_id)
+  const sensors = allSensors.filter(s=>!ids.includes(s.id))
+  const sec=document.getElementById("unassignedSection"), tbl=document.getElementById("unassignedTable")
+  if (!sensors.length) { sec.classList.add("hidden"); return }
+  sec.classList.remove("hidden"); tbl.innerHTML=""
+  for (const s of sensors) {
+    const r=await loadLatestReadings(s.id), l=r[0]||null
+    const p1=l?.pressure_1??null,p2=l?.pressure_2??null,t=l?.temperature??null
+    tbl.innerHTML+=`<tr class="border-b border-slate-700">
+      <td class="py-2">${s.sensor_name||s.sensor_hardware_id}</td>
+      <td class="text-center">${p1!=null?p1.toFixed(2):"---"}</td>
+      <td class="text-center">${p2!=null?p2.toFixed(2):"---"}</td>
+      <td class="text-center">${t!=null?t.toFixed(1):"---"}</td>
+      <td class="text-center">${rssiBars(l?.signal_strength)}</td>
+      <td class="text-center text-slate-400">${fmt(l?.received_at)}</td></tr>`
+  }
+}
+
+async function loadDashboard() {
+  if (!(await requireAuth())) return
+  document.getElementById("hubsContainer").innerHTML=`<div class="text-center text-slate-400 py-20">Loading your hubs...</div>`
+  try { allHubs=await loadUserHubs(); allSensors=await loadUserSensors() }
+  catch(e) {
+    document.getElementById("hubsContainer").innerHTML=`<div class="text-center text-red-400 py-20">Failed to load data. Please refresh.</div>`
+    console.error(e); return
+  }
+  const empty=document.getElementById("emptyState")
+  const sharedSection=document.getElementById("sharedMapSection")
+  if (!allHubs.length) {
+    document.getElementById("hubsContainer").innerHTML=""
+    empty.classList.remove("hidden")
+    if (sharedSection) sharedSection.classList.add("hidden")
+    return
+  }
+  empty.classList.add("hidden"); document.getElementById("hubsContainer").innerHTML=""
+  if (sharedSection) sharedSection.classList.remove("hidden")
+  for (const h of allHubs) { renderHubSection(h); await populateHub(h) }
+  await initHubMap(SHARED_KEY)
+  updateUnplacedBar(SHARED_KEY)
+  await populateUnassigned(); populateAssignDropdowns()
+}
+
+function populateAssignDropdowns() {
+  const ss=document.getElementById("assignSensorSelect"), hs=document.getElementById("assignHubSelect")
+  ss.innerHTML="<option value=''>choose sensor</option>"
+  hs.innerHTML="<option value=''>choose hub</option>"
+  allSensors.forEach(s=>{ss.innerHTML+=`<option value="${s.id}">${s.sensor_name||s.sensor_hardware_id}</option>`})
+  allHubs.forEach(h=>{hs.innerHTML+=`<option value="${h.id}">${h.hub_name||h.hub_hardware_id}</option>`})
+}
+
+async function submitHub() {
+  const hwId=document.getElementById("hubHardwareId").value.trim()
+  const name=document.getElementById("hubName").value.trim()
+  const err=document.getElementById("hubError"); err.classList.add("hidden")
+  if (!hwId) { err.textContent="Hub Hardware ID is required."; err.classList.remove("hidden"); return }
+  const r=await claimHub(hwId,name); if(!r) return
+  closeModal("hubModal")
+  document.getElementById("hubHardwareId").value=""
+  document.getElementById("hubName").value=""
+  allHubs.push(r); document.getElementById("emptyState").classList.add("hidden")
+  renderHubSection(r); await populateHub(r); populateAssignDropdowns()
+}
+
+async function submitSensor() {
+  const hwId=document.getElementById("sensorHardwareId").value.trim()
+  const name=document.getElementById("sensorName").value.trim()
+  const err=document.getElementById("sensorError"); err.classList.add("hidden")
+  if (!hwId) { err.textContent="Sensor serial number is required."; err.classList.remove("hidden"); return }
+  const r=await claimSensor(hwId,name); if(!r) return
+  closeModal("sensorModal")
+  document.getElementById("sensorHardwareId").value=""
+  document.getElementById("sensorName").value=""
+  allSensors.push(r); populateAssignDropdowns(); await populateUnassigned()
+}
+
+async function submitAssign() {
+  const sid=document.getElementById("assignSensorSelect").value
+  const hid=document.getElementById("assignHubSelect").value
+  const act=document.getElementById("assignAction").value
+  const err=document.getElementById("assignError"), ok=document.getElementById("assignSuccess")
+  err.classList.add("hidden"); ok.classList.add("hidden")
+  if (!sid||!hid) { err.textContent="Please select both a sensor and a hub."; err.classList.remove("hidden"); return }
+  const success=act==="assign"?await assignSensorToHub(hid,sid):await removeSensorFromHub(hid,sid)
+  if (!success) return
+  ok.textContent=act==="assign"?"Sensor assigned successfully.":"Sensor removed from hub."; ok.classList.remove("hidden")
+  for (const h of allHubs) await populateHub(h); await populateUnassigned()
+}
+
+function subscribeRealtime() {
+  supabaseClient.channel("readings-stream").on("postgres_changes",
+    {event:"INSERT",schema:"public",table:"sensor_readings"}, async payload => {
+      for (const h of allHubs) {
+        const s=await loadSensorsForHub(h.id)
+        if (s.find(x=>x.id===payload.new.sensor_id)) { await populateHub(h); break }
+      }
+      await populateUnassigned()
+    }).subscribe()
+}
+
+function startPolling() {
+  setInterval(async()=>{for(const h of allHubs) await populateHub(h); await populateUnassigned()}, 60000)
+}
+
+async function refreshDashboard() {
+  const btn=document.getElementById("refreshBtn")
+  btn.textContent="Refreshing..."; btn.disabled=true; btn.style.opacity="0.6"
+  for(const h of allHubs) await populateHub(h); await populateUnassigned()
+  btn.textContent="Updated"; btn.style.opacity="1"
+  setTimeout(()=>{btn.textContent="Refresh";btn.disabled=false},2000)
+}
+
+let editingHubId=null
+
+async function openEditModal(hubId) {
+  editingHubId=hubId
+  const hub=allHubs.find(h=>h.id===hubId), sensors=await loadSensorsForHub(hubId)
+  const body=document.getElementById("editNamesBody"), err=document.getElementById("editNamesError")
+  err.classList.add("hidden")
+  let html=`<label class="text-sm font-semibold block mb-1">Hub Name</label>
+    <input id="edit-hub-name" class="modal-input mb-5" value="${hub.hub_name||""}" placeholder="${hub.hub_hardware_id}">`
+  if (sensors.length) {
+    html+=`<p class="text-xs text-slate-400 uppercase tracking-wide mb-3">Sensors on this hub</p>`
+    for (const s of sensors) html+=`<label class="text-sm font-semibold block mb-1">${s.sensor_name||s.sensor_hardware_id} <span class="text-slate-500 font-normal">(${s.sensor_hardware_id})</span></label>
+      <input id="edit-sensor-${s.id}" class="modal-input mb-4" value="${s.sensor_name||""}" placeholder="${s.sensor_hardware_id}">`
+  } else { html+=`<p class="text-slate-500 text-sm">No sensors assigned to this hub yet.</p>` }
+  body.innerHTML=html; openModal("editNamesModal")
+}
+
+async function submitEditNames() {
+  const hub=allHubs.find(h=>h.id===editingHubId), sensors=await loadSensorsForHub(editingHubId)
+  const err=document.getElementById("editNamesError"), btn=document.getElementById("editNamesSubmit")
+  err.classList.add("hidden"); btn.textContent="Saving..."; btn.disabled=true
+  const newName=document.getElementById("edit-hub-name").value.trim()
+  if (!(await updateHubName(editingHubId,newName))) {
+    err.textContent="Failed to save hub name."; err.classList.remove("hidden")
+    btn.textContent="Save"; btn.disabled=false; return
+  }
+  hub.hub_name=newName
+  for (const s of sensors) {
+    const inp=document.getElementById(`edit-sensor-${s.id}`); if(!inp) continue
+    if (!(await updateSensorName(s.id,inp.value.trim()))) {
+      err.textContent=`Failed to save name for sensor ${s.sensor_hardware_id}.`; err.classList.remove("hidden")
+      btn.textContent="Save"; btn.disabled=false; return
+    }
+    const ls=allSensors.find(x=>x.id===s.id); if(ls) ls.sensor_name=inp.value.trim()
+  }
+  btn.textContent="Save"; btn.disabled=false; closeModal("editNamesModal")
+  const titleEl=document.querySelector(`#hub-${editingHubId} .hub-title div`)
+  if (titleEl) titleEl.innerHTML=`<span class="hub-dot"></span>${hub.hub_name||hub.hub_hardware_id}<span class="text-slate-500 text-xs font-normal ml-2">${hub.hub_hardware_id}</span>`
+  await populateHub(hub); populateAssignDropdowns()
+}
+
+loadDashboard().then(()=>{ subscribeRealtime(); startPolling() })
+</script>
+</body>
+</html>
