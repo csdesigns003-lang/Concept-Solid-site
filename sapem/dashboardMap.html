@@ -1091,6 +1091,13 @@ async function initHubMap(hubId) {
   lineBanner.id = `linedraw-banner-${hubId}`; lineBanner.className = "line-draw-banner hidden"
   mapEl.appendChild(lineBanner)
   L.DomEvent.disableClickPropagation(lineBanner)
+  // Belt and suspenders: a capture-phase listener runs before Leaflet's own
+  // internal click/drag handling gets a chance to see the tap at all, so a
+  // press on Undo/Finish/Cancel can never also register as a new point
+  // placed on the map underneath, regardless of event-ordering edge cases.
+  ;["pointerdown","mousedown","touchstart","touchend","click"].forEach(evt => {
+    lineBanner.addEventListener(evt, e => e.stopPropagation(), true)
+  })
 
   // drawnItems stored in hubMaps so CREATED handler uses same reference
   // even if function scope is long gone
