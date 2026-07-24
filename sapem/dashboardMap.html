@@ -907,6 +907,13 @@ async function initHubMap(hubId) {
   if (!mapEl || hubMaps[hubId]) return
 
   const map = L.map(mapEl, { zoomControl: false })
+  // Set a view immediately (rather than waiting for the later fitBounds call)
+  // so the map is considered "ready" from the start. Otherwise every marker
+  // and line added below gets queued and only actually rendered in one batch
+  // whenever the map first becomes ready -- and if any single saved line has
+  // bad geometry, that one failure aborts the whole batch, taking every other
+  // line and every sensor marker down with it.
+  map.setView([44.5, -93.0], 14)
 
   const satellite = L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
@@ -1096,20 +1103,26 @@ async function initHubMap(hubId) {
       let totalLines = 0
       for (const hid of hubIdsToLoad) {
         const savedLines = await loadMapLines(hid)
-        totalLines += savedLines.length
         for (const line of savedLines) {
-          // L.geoJSON gives back a FeatureGroup wrapper -- pull out the actual
-          // polyline layer inside it, since getLatLngs/setLatLngs/options
-          // (used by tap-to-select edit below) only exist on the real layer
-          const geo = L.geoJSON(line.geojson, { style: { color: line.color, weight: weightForType(line.line_type), opacity: 1 } })
-          const layer = geo.getLayers()[0]
-          layer.bindTooltip(line.name || line.line_type, { permanent: false })
-          layer._dbId = line.id
-          layer._name = line.name || line.line_type
-          attachLineSelectHandler(hubId, layer)
-          drawnItems.addLayer(layer)
+          // Each line renders independently -- a single line with bad/missing
+          // geometry (e.g. fewer than 2 points) throws deep inside Leaflet's
+          // renderer, so skip and log rather than let one bad row take out
+          // every other line and every sensor marker on the map.
+          try {
+            const geo = L.geoJSON(line.geojson, { style: { color: line.color, weight: weightForType(line.line_type), opacity: 1 } })
+            const layer = geo.getLayers()[0]
+            const pts = layer && layer.getLatLngs ? layer.getLatLngs() : null
+            if (!pts || pts.length < 2) { console.warn("Skipping line with invalid geometry:", line.id); continue }
+            layer.bindTooltip(line.name || line.line_type, { permanent: false })
+            layer._dbId = line.id
+            layer._name = line.name || line.line_type
+            attachLineSelectHandler(hubId, layer)
+            drawnItems.addLayer(layer)
+            totalLines++
+          } catch(lineErr) { console.warn("Failed to render line, skipping:", line.id, lineErr) }
         }
       }
+
       hubMaps[hubId].lineCount = totalLines
     }
   } catch(e) { console.warn("loadMapLines not available yet:", e) }
@@ -1128,14 +1141,14 @@ async function initHubMap(hubId) {
   const bounds  = []
   for (const s of sensors) {
     if (!s.lat || !s.lng) continue
-    addMarkerToMap(hubId, s); bounds.push([s.lat, s.lng])
+    try { addMarkerToMap(hubId, s); bounds.push([s.lat, s.lng]) }
+    catch(markerErr) { console.warn("Failed to place marker for sensor, skipping:", s.id, markerErr) }
   }
-  // The map container may not have a real measured size yet the instant
-  // it becomes visible (this section sits at the bottom of the page) --
-  // calling fitBounds before Leaflet has re-measured throws deep inside
-  // Leaflet's internals. Force a re-measure first, then fit bounds on the
-  // next tick, matching the same invalidateSize+delay pattern the old
-  // per-hub tab-switch flow used for exactly this reason.
+  // The map container may not have a real measured size yet the instant it
+  // becomes visible (this section sits at the bottom of the page) -- force a
+  // re-measure before zooming to fit the actual sensor locations. Markers and
+  // lines are already rendered above regardless of this; this only adjusts
+  // the camera.
   map.invalidateSize()
   setTimeout(() => {
     map.invalidateSize()
