@@ -123,6 +123,10 @@ body.map-fs-lock { overflow: hidden !important; position: fixed !important; inse
 .line-draw-banner { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); background: rgba(15,23,42,0.95); border: 1px solid #1e293b; border-radius: 10px; padding: 10px 14px; color: #94a3b8; font-size: 12px; font-weight: 600; z-index: 1000; display: flex; flex-direction: column; align-items: center; gap: 8px; max-width: 92%; text-align: center; pointer-events: none; backdrop-filter: blur(8px); box-shadow: 0 2px 12px rgba(0,0,0,0.6); }
 .line-draw-banner .btn-row { display: flex; gap: 6px; pointer-events: all; }
 .line-draw-banner button:disabled { opacity: 0.4; cursor: default; }
+/* While actively drawing a new line, existing lines should look like part
+   of the map you're tracing over, not a clickable thing you could grab --
+   forces a crosshair cursor instead of the normal grab/pointer cursor */
+.line-draw-active .leaflet-interactive { cursor: crosshair !important; }
 </style>
 <link rel="stylesheet" href="tailwind.css">
 </head>
@@ -419,8 +423,14 @@ function startDrawing(hubId) {
   const active = md.activeLineType, map = md.map
   const state = { points: [], tempLayer: null, vertexMarkers: [], active: true, type: active.type, color: active.color, weight: active.weight }
   lineDrawState[hubId] = state
+  map.getContainer().classList.add("line-draw-active")
 
   const onMapClick = e => {
+    // Defense in depth: if this click actually originated on the banner's
+    // own Undo/Finish/Cancel buttons, ignore it here too, regardless of
+    // whether propagation was already stopped upstream.
+    const t = e.originalEvent && e.originalEvent.target
+    if (t && t.closest && t.closest(`#linedraw-banner-${hubId}`)) return
     state.points.push(e.latlng)
     if (state.tempLayer) map.removeLayer(state.tempLayer)
     if (state.points.length > 1) {
@@ -477,6 +487,7 @@ function endLineDraw(hubId) {
   const md = hubMaps[hubId]
   if (md) {
     md.map.off("click", state._onMapClick)
+    md.map.getContainer().classList.remove("line-draw-active")
     if (state.tempLayer) md.map.removeLayer(state.tempLayer)
     state.vertexMarkers.forEach(vm => md.map.removeLayer(vm))
   }
@@ -555,10 +566,20 @@ function attachLineSelectHandler(hubId, layer) {
   const hit = L.polyline(layer.getLatLngs(), {
     weight: 30, opacity: 0.02, color: "#000"
   })
-  hit.on("click", e => { L.DomEvent.stopPropagation(e); selectLine(hubId, layer) })
+  const handleLineClick = e => {
+    // While actively drawing a NEW line, don't let this line (or its wide
+    // invisible hit-target) swallow the tap -- let it pass through to the
+    // map's own click-to-place-point handler instead. Otherwise you can
+    // never place a new point close enough to butt up against an existing
+    // line without accidentally selecting it instead.
+    if (lineDrawState[hubId] && lineDrawState[hubId].active) return
+    L.DomEvent.stopPropagation(e)
+    selectLine(hubId, layer)
+  }
+  hit.on("click", handleLineClick)
   layer._hitLayer = hit
   if (md) hit.addTo(md.map)
-  layer.on("click", e => { L.DomEvent.stopPropagation(e); selectLine(hubId, layer) })
+  layer.on("click", handleLineClick)
 }
 
 // Keeps the invisible hit-line aligned with the visible line -- call this
