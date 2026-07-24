@@ -73,7 +73,6 @@ body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
 /* Push Leaflet's top controls below the notch/status bar, and its bottom
    controls (attribution) above the home-indicator area, while fullscreen */
 .map-force-fullscreen .leaflet-top    { top: max(10px, env(safe-area-inset-top)) !important; }
-.map-force-fullscreen .line-draw-banner { top: max(12px, env(safe-area-inset-top)) !important; }
 .map-force-fullscreen .leaflet-bottom { bottom: max(10px, env(safe-area-inset-bottom)) !important; }
 /* Buttons ~25% bigger while fullscreen (easier to hit on a phone) --
    real pixel sizes, not the non-standard `zoom` property, so touch
@@ -106,7 +105,7 @@ body.map-fs-lock { overflow: hidden !important; position: fixed !important; inse
 .leaflet-control-layers { background: rgba(15,23,42,0.92) !important; border: 1px solid #1e293b !important; border-radius: 7px !important; color: #cbd5e1 !important; box-shadow: 0 2px 8px rgba(0,0,0,0.5) !important; }
 .leaflet-control-layers-toggle { background-color: rgba(15,23,42,0.92) !important; }
 .leaflet-control-layers label { color: #cbd5e1 !important; font-size: 12px !important; }
-.leaflet-control a, .leaflet-control button, .leaflet-bar a, .line-draw-banner button { touch-action: manipulation !important; -webkit-tap-highlight-color: transparent; }
+.leaflet-control a, .leaflet-control button, .leaflet-bar a { touch-action: manipulation !important; -webkit-tap-highlight-color: transparent; }
 
 .leaflet-fs-btn { width: 34px; height: 34px; background: rgba(15,23,42,0.92) !important; border: 1px solid #1e293b !important; border-radius: 7px !important; color: #cbd5e1; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.5); transition: all 0.15s; }
 .leaflet-fs-btn:hover { background: #1e293b !important; color: white; }
@@ -118,11 +117,6 @@ body.map-fs-lock { overflow: hidden !important; position: fixed !important; inse
 /* Map legend -- commented out per request */
 /* .map-legend { ... } */
 
-/* Line-drawing banner (tap-to-place mode) -- same dark panel theme as the
-   line-editor Save/Cancel panel, so every one of these dialogs looks the same */
-.line-draw-banner { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); background: rgba(15,23,42,0.95); border: 1px solid #1e293b; border-radius: 10px; padding: 10px 14px; color: #94a3b8; font-size: 12px; font-weight: 600; z-index: 1000; display: flex; flex-direction: column; align-items: center; gap: 8px; max-width: 92%; text-align: center; pointer-events: none; backdrop-filter: blur(8px); box-shadow: 0 2px 12px rgba(0,0,0,0.6); }
-.line-draw-banner .btn-row { display: flex; gap: 6px; pointer-events: all; }
-.line-draw-banner button:disabled { opacity: 0.4; cursor: default; }
 /* While actively drawing a new line, existing lines should look like part
    of the map you're tracing over, not a clickable thing you could grab --
    forces a crosshair cursor instead of the normal grab/pointer cursor */
@@ -420,17 +414,16 @@ let lineDrawState = {}
 
 function startDrawing(hubId) {
   const md = hubMaps[hubId]; if (!md || (lineDrawState[hubId] && lineDrawState[hubId].active)) return
+  // Don't start drawing on top of an in-progress edit or marker reposition --
+  // clean those up first so they don't fight over the shared panel.
+  if (lineSelectState[hubId]) deselectLine(hubId)
+  if (placementState) cancelPlacement()
   const active = md.activeLineType, map = md.map
   const state = { points: [], tempLayer: null, vertexMarkers: [], active: true, type: active.type, color: active.color, weight: active.weight }
   lineDrawState[hubId] = state
   map.getContainer().classList.add("line-draw-active")
 
   const onMapClick = e => {
-    // Defense in depth: if this click actually originated on the banner's
-    // own Undo/Finish/Cancel buttons, ignore it here too, regardless of
-    // whether propagation was already stopped upstream.
-    const t = e.originalEvent && e.originalEvent.target
-    if (t && t.closest && t.closest(`#linedraw-banner-${hubId}`)) return
     state.points.push(e.latlng)
     if (state.tempLayer) map.removeLayer(state.tempLayer)
     if (state.points.length > 1) {
@@ -438,11 +431,11 @@ function startDrawing(hubId) {
     }
     const vm = L.circleMarker(e.latlng, { radius: 6, color: "#fff", weight: 2, fillColor: state.color, fillOpacity: 1 }).addTo(map)
     state.vertexMarkers.push(vm)
-    updateLineDrawBanner(hubId)
+    updateLineDrawPanel(hubId)
   }
   state._onMapClick = onMapClick
   map.on("click", onMapClick)
-  showLineDrawBanner(hubId)
+  updateLineDrawPanel(hubId)
 }
 
 function undoLinePoint(hubId) {
@@ -454,7 +447,7 @@ function undoLinePoint(hubId) {
   if (state.points.length > 1) {
     state.tempLayer = L.polyline(state.points, { color: state.color, weight: state.weight, opacity: 0.85, dashArray: "6,6" }).addTo(md.map)
   }
-  updateLineDrawBanner(hubId)
+  updateLineDrawPanel(hubId)
 }
 
 async function finishLineDraw(hubId) {
@@ -491,36 +484,17 @@ function endLineDraw(hubId) {
     if (state.tempLayer) md.map.removeLayer(state.tempLayer)
     state.vertexMarkers.forEach(vm => md.map.removeLayer(vm))
   }
-  hideLineDrawBanner(hubId)
+  hideLineActionsPanel(hubId)
   delete lineDrawState[hubId]
 }
 
-function showLineDrawBanner(hubId) {
-  const b = document.getElementById(`linedraw-banner-${hubId}`); if (!b) return
-  b.classList.remove("hidden"); updateLineDrawBanner(hubId)
-}
-function hideLineDrawBanner(hubId) {
-  const b = document.getElementById(`linedraw-banner-${hubId}`); if (b) b.classList.add("hidden")
-}
-function updateLineDrawBanner(hubId) {
-  const b = document.getElementById(`linedraw-banner-${hubId}`); if (!b) return
+function updateLineDrawPanel(hubId) {
   const n = (lineDrawState[hubId] || {}).points?.length || 0
-  b.innerHTML = `<div>Tap the map to place points &mdash; ${n} placed</div>
-    <div class="btn-row">
-      <button style="${BTN_SLATE}" onclick="undoLinePoint('${hubId}')" ${n?"":"disabled"}>Undo</button>
-      <button style="${BTN_GREEN}" onclick="finishLineDraw('${hubId}')" ${n<2?"disabled":""}>Finish</button>
-      <button style="${BTN_SLATE}" onclick="cancelLineDraw('${hubId}')">Cancel</button>
-    </div>`
-  // Each button is recreated above, so re-attach a capture-phase stop on the
-  // buttons themselves (not the container) every refresh. Because this sits
-  // on the exact same element as the button's own onclick, it doesn't block
-  // that handler from firing -- it only stops the tap from continuing on
-  // afterward to also register as a new point on the map underneath.
-  b.querySelectorAll("button").forEach(btn => {
-    ;["pointerdown","mousedown","touchstart","touchend","click"].forEach(evt => {
-      btn.addEventListener(evt, e => e.stopPropagation(), true)
-    })
-  })
+  showLineActionsPanel(hubId, `Tap the map to place points \u2014 ${n} placed`, [
+    { label: "Undo",   style: BTN_SLATE, disabled: !n,   onClick: () => undoLinePoint(hubId) },
+    { label: "Finish", style: BTN_GREEN, disabled: n<2,  onClick: () => finishLineDraw(hubId) },
+    { label: "Cancel", style: BTN_SLATE, onClick: () => cancelLineDraw(hubId) },
+  ])
 }
 
 // Line-actions dropdown -- a real Leaflet control (see EditActionsCtrl in
@@ -548,7 +522,8 @@ function showLineActionsPanel(hubId, message, buttons, inputConfig) {
     const btn = document.createElement("button")
     btn.textContent = b.label
     btn.style.cssText = b.style
-    btn.onclick = () => { try { b.onClick() } catch(e) { console.warn("line action failed:", e) } }
+    if (b.disabled) { btn.disabled = true; btn.style.opacity = "0.4"; btn.style.cursor = "default" }
+    else btn.onclick = () => { try { b.onClick() } catch(e) { console.warn("line action failed:", e) } }
     c._btnRow.appendChild(btn)
   })
   c._panel.style.display = "flex"
@@ -1094,13 +1069,6 @@ async function initHubMap(hubId) {
   //   L.DomEvent.disableClickPropagation(d); return d
   // }})
   // new LgCtrl().addTo(map)
-
-  // Line-drawing banner (tap-to-place mode) -- stop click propagation so
-  // tapping Undo/Finish/Cancel never also registers as a map tap/point
-  const lineBanner = document.createElement("div")
-  lineBanner.id = `linedraw-banner-${hubId}`; lineBanner.className = "line-draw-banner hidden"
-  mapEl.appendChild(lineBanner)
-  L.DomEvent.disableClickPropagation(lineBanner)
 
   // drawnItems stored in hubMaps so CREATED handler uses same reference
   // even if function scope is long gone
