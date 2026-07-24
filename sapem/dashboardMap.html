@@ -944,7 +944,10 @@ async function initHubMap(hubId) {
     L.DomEvent.on(btn, "click", L.DomEvent.stopPropagation)
     L.DomEvent.on(btn, "click", () => {
       const placed = sensorsForKey(hubId).filter(s => s.lat && s.lng)
-      if (placed.length) map.fitBounds(placed.map(s => [s.lat, s.lng]), { padding: [50, 50] })
+      if (!placed.length) return
+      map.invalidateSize()
+      try { map.fitBounds(placed.map(s => [s.lat, s.lng]), { padding: [50, 50] }) }
+      catch(e) { console.warn("fitBounds failed:", e) }
     })
     return btn
   }})
@@ -1127,8 +1130,23 @@ async function initHubMap(hubId) {
     if (!s.lat || !s.lng) continue
     addMarkerToMap(hubId, s); bounds.push([s.lat, s.lng])
   }
-  if (bounds.length) map.fitBounds(bounds, { padding: [50, 50] })
-  else map.setView([44.5, -93.0], 14)
+  // The map container may not have a real measured size yet the instant
+  // it becomes visible (this section sits at the bottom of the page) --
+  // calling fitBounds before Leaflet has re-measured throws deep inside
+  // Leaflet's internals. Force a re-measure first, then fit bounds on the
+  // next tick, matching the same invalidateSize+delay pattern the old
+  // per-hub tab-switch flow used for exactly this reason.
+  map.invalidateSize()
+  setTimeout(() => {
+    map.invalidateSize()
+    try {
+      if (bounds.length) map.fitBounds(bounds, { padding: [50, 50] })
+      else map.setView([44.5, -93.0], 14)
+    } catch(e) {
+      console.warn("fitBounds failed, falling back to default view:", e)
+      map.setView([44.5, -93.0], 14)
+    }
+  }, 50)
 }
 
 // ── Render hub section
