@@ -497,11 +497,12 @@ function updateLineDrawPanel(hubId) {
   ])
 }
 
-// Line-actions dropdown -- a real Leaflet control (see EditActionsCtrl in
-// initHubMap) styled and positioned just like the Lines dropdown, so it
-// opens downward from the topleft control row and always sits below the
-// notch/status bar the same way Lines already does. Used for the tap-a-line
-// picker (Edit/Delete/Cancel) as well as the Save/Cancel steps within each.
+// Line-actions dropdown -- lives inside the same Lines (DlCtrl) control in
+// initHubMap, stacked directly below its Line-type panel, so it always opens
+// in the same spot the Lines panel does rather than as a separate wide item
+// that could run under the Fullscreen/Recenter buttons on a narrow screen.
+// Used for the tap-a-line picker (Edit/Delete/Cancel), the Save/Cancel steps
+// within each, the reposition-marker panel, and the draw-a-line Undo/Finish/Cancel.
 const BTN_GREEN = "flex:1;font-size:12px;padding:6px 10px;border-radius:6px;border:none;color:#0f172a;background:#22c55e;font-weight:700;cursor:pointer;"
 const BTN_SLATE = "flex:1;font-size:12px;padding:6px 10px;border-radius:6px;border:1px solid #475569;color:#cbd5e1;background:transparent;font-weight:600;cursor:pointer;"
 const BTN_RED   = "flex:1;font-size:12px;padding:6px 10px;border-radius:6px;border:none;color:white;background:#dc2626;font-weight:700;cursor:pointer;"
@@ -1024,43 +1025,40 @@ async function initHubMap(hubId) {
     let isOpen = false
     L.DomEvent.on(toggle,"click",L.DomEvent.stopPropagation)
     L.DomEvent.on(toggle,"click",() => { isOpen=!isOpen; panel.style.display=isOpen?"flex":"none" })
-    L.DomEvent.disableClickPropagation(wrap)
-    return wrap
-  }})
-  new DlCtrl().addTo(map)
 
-  // Edit/delete Save+Cancel dropdown -- same control mechanism, styling and
-  // position as the Lines dropdown above, so it opens downward from the
-  // topleft control row and inherits the same below-the-notch placement
-  const EditActionsCtrl = L.Control.extend({ options: { position: "topleft" }, onAdd() {
-    const wrap = L.DomUtil.create("div")
-    wrap.style.cssText = "display:flex;flex-direction:column;gap:6px;"
+    // Edit/Delete/Save/Cancel/reposition-marker/draw-a-line panel -- lives
+    // in this SAME control (stacked below the Lines panel above) rather than
+    // as its own separate topleft control. A separate control would sit as
+    // its own item in the topleft row, growing wide enough on a narrow
+    // portrait phone to run under the Fullscreen/Recenter buttons in the
+    // topright corner. Sharing this wrap keeps it directly under the Lines
+    // button, taking extra height instead of extra width.
+    const actionsPanel = L.DomUtil.create("div","",wrap)
+    actionsPanel.style.cssText = "display:none;flex-direction:column;gap:8px;background:rgba(15,23,42,0.95);border:1px solid #1e293b;border-radius:10px;padding:10px;backdrop-filter:blur(8px);box-shadow:0 2px 12px rgba(0,0,0,0.6);min-width:180px;max-width:230px;"
 
-    const panel = L.DomUtil.create("div","",wrap)
-    panel.style.cssText = "display:none;flex-direction:column;gap:8px;background:rgba(15,23,42,0.95);border:1px solid #1e293b;border-radius:10px;padding:10px;backdrop-filter:blur(8px);box-shadow:0 2px 12px rgba(0,0,0,0.6);min-width:180px;max-width:230px;"
-
-    const msg = L.DomUtil.create("div","",panel)
-    msg.style.cssText = "font-size:11px;color:#94a3b8;font-weight:600;line-height:1.4;"
+    const actionsMsg = L.DomUtil.create("div","",actionsPanel)
+    actionsMsg.style.cssText = "font-size:11px;color:#94a3b8;font-weight:600;line-height:1.4;"
 
     // Rename field -- hidden unless showLineActionsPanel is called with an
     // inputConfig (only the Edit step uses it)
-    const input = L.DomUtil.create("input","",panel)
-    input.type = "text"
-    input.style.cssText = "display:none;width:100%;box-sizing:border-box;font-size:16px;padding:6px 8px;border-radius:6px;border:1px solid #475569;background:#0f172a;color:white;"
-    L.DomEvent.on(input,"click",L.DomEvent.stopPropagation)
-    L.DomEvent.disableClickPropagation(input)
+    const actionsInput = L.DomUtil.create("input","",actionsPanel)
+    actionsInput.type = "text"
+    actionsInput.style.cssText = "display:none;width:100%;box-sizing:border-box;font-size:16px;padding:6px 8px;border-radius:6px;border:1px solid #475569;background:#0f172a;color:white;"
+    L.DomEvent.on(actionsInput,"click",L.DomEvent.stopPropagation)
 
     // Buttons are filled in dynamically per use (2 for Save/Cancel steps,
-    // 3 for the initial Edit/Delete/Cancel picker) via showLineActionsPanel
-    const btnRow = L.DomUtil.create("div","",panel)
-    btnRow.style.cssText = "display:flex;gap:6px;"
-    L.DomEvent.on(btnRow,"click",L.DomEvent.stopPropagation)
-    L.DomEvent.disableClickPropagation(wrap)
+    // 3 for the initial Edit/Delete/Cancel picker, 3 for Undo/Finish/Cancel
+    // while drawing) via showLineActionsPanel
+    const actionsBtnRow = L.DomUtil.create("div","",actionsPanel)
+    actionsBtnRow.style.cssText = "display:flex;gap:6px;"
+    L.DomEvent.on(actionsBtnRow,"click",L.DomEvent.stopPropagation)
 
-    wrap._panel = panel; wrap._msg = msg; wrap._input = input; wrap._btnRow = btnRow
+    wrap._panel = actionsPanel; wrap._msg = actionsMsg; wrap._input = actionsInput; wrap._btnRow = actionsBtnRow
+    L.DomEvent.disableClickPropagation(wrap)
     return wrap
   }})
-  const editActionsCtrl = new EditActionsCtrl().addTo(map)
+  const dlCtrl = new DlCtrl().addTo(map)
+  const editActionsCtrl = dlCtrl // same control now -- see note above
 
   // Legend -- commented out per request
   // const LgCtrl = L.Control.extend({ options: { position: "bottomleft" }, onAdd() {
