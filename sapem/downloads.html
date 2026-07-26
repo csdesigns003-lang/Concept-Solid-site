@@ -20,6 +20,38 @@ font-family:"Microsoft Sans Serif", Arial, sans-serif;
 background:#f0fdf4;
 }
 
+.download-card{
+background:#ffffff;
+border:1px solid #dcfce7;
+border-radius:0.85rem;
+padding:1.4rem 1.6rem;
+box-shadow:0 3px 10px rgba(0,0,0,0.05);
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:1rem;
+}
+
+.download-icon{
+display:inline-flex;
+align-items:center;
+justify-content:center;
+width:2.75rem;
+height:2.75rem;
+border-radius:9999px;
+background:#22c55e;
+color:white;
+flex-shrink:0;
+}
+
+.section-block{
+background:#ecfdf5;
+border-radius:1.25rem;
+padding:2rem;
+margin-bottom:2.5rem;
+box-shadow:0 6px 18px rgba(0,0,0,0.06);
+}
+
 </style>
 
 </head>
@@ -135,40 +167,48 @@ Cart
 
 <section class="max-w-4xl mx-auto px-6 py-24">
 
-<h1 class="text-5xl font-bold mb-10">
+<h1 class="text-5xl font-bold mb-4">
 SapEM Downloads
 </h1>
 
-<p class="text-gray-700 mb-16">
-Access manuals, firmware updates, CAD models, and technical documentation
-for SapEM monitoring systems.
+<p class="text-gray-700 mb-16 text-lg">
+Printable guides for setting up and installing your SapEM system.
 </p>
-
 
 
 <!-- DOWNLOAD LIST -->
 
-<div class="space-y-8">
+<div class="section-block">
 
+<div class="space-y-5">
 
-<!-- SYSTEM MANUAL -->
+<!-- SETUP GUIDE -->
 
-<div class="bg-white p-6 rounded-lg shadow flex justify-between items-center">
+<div class="download-card">
+
+<div class="flex items-center gap-4">
+
+<span class="download-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+</span>
 
 <div>
 
-<h3 class="text-lg font-semibold">
-SapEM System Manual
+<h3 class="text-lg font-bold">
+SapEM System Setup Guide
 </h3>
 
 <p class="text-sm text-gray-600">
-Installation and operation documentation (PDF)
+Hub and sensor installation, step by step (PDF)
 </p>
 
 </div>
 
-<a href="../downloads/sapem-manual.pdf"
-class="bg-[#006400] text-white px-5 py-2 rounded hover:bg-[#004b00]">
+</div>
+
+<a href="downloads/sapem-setup-guide.pdf"
+download
+class="bg-[#006400] text-white px-5 py-2 rounded-lg font-semibold hover:bg-[#004b00] flex-shrink-0">
 
 Download
 
@@ -177,25 +217,33 @@ Download
 </div>
 
 
+<!-- INSTALL GUIDE -->
 
-<!-- SENSOR CAD -->
+<div class="download-card">
 
-<div class="bg-white p-6 rounded-lg shadow flex justify-between items-center">
+<div class="flex items-center gap-4">
+
+<span class="download-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+</span>
 
 <div>
 
-<h3 class="text-lg font-semibold">
-SapEM Sensor CAD Model
+<h3 class="text-lg font-bold">
+Install SapEM to Your Home Screen
 </h3>
 
 <p class="text-sm text-gray-600">
-3D STEP model for enclosure mounting
+Add the app to your phone for one-tap access (PDF)
 </p>
 
 </div>
 
-<a href="../downloads/sapem-sensor.step"
-class="bg-[#006400] text-white px-5 py-2 rounded hover:bg-[#004b00]">
+</div>
+
+<a href="downloads/sapem-install-guide.pdf"
+download
+class="bg-[#006400] text-white px-5 py-2 rounded-lg font-semibold hover:bg-[#004b00] flex-shrink-0">
 
 Download
 
@@ -203,62 +251,14 @@ Download
 
 </div>
 
+</div>
+
+</div>
 
 
-<!-- FIRMWARE -->
-
-<div class="bg-white p-6 rounded-lg shadow flex justify-between items-center">
-
-<div>
-
-<h3 class="text-lg font-semibold">
-SapEM Firmware Package
-</h3>
-
-<p class="text-sm text-gray-600">
-Latest firmware update for sensor nodes
+<p class="text-gray-500 text-sm">
+More resources, including firmware updates and technical documentation, are on the way.
 </p>
-
-</div>
-
-<a href="../downloads/sapem-firmware.zip"
-class="bg-[#006400] text-white px-5 py-2 rounded hover:bg-[#004b00]">
-
-Download
-
-</a>
-
-</div>
-
-
-
-<!-- API DOCS -->
-
-<div class="bg-white p-6 rounded-lg shadow flex justify-between items-center">
-
-<div>
-
-<h3 class="text-lg font-semibold">
-SapEM Data API Documentation
-</h3>
-
-<p class="text-sm text-gray-600">
-Sensor data format and integration guide
-</p>
-
-</div>
-
-<a href="../downloads/sapem-api.pdf"
-class="bg-[#006400] text-white px-5 py-2 rounded hover:bg-[#004b00]">
-
-Download
-
-</a>
-
-</div>
-
-
-</div>
 
 </section>
 
