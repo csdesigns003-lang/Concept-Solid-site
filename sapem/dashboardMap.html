@@ -1236,6 +1236,7 @@ function renderHubSection(hub) {
               <input id="threshold-${hub.id}" type="number" min="1" max="99" placeholder="--"
                 class="inline-block w-14 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white mx-1 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 style="font-size:16px;"
+                onfocus="setTimeout(()=>this.scrollIntoView({behavior:'smooth',block:'center'}),300)"
                 oninput="this.value=this.value.replace(/[^0-9]/g,'')" onchange="applyThreshold('${hub.id}')">
               % below average</label>
             <div id="lowlist-${hub.id}" class="mt-2 space-y-1 hidden">
