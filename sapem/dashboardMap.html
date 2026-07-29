@@ -757,24 +757,59 @@ function deselectLine(hubId) {
   delete lineSelectState[hubId]
 }
 
-function createMarkerIcon(color) {
+// A sensor counts as "dual pressure" once it has ever reported a P2 value --
+// there's no separate schema flag for it, so presence of pressure_2 on the
+// latest reading is the signal.
+function isDualPressure(sensorId) {
+  const l = latestReadingsCache[sensorId]
+  return !!(l && l.pressure_2 != null)
+}
+
+// Single-port sensors keep the original single dot. Dual-pressure sensors get
+// two small dots side by side, each colored by its own port's reading, so the
+// shape itself signals "dual" at a glance without needing the popup open.
+function createMarkerIcon(sensorId) {
+  const l = latestReadingsCache[sensorId] || {}
+  if (!isDualPressure(sensorId)) {
+    const color = pressureColor(l.pressure_1)
+    return L.divIcon({
+      className: "",
+      html: `<div style="width:15px;height:15px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 0 0 2px ${color},0 2px 8px rgba(0,0,0,0.5);"></div>`,
+      iconSize: [15,15], iconAnchor: [7,7], popupAnchor: [0,-11],
+    })
+  }
+  const c1 = pressureColor(l.pressure_1), c2 = pressureColor(l.pressure_2)
   return L.divIcon({
     className: "",
-    html: `<div style="width:15px;height:15px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 0 0 2px ${color},0 2px 8px rgba(0,0,0,0.5);"></div>`,
-    iconSize: [15,15], iconAnchor: [7,7], popupAnchor: [0,-11],
+    html: `<div style="display:flex;gap:3px;padding:1px;">
+      <div style="width:13px;height:13px;border-radius:50%;background:${c1};border:2px solid white;box-shadow:0 0 0 2px ${c1},0 2px 6px rgba(0,0,0,0.5);"></div>
+      <div style="width:13px;height:13px;border-radius:50%;background:${c2};border:2px solid white;box-shadow:0 0 0 2px ${c2},0 2px 6px rgba(0,0,0,0.5);"></div>
+    </div>`,
+    iconSize: [32,17], iconAnchor: [16,8], popupAnchor: [0,-13],
   })
 }
 
 function addMarkerToMap(hubId, sensor) {
   const md = hubMaps[hubId]; if (!md || md.markers[sensor.id]) return
-  const color = pressureColor((latestReadingsCache[sensor.id] || {}).pressure_1)
   const name  = sensor.sensor_name || sensor.sensor_hardware_id
-  const marker = L.marker([sensor.lat, sensor.lng], { icon: createMarkerIcon(color), draggable: true, title: name }).addTo(md.map)
+  const marker = L.marker([sensor.lat, sensor.lng], { icon: createMarkerIcon(sensor.id), draggable: true, title: name }).addTo(md.map)
   const popup = () => {
-    const l = latestReadingsCache[sensor.id] || {}, col = pressureColor(l.pressure_1)
+    const l = latestReadingsCache[sensor.id] || {}
+    const dual = isDualPressure(sensor.id)
+    let pressureHtml
+    if (dual) {
+      const c1 = pressureColor(l.pressure_1), c2 = pressureColor(l.pressure_2)
+      pressureHtml = `<div style="display:flex;gap:16px;margin-bottom:4px;">
+        <div><div style="color:#94a3b8;font-size:10px;">P1</div><div style="color:${c1};font-size:15px;font-weight:600;">${l.pressure_1!=null?l.pressure_1.toFixed(2):"---"} inHg</div></div>
+        <div><div style="color:#94a3b8;font-size:10px;">P2</div><div style="color:${c2};font-size:15px;font-weight:600;">${l.pressure_2!=null?l.pressure_2.toFixed(2):"---"} inHg</div></div>
+      </div>`
+    } else {
+      const col = pressureColor(l.pressure_1)
+      pressureHtml = `<div style="color:${col};font-size:15px;font-weight:600;margin-bottom:4px">${l.pressure_1 != null ? l.pressure_1.toFixed(2) : "---"} inHg</div>`
+    }
     return `<div style="min-width:160px">
       <div style="font-weight:700;margin-bottom:6px;color:white">${name}</div>
-      <div style="color:${col};font-size:15px;font-weight:600;margin-bottom:4px">${l.pressure_1 != null ? l.pressure_1.toFixed(2) : "---"} inHg</div>
+      ${pressureHtml}
       <div style="color:#7dd3fc;font-size:13px;margin-bottom:4px">${l.temperature != null ? l.temperature.toFixed(1) : "---"} degF</div>
       <div style="color:#64748b;font-size:11px;margin-bottom:10px">Last seen ${fmt(l.received_at)}</div>
       <button onclick="startPlacement('${hubId}','${sensor.id}')"
@@ -795,7 +830,7 @@ function addMarkerToMap(hubId, sensor) {
 function updateHubMapMarkers(hubId) {
   const md = hubMaps[hubId]; if (!md) return
   for (const [sid, marker] of Object.entries(md.markers)) {
-    marker.setIcon(createMarkerIcon(pressureColor((latestReadingsCache[sid] || {}).pressure_1)))
+    marker.setIcon(createMarkerIcon(sid))
   }
 }
 
@@ -831,9 +866,8 @@ function startPlacement(hubId, sensorId) {
   let createdNew = false
   if (!marker) {
     createdNew = true
-    const color = pressureColor((latestReadingsCache[sensorId] || {}).pressure_1)
     marker = L.marker(md.map.getCenter(), {
-      icon: createMarkerIcon(color), draggable: true, title: sensor.sensor_name || sensor.sensor_hardware_id
+      icon: createMarkerIcon(sensorId), draggable: true, title: sensor.sensor_name || sensor.sensor_hardware_id
     }).addTo(md.map)
     md.markers[sensorId] = marker
   }
@@ -1243,6 +1277,21 @@ function renderHubSection(hub) {
   })
 }
 
+// Builds one sensor row's cell contents. Pulled out so both first build and
+// every refresh reuse it -- we update a row's innerHTML in place instead of
+// wiping the whole table, which is what caused the visible flash on refresh.
+function sensorRowHTML(sensor, latest, low) {
+  const p1=latest?.pressure_1??null, p2=latest?.pressure_2??null
+  const temp=latest?.temperature??null, rssi=latest?.signal_strength??null
+  return `
+    <td class="py-2 ${low?"text-amber-400 font-semibold":""}">${low?"WARNING ":""}${sensor.sensor_name||sensor.sensor_hardware_id}</td>
+    <td class="text-center ${low?"text-amber-400 font-semibold":""}">${p1!=null?p1.toFixed(2):"---"}</td>
+    <td class="text-center">${p2!=null?p2.toFixed(2):"---"}</td>
+    <td class="text-center">${temp!=null?temp.toFixed(1):"---"}</td>
+    <td class="text-center">${rssiBars(rssi)}</td>
+    <td class="text-center text-slate-400">${fmt(latest?.received_at)}</td>`
+}
+
 async function populateHub(hub) {
   const sensors = await loadSensorsForHub(hub.id)
   const tableEl = document.getElementById(`table-${hub.id}`)
@@ -1250,12 +1299,18 @@ async function populateHub(hub) {
   const tChart  = hubCharts[hub.id] && hubCharts[hub.id].temp
   if (!tableEl) return
   hubSensorsCache[hub.id] = sensors
-  tableEl.innerHTML = ""
   if (sensors.length === 0) {
-    tableEl.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-500">No sensors assigned to this hub yet.</td></tr>`
+    if (!tableEl.querySelector(".empty-row")) {
+      tableEl.innerHTML = `<tr class="empty-row"><td colspan="6" class="py-6 text-center text-slate-500">No sensors assigned to this hub yet.</td></tr>`
+    }
     document.getElementById(`count-${hub.id}`).textContent = "0"
     drawNeedle(`gauge-canvas-${hub.id}`, 0); updateUnplacedBar(SHARED_KEY); return
   }
+  const emptyRow = tableEl.querySelector(".empty-row"); if (emptyRow) emptyRow.remove()
+
+  // Pressure average now includes BOTH ports on dual-pressure nodes -- each
+  // reported pressure value (P1 and, when present, P2) counts as its own
+  // reading into the system-wide average, not just P1 per sensor.
   let pSum=0,pCnt=0,tSum=0,tCnt=0,lastT=null
   const rows = []
   for (const sensor of sensors) {
@@ -1264,6 +1319,7 @@ async function populateHub(hub) {
     rows.push({sensor,readings,latest})
     if (latest) latestReadingsCache[sensor.id] = latest
     if (latest?.pressure_1 != null)  { pSum += latest.pressure_1; pCnt++ }
+    if (latest?.pressure_2 != null)  { pSum += latest.pressure_2; pCnt++ }
     if (latest?.temperature != null)  { tSum += latest.temperature; tCnt++ }
     if (latest?.received_at && (!lastT || latest.received_at > lastT)) lastT = latest.received_at
   }
@@ -1272,25 +1328,59 @@ async function populateHub(hub) {
   const lowIds = new Set()
   if (avgP != null && pct > 0) {
     const cut = avgP * (1 - pct/100)
-    for (const {sensor,latest} of rows) if (latest?.pressure_1 != null && latest.pressure_1 > cut) lowIds.add(sensor.id)
-  }
-  for (const {sensor,readings,latest} of rows) {
-    const p1=latest?.pressure_1??null, p2=latest?.pressure_2??null
-    const temp=latest?.temperature??null, rssi=latest?.signal_strength??null
-    const low=lowIds.has(sensor.id)
-    tableEl.innerHTML += `<tr id="row-${sensor.id}" class="border-b border-slate-700 ${low?"bg-amber-900/30":""}">
-      <td class="py-2 ${low?"text-amber-400 font-semibold":""}">${low?"WARNING ":""}${sensor.sensor_name||sensor.sensor_hardware_id}</td>
-      <td class="text-center ${low?"text-amber-400 font-semibold":""}">${p1!=null?p1.toFixed(2):"---"}</td>
-      <td class="text-center">${p2!=null?p2.toFixed(2):"---"}</td>
-      <td class="text-center">${temp!=null?temp.toFixed(1):"---"}</td>
-      <td class="text-center">${rssiBars(rssi)}</td>
-      <td class="text-center text-slate-400">${fmt(latest?.received_at)}</td></tr>`
-    if (sensor===sensors[0] && readings.length && pChart && tChart) {
-      const sl=readings.slice(0,18).reverse(), lb=sl.map(r=>fmt(r.received_at))
-      pChart.data.labels=lb; pChart.data.datasets[0].data=sl.map(r=>r.pressure_1??null); pChart.update()
-      tChart.data.labels=lb; tChart.data.datasets[0].data=sl.map(r=>r.temperature??null); tChart.update()
+    // Check both ports -- a dual node with one weak line should still trigger
+    // the low-pressure warning even if its other port reads fine.
+    for (const {sensor,latest} of rows) {
+      if ((latest?.pressure_1 != null && latest.pressure_1 > cut) ||
+          (latest?.pressure_2 != null && latest.pressure_2 > cut)) lowIds.add(sensor.id)
     }
   }
+
+  // Update rows in place (by id) instead of clearing the table -- appendChild
+  // on an already-attached row just reorders it, so this keeps existing DOM
+  // nodes alive and only rewrites cell content, eliminating the blank-frame
+  // flash that a full innerHTML="" + rebuild caused every refresh.
+  for (const {sensor,latest} of rows) {
+    const rowId = `row-${sensor.id}`
+    const low = lowIds.has(sensor.id)
+    let tr = document.getElementById(rowId)
+    if (!tr) { tr = document.createElement("tr"); tr.id = rowId }
+    tr.className = `border-b border-slate-700 ${low?"bg-amber-900/30":""}`
+    tr.innerHTML = sensorRowHTML(sensor, latest, low)
+    tableEl.appendChild(tr)
+  }
+  const wantedIds = new Set(rows.map(r => `row-${r.sensor.id}`))
+  Array.from(tableEl.children).forEach(tr => { if (tr.id && !wantedIds.has(tr.id)) tr.remove() })
+
+  // Pressure & temperature history charts: average ACROSS ALL sensors on the
+  // hub (not just the first sensor). Each sensor's readings array is ordered
+  // newest-first, so index i across sensors lines up by "how many readings
+  // ago" rather than by clock time -- reasonable since sensors on a hub report
+  // on the same cadence. Pressure average includes both P1 and P2.
+  if (pChart && tChart) {
+    const capped = Math.min(18, Math.max(0, ...rows.map(r => r.readings.length)))
+    const pSeries = [], tSeries = [], labels = []
+    for (let i = 0; i < capped; i++) {
+      let ps=0,pc=0,ts=0,tc=0,when=null
+      for (const {readings} of rows) {
+        const r = readings[i]; if (!r) continue
+        if (r.pressure_1 != null) { ps += r.pressure_1; pc++ }
+        if (r.pressure_2 != null) { ps += r.pressure_2; pc++ }
+        if (r.temperature != null) { ts += r.temperature; tc++ }
+        if (r.received_at && (!when || r.received_at > when)) when = r.received_at
+      }
+      pSeries.push(pc ? ps/pc : null)
+      tSeries.push(tc ? ts/tc : null)
+      labels.push(fmt(when))
+    }
+    pChart.data.labels = labels.slice().reverse()
+    pChart.data.datasets[0].data = pSeries.slice().reverse()
+    pChart.update()
+    tChart.data.labels = labels.slice().reverse()
+    tChart.data.datasets[0].data = tSeries.slice().reverse()
+    tChart.update()
+  }
+
   document.getElementById(`count-${hub.id}`).textContent    = sensors.length
   document.getElementById(`avgtemp-${hub.id}`).textContent  = avgT!=null?avgT.toFixed(1):"---"
   document.getElementById(`avgpres-${hub.id}`).textContent  = avgP!=null?avgP.toFixed(2):"---"
@@ -1307,14 +1397,19 @@ function updateLowList(hubId, rows, lowIds) {
   const items = document.getElementById(`lowlist-items-${hubId}`)
   if (!wrap || !items) return
   if (lowIds.size===0) { wrap.classList.add("hidden"); return }
-  wrap.classList.remove("hidden"); items.innerHTML = ""
+  wrap.classList.remove("hidden")
+  const wantedIds = new Set()
   for (const {sensor,latest} of rows) {
     if (!lowIds.has(sensor.id)) continue
-    const p1 = latest?.pressure_1??null
-    items.innerHTML += `<div class="flex justify-between text-xs text-amber-300 py-1 border-b border-slate-700">
-      <span>${sensor.sensor_name||sensor.sensor_hardware_id}</span>
-      <span class="font-semibold">${p1!=null?p1.toFixed(2)+" inHg":"---"}</span></div>`
+    const p1 = latest?.pressure_1??null, p2 = latest?.pressure_2??null
+    const label = p2!=null ? `P1 ${p1!=null?p1.toFixed(2):"---"} / P2 ${p2.toFixed(2)} inHg` : (p1!=null?p1.toFixed(2)+" inHg":"---")
+    const id = `lowitem-${sensor.id}`; wantedIds.add(id)
+    let el = document.getElementById(id)
+    if (!el) { el = document.createElement("div"); el.id = id; el.className = "flex justify-between text-xs text-amber-300 py-1 border-b border-slate-700" }
+    el.innerHTML = `<span>${sensor.sensor_name||sensor.sensor_hardware_id}</span><span class="font-semibold">${label}</span>`
+    items.appendChild(el)
   }
+  Array.from(items.children).forEach(el => { if (el.id && !wantedIds.has(el.id)) el.remove() })
 }
 
 function applyThreshold(hubId) {
@@ -1329,18 +1424,24 @@ async function populateUnassigned() {
   const sensors = allSensors.filter(s=>!ids.includes(s.id))
   const sec=document.getElementById("unassignedSection"), tbl=document.getElementById("unassignedTable")
   if (!sensors.length) { sec.classList.add("hidden"); return }
-  sec.classList.remove("hidden"); tbl.innerHTML=""
+  sec.classList.remove("hidden")
+  const wantedIds = new Set()
   for (const s of sensors) {
     const r=await loadLatestReadings(s.id), l=r[0]||null
     const p1=l?.pressure_1??null,p2=l?.pressure_2??null,t=l?.temperature??null
-    tbl.innerHTML+=`<tr class="border-b border-slate-700">
+    const rowId = `unassigned-row-${s.id}`; wantedIds.add(rowId)
+    let tr = document.getElementById(rowId)
+    if (!tr) { tr = document.createElement("tr"); tr.id = rowId; tr.className = "border-b border-slate-700" }
+    tr.innerHTML = `
       <td class="py-2">${s.sensor_name||s.sensor_hardware_id}</td>
       <td class="text-center">${p1!=null?p1.toFixed(2):"---"}</td>
       <td class="text-center">${p2!=null?p2.toFixed(2):"---"}</td>
       <td class="text-center">${t!=null?t.toFixed(1):"---"}</td>
       <td class="text-center">${rssiBars(l?.signal_strength)}</td>
-      <td class="text-center text-slate-400">${fmt(l?.received_at)}</td></tr>`
+      <td class="text-center text-slate-400">${fmt(l?.received_at)}</td>`
+    tbl.appendChild(tr)
   }
+  Array.from(tbl.children).forEach(tr => { if (tr.id && !wantedIds.has(tr.id)) tr.remove() })
 }
 
 async function loadDashboard() {
