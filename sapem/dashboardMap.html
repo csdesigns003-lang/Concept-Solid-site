@@ -13,7 +13,6 @@
 <link rel="icon" type="image/png" sizes="96x96" href="/images/favicon/sapem-favicon-96x96.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon/sapem-favicon-192.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/sapem-apple-touch-icon.png">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -347,7 +346,7 @@ async function logout() {
   window.location.href = "login.html"
 }
 
-let allHubs = [], allSensors = [], hubCharts = {}, hubTabs = {}, hubMaps = {}
+let allHubs = [], allSensors = [], hubTabs = {}, hubMaps = {}
 let hubSensorsCache = {}, latestReadingsCache = {}, placementState = null
 
 // SHARED_KEY is the constant "hubId" used to key the one consolidated map
@@ -1197,7 +1196,6 @@ async function initHubMap(hubId) {
 function renderHubSection(hub) {
   if (document.getElementById(`hub-${hub.id}`)) return
   hubTabs[hub.id] = "data"
-  const pcId = `pchart-${hub.id}`, tcId = `tchart-${hub.id}`
   const gcId = `gauge-canvas-${hub.id}`, gvId = `gval-${hub.id}`, tbId = `table-${hub.id}`
   const div = document.createElement("div")
   div.id = `hub-${hub.id}`; div.className = "hub-section"
@@ -1223,7 +1221,7 @@ function renderHubSection(hub) {
           <div class="gauge-wrap"><img src="assets/gauge.png" alt="gauge"><canvas id="${gcId}" width="400" height="400"></canvas></div>
           <p id="${gvId}" class="text-3xl font-bold mt-2">0.00</p><p class="text-slate-400 text-sm">inHg</p>
         </div>
-        <div class="card">
+        <div class="card md:col-span-3">
           <h3 class="text-sm text-slate-400 mb-4">Hub Stats</h3>
           <div class="space-y-3 text-sm">
             <div>Sensors on this hub: <span id="count-${hub.id}" class="text-white font-semibold">0</span></div>
@@ -1245,8 +1243,6 @@ function renderHubSection(hub) {
             </div>
           </div>
         </div>
-        <div class="card"><h3 class="text-sm text-slate-400 mb-4">Temperature History</h3><canvas id="${tcId}"></canvas></div>
-        <div class="card"><h3 class="text-sm text-slate-400 mb-4">Pressure History</h3><canvas id="${pcId}"></canvas></div>
       </div>
       <table class="w-full text-sm">
         <thead class="text-slate-400 border-b border-slate-700">
@@ -1258,20 +1254,6 @@ function renderHubSection(hub) {
       </table>
     </div>`
   document.getElementById("hubsContainer").appendChild(div)
-
-  const cd = { plugins:{legend:{display:false}}, scales:{
-    x:{ticks:{color:"#64748b"},grid:{color:"#1e293b"}},
-    y:{ticks:{color:"#64748b"},grid:{color:"#334155"},title:{display:true,color:"#64748b",font:{size:11}}}
-  }}
-  hubCharts[hub.id] = {}
-  hubCharts[hub.id].pressure = new Chart(document.getElementById(pcId), {
-    type:"line", data:{labels:[],datasets:[{data:[],borderColor:"#22c55e",borderWidth:2,tension:0.3,pointRadius:2}]},
-    options:{...cd, scales:{...cd.scales, y:{...cd.scales.y,reverse:true,title:{display:true,text:"inHg",color:"#64748b",font:{size:11}}}}}
-  })
-  hubCharts[hub.id].temp = new Chart(document.getElementById(tcId), {
-    type:"line", data:{labels:[],datasets:[{data:[],borderColor:"#7dd3fc",borderWidth:2,tension:0.3,pointRadius:2}]},
-    options:{...cd, scales:{...cd.scales, y:{...cd.scales.y,title:{display:true,text:"degF",color:"#64748b",font:{size:11}}}}}
-  })
 
   loadHubThreshold(hub.id).then(val => {
     const inp = document.getElementById(`threshold-${hub.id}`)
@@ -1297,8 +1279,6 @@ function sensorRowHTML(sensor, latest, low) {
 async function populateHub(hub) {
   const sensors = await loadSensorsForHub(hub.id)
   const tableEl = document.getElementById(`table-${hub.id}`)
-  const pChart  = hubCharts[hub.id] && hubCharts[hub.id].pressure
-  const tChart  = hubCharts[hub.id] && hubCharts[hub.id].temp
   if (!tableEl) return
   hubSensorsCache[hub.id] = sensors
   if (sensors.length === 0) {
@@ -1353,35 +1333,6 @@ async function populateHub(hub) {
   }
   const wantedIds = new Set(rows.map(r => `row-${r.sensor.id}`))
   Array.from(tableEl.children).forEach(tr => { if (tr.id && !wantedIds.has(tr.id)) tr.remove() })
-
-  // Pressure & temperature history charts: average ACROSS ALL sensors on the
-  // hub (not just the first sensor). Each sensor's readings array is ordered
-  // newest-first, so index i across sensors lines up by "how many readings
-  // ago" rather than by clock time -- reasonable since sensors on a hub report
-  // on the same cadence. Pressure average includes both P1 and P2.
-  if (pChart && tChart) {
-    const capped = Math.min(18, Math.max(0, ...rows.map(r => r.readings.length)))
-    const pSeries = [], tSeries = [], labels = []
-    for (let i = 0; i < capped; i++) {
-      let ps=0,pc=0,ts=0,tc=0,when=null
-      for (const {readings} of rows) {
-        const r = readings[i]; if (!r) continue
-        if (r.pressure_1 != null) { ps += r.pressure_1; pc++ }
-        if (r.pressure_2 != null) { ps += r.pressure_2; pc++ }
-        if (r.temperature != null) { ts += r.temperature; tc++ }
-        if (r.received_at && (!when || r.received_at > when)) when = r.received_at
-      }
-      pSeries.push(pc ? ps/pc : null)
-      tSeries.push(tc ? ts/tc : null)
-      labels.push(fmt(when))
-    }
-    pChart.data.labels = labels.slice().reverse()
-    pChart.data.datasets[0].data = pSeries.slice().reverse()
-    pChart.update()
-    tChart.data.labels = labels.slice().reverse()
-    tChart.data.datasets[0].data = tSeries.slice().reverse()
-    tChart.update()
-  }
 
   document.getElementById(`count-${hub.id}`).textContent    = sensors.length
   document.getElementById(`avgtemp-${hub.id}`).textContent  = avgT!=null?avgT.toFixed(1):"---"
