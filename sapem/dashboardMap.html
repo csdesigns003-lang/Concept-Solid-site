@@ -45,6 +45,16 @@ body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
 .tab-btn:hover:not(.active-tab) { color: #cbd5e1; background: #1e293b; }
 .tab-btn.active-tab { background: #22c55e; color: #0f172a; font-weight: 700; }
 
+.toast {
+  position: fixed; left: 50%; bottom: 32px; transform: translateX(-50%) translateY(20px);
+  background: #1e293b; border: 1px solid #334155; color: white;
+  padding: 10px 18px; border-radius: 10px; font-size: 13px; font-weight: 600;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4); z-index: 10000;
+  opacity: 0; pointer-events: none; transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.toast-green { border-color: #16a34a; }
+
 /* Map -- large square on desktop, rectangle on mobile */
 .hub-map {
   width: 100%;
@@ -791,7 +801,7 @@ function createMarkerIcon(sensorId) {
 function addMarkerToMap(hubId, sensor) {
   const md = hubMaps[hubId]; if (!md || md.markers[sensor.id]) return
   const name  = sensor.sensor_name || sensor.sensor_hardware_id
-  const marker = L.marker([sensor.lat, sensor.lng], { icon: createMarkerIcon(sensor.id), draggable: true, title: name }).addTo(md.map)
+  const marker = L.marker([sensor.lat, sensor.lng], { icon: createMarkerIcon(sensor.id), draggable: false, title: name }).addTo(md.map)
   const popup = () => {
     const l = latestReadingsCache[sensor.id] || {}
     const dual = isDualPressure(sensor.id)
@@ -817,12 +827,6 @@ function addMarkerToMap(hubId, sensor) {
   }
   marker.bindPopup(popup, { maxWidth: 220 })
   marker.on("click", () => marker.setPopupContent(popup()))
-  marker.on("dragend", async () => {
-    if (placementState && placementState.sensorId === sensor.id) return // placement panel's Save button commits instead
-    const p = marker.getLatLng()
-    if (typeof updateSensorLocation === "function") await updateSensorLocation(sensor.id, p.lat, p.lng)
-    sensor.lat = p.lat; sensor.lng = p.lng
-  })
   md.markers[sensor.id] = marker
 }
 
@@ -866,7 +870,7 @@ function startPlacement(hubId, sensorId) {
   if (!marker) {
     createdNew = true
     marker = L.marker(md.map.getCenter(), {
-      icon: createMarkerIcon(sensorId), draggable: true, title: sensor.sensor_name || sensor.sensor_hardware_id
+      icon: createMarkerIcon(sensorId), draggable: false, title: sensor.sensor_name || sensor.sensor_hardware_id
     }).addTo(md.map)
     md.markers[sensorId] = marker
   }
@@ -876,10 +880,25 @@ function startPlacement(hubId, sensorId) {
 
   placementState = { hubId, sensorId, marker, hadLocation, originalLatLng, createdNew, onMapClick }
 
-  showLineActionsPanel(hubId, "Click or drag to reposition", [
+  showLineActionsPanel(hubId, "Tap the map to reposition", [
     { label: "Save",   style: BTN_GREEN, onClick: savePlacement },
     { label: "Cancel", style: BTN_SLATE, onClick: cancelPlacement },
   ])
+}
+
+let toastTimer = null
+function showToast(message, opts = {}) {
+  let el = document.getElementById("appToast")
+  if (!el) {
+    el = document.createElement("div")
+    el.id = "appToast"
+    el.className = "toast"
+    document.body.appendChild(el)
+  }
+  el.textContent = message
+  el.className = "toast show" + (opts.green ? " toast-green" : "")
+  if (toastTimer) clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => { el.className = "toast" }, opts.duration || 2000)
 }
 
 async function savePlacement() {
@@ -890,6 +909,7 @@ async function savePlacement() {
   if (sensor) { sensor.lat = lat; sensor.lng = lng }
   endPlacement()
   updateUnplacedBar(SHARED_KEY)
+  showToast(`${sensor?.sensor_name || sensor?.sensor_hardware_id || "Sensor"} position saved`, { green: true })
 }
 
 function cancelPlacement() {
