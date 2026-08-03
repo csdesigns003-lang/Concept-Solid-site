@@ -3,7 +3,7 @@ const productID = params.get("id")
 
 async function loadProduct() {
 
-const res = await fetch("sapem/data/sapem-products.json")
+const res = await fetch("data/sapem-products.json")
 const products = await res.json()
 
 const product = products.find(p => p.id === productID)
