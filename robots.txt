@@ -1,0 +1,24 @@
+User-agent: *
+Allow: /
+
+# Auth and account pages — nothing to index, no reason to crawl
+Disallow: /sapem/login.html
+Disallow: /sapem/signup.html
+Disallow: /sapem/forgot-password.html
+Disallow: /sapem/reset-password.html
+
+# Logged-in dashboard views — user-specific data, not public content
+Disallow: /sapem/dashboard.html
+Disallow: /sapem/dashboardMap.html
+Disallow: /sapem/dashboardSeparateMap.html
+Disallow: /sapem/gauge-dashboard.html
+Disallow: /sapem/devices.html
+Disallow: /sapem/install.html
+Disallow: /sapem/maintenance.html
+
+# Transactional pages
+Disallow: /sapem/cart.html
+Disallow: /cart.html
+Disallow: /admin-orders.html
+
+Sitemap: https://concept-solid.com/sitemap.xml
