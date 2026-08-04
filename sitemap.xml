@@ -20,13 +20,13 @@
   </url>
 
   <url>
-    <loc>https://concept-solid.com/product.html?id=rackstop1.25</loc>
+    <loc>https://concept-solid.com/products/rackstop-1-25.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://concept-solid.com/product.html?id=rackstop2.0</loc>
+    <loc>https://concept-solid.com/products/rackstop-2-0.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -50,31 +50,31 @@
   </url>
 
   <url>
-    <loc>https://concept-solid.com/sapem/product.html?id=hub</loc>
+    <loc>https://concept-solid.com/sapem/products/hub.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://concept-solid.com/sapem/product.html?id=single</loc>
+    <loc>https://concept-solid.com/sapem/products/single-port-pressure-node.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://concept-solid.com/sapem/product.html?id=dual</loc>
+    <loc>https://concept-solid.com/sapem/products/double-port-pressure-node.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://concept-solid.com/sapem/product.html?id=single%20repeater</loc>
+    <loc>https://concept-solid.com/sapem/products/single-port-pressure-node-with-repeater.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://concept-solid.com/sapem/product.html?id=repeater</loc>
+    <loc>https://concept-solid.com/sapem/products/repeater.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
