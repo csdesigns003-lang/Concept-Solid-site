@@ -1,4 +1,6 @@
-async function loadProducts(dataFile, containerID) {
+async function loadProducts(dataFile, containerID, priceColorClass) {
+
+const priceClass = priceColorClass || "text-green-700"
 
 const res = await fetch(dataFile)
 const products = await res.json()
@@ -18,7 +20,7 @@ class="block bg-white rounded-xl shadow hover:shadow-xl p-6">
 ${product.name}
 </h3>
 
-<p class="text-green-700 font-semibold">
+<p class="${priceClass} font-semibold">
 $${product.price}
 </p>
 
