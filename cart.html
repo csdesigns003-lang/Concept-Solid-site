@@ -200,13 +200,13 @@ class="w-full border rounded p-3">
 
 </div>
   
-<button onclick="checkout()" class="checkout-btn w-full">
-Proceed to Checkout
+<button onclick="checkout()" id="checkout-btn" class="checkout-btn w-full">
+Request Order
 </button>
 
 <p class="text-sm text-gray-500 mt-4 text-center">
 
-Secure checkout coming soon
+This submits a request — you'll receive a confirmation by email, and we'll follow up before anything is charged.
 
 </p>
 
@@ -367,8 +367,19 @@ state: document.getElementById("ship-state").value,
 zip: document.getElementById("ship-zip").value
 }
 
+if(!shipping.name || !shipping.email){
+alert("Please enter your name and email")
+return
+}
+
+const btn = document.getElementById("checkout-btn")
+btn.disabled = true
+btn.innerText = "Submitting..."
+
+try{
+
 const res = await fetch(
-"https://rrcuuftcbwltppkmfpxv.supabase.co/functions/v1/create-checkout",
+"https://rrcuuftcbwltppkmfpxv.supabase.co/functions/v1/create-order",
 {
 method:"POST",
 headers:{
@@ -382,7 +393,21 @@ shipping: shipping
 
 const data = await res.json()
 
+if(!res.ok){
+alert(data.error || "Something went wrong submitting your order")
+btn.disabled = false
+btn.innerText = "Request Order"
+return
+}
+
+localStorage.removeItem("cart")
 window.location = data.url
+
+}catch(err){
+alert("Something went wrong submitting your order")
+btn.disabled = false
+btn.innerText = "Request Order"
+}
 
 }
 </script>
