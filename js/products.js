@@ -31,3 +31,34 @@ $${product.price}
 })
 
 }
+
+async function loadComingSoon(dataFile, containerID) {
+
+const res = await fetch(dataFile)
+const products = await res.json()
+
+const grid = document.getElementById(containerID)
+
+products.forEach(product => {
+
+grid.innerHTML += `
+
+<div class="block bg-white rounded-xl shadow p-6 opacity-75">
+
+<img src="${product.images[0]}" class="rounded mb-4">
+
+<h3 class="text-xl font-bold">
+${product.name}
+</h3>
+
+<p class="text-gray-500 font-semibold">
+Coming Soon
+</p>
+
+</div>
+
+`
+
+})
+
+}
