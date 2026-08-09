@@ -304,18 +304,12 @@ Users view sensor data from the connected web app.
       </p>
     </div>
 
-    <!-- MAIN SCREENSHOT: browser mockup -->
-    <div class="relative max-w-5xl mx-auto mb-20">
-      <div class="rounded-t-xl bg-gray-800 px-4 py-3 flex items-center gap-2 shadow-lg">
-        <span class="w-3 h-3 rounded-full bg-red-400"></span>
-        <span class="w-3 h-3 rounded-full bg-yellow-400"></span>
-        <span class="w-3 h-3 rounded-full bg-green-400"></span>
-        <span class="ml-4 text-gray-400 text-sm font-mono truncate">concept-solid.com/sapem/dashboardMap.html</span>
-      </div>
+    <!-- MAIN SCREENSHOT: just the dashboard image, no browser chrome -->
+    <div class="max-w-5xl mx-auto mb-20">
       <img
         src="images/sapem-dashboard-map.png"
         alt="SapEM live dashboard showing sensor map with pressure and temperature readings"
-        class="w-full rounded-b-xl shadow-2xl border border-gray-200"
+        class="w-full rounded-xl shadow-2xl border border-gray-200"
       >
     </div>
 
@@ -338,26 +332,26 @@ Users view sensor data from the connected web app.
       <div class="product-card bg-gray-50 p-6 rounded-xl">
         <img
           src="images/sapem-dashboard-gauge.png"
-          alt="Vacuum pressure gauge"
+          alt="System average vacuum pressure gauge"
           class="w-full h-40 object-cover rounded-lg mb-5 border border-gray-100"
         >
-        <h3 class="text-xl font-bold mb-2">At-a-Glance Gauges</h3>
+        <h3 class="text-xl font-bold mb-2">System Average Gauge</h3>
         <p class="text-gray-600">
-          A live needle gauge shows current vacuum pressure the instant you
-          open the dashboard — no digging through numbers.
+          The main gauge at the top of the dashboard shows your whole
+          system's average vacuum pressure across every sensor.
         </p>
       </div>
 
       <div class="product-card bg-gray-50 p-6 rounded-xl">
         <img
-          src="images/sapem-dashboard-chart.png"
-          alt="Pressure and temperature history chart"
+          src="images/sapem-dashboard-alert.png"
+          alt="Low vacuum sensor alert highlighted on the dashboard"
           class="w-full h-40 object-cover rounded-lg mb-5 border border-gray-100"
         >
-        <h3 class="text-xl font-bold mb-2">Full History, Charted</h3>
+        <h3 class="text-xl font-bold mb-2">Low Vacuum Alerts</h3>
         <p class="text-gray-600">
-          Track vacuum and temperature trends over the whole season to catch
-          leaks and line issues before they cost you sap.
+          Sensors running low on vacuum are automatically flagged, so you
+          can spot a leak or line issue before it costs you sap.
         </p>
       </div>
 
