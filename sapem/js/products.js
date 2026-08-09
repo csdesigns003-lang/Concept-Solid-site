@@ -10,7 +10,7 @@ products.forEach(product => {
 grid.innerHTML += `
 
 <a href="sapem/product.html?id=${product.id}"
-class="block bg-white rounded-xl shadow hover:shadow-xl p-6">
+class="block bg-gray-50 rounded-xl shadow hover:shadow-xl p-6">
 
 <img src="${product.images[0]}" class="rounded mb-4">
 
