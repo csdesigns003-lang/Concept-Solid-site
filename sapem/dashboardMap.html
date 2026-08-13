@@ -315,8 +315,16 @@ const GAUGE_MIN_DEG = 48, GAUGE_MAX_DEG = -228, PRESSURE_MAX = 30
 
 function fmt(d) {
   if (!d) return "---"
-  return new Date(d).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+  const diffMs = Date.now() - new Date(d).getTime()
+  const diffMin = Math.max(0, Math.floor(diffMs / 60000))
+  if (diffMin < 1) return "0m"
+  if (diffMin < 60) return `${diffMin}m`
+  const diffHr = Math.floor(diffMin / 60)
+  if (diffHr < 24) return `${diffHr}h`
+  const diffDay = Math.floor(diffHr / 24)
+  return `${diffDay}d`
 }
+
 
 function pressureColor(p) {
   if (p == null) return "#64748b"
