@@ -317,12 +317,12 @@ function fmt(d) {
   if (!d) return "---"
   const diffMs = Date.now() - new Date(d).getTime()
   const diffMin = Math.max(0, Math.floor(diffMs / 60000))
-  if (diffMin < 1) return "0m"
-  if (diffMin < 60) return `${diffMin}m`
+  if (diffMin < 1) return "0 m"
+  if (diffMin < 60) return `${diffMin} m`
   const diffHr = Math.floor(diffMin / 60)
-  if (diffHr < 24) return `${diffHr}h`
+  if (diffHr < 24) return `${diffHr} h`
   const diffDay = Math.floor(diffHr / 24)
-  return `${diffDay}d`
+  return `${diffDay} d`
 }
 
 
