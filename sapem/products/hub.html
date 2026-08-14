@@ -13,7 +13,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/sapem-apple-touch-icon.png">
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-body{font-family:"Microsoft Sans Serif", Arial, sans-serif;background:#f5f7fb;}
+body{font-family:"Microsoft Sans Serif", Arial, sans-serif;background:#f0fdf4;}
 </style>
 <script type="application/ld+json">
 {
@@ -24,9 +24,8 @@ body{font-family:"Microsoft Sans Serif", Arial, sans-serif;background:#f5f7fb;}
   "sku": "hub",
   "url": "https://concept-solid.com/sapem/products/hub.html",
   "image": [
-    "https://concept-solid.com/sapem/images/bike1.jpg",
-    "https://concept-solid.com/sapem/images/bike2.jpg",
-    "https://concept-solid.com/sapem/images/bike3.jpg"
+    "https://concept-solid.com/sapem/images/sapem-hub-top.png",
+    "https://concept-solid.com/sapem/images/sapem-hub-side.png"
   ],
   "offers": {
     "@type": "Offer",
@@ -70,11 +69,10 @@ body{font-family:"Microsoft Sans Serif", Arial, sans-serif;background:#f5f7fb;}
 <div class="grid md:grid-cols-2 gap-16">
 
 <div>
-<img id="main-image" src="../../sapem/images/bike1.jpg" alt="Receiving Hub" class="rounded-xl shadow mb-6">
+<img id="main-image" src="../../sapem/images/sapem-hub-top.png" alt="Receiving Hub" class="rounded-xl shadow mb-6">
 <div id="image-gallery" class="grid grid-cols-4 gap-4">
-<img src="../../sapem/images/bike1.jpg" class="rounded cursor-pointer" onclick="document.getElementById('main-image').src='../../sapem/images/bike1.jpg'">
-<img src="../../sapem/images/bike2.jpg" class="rounded cursor-pointer" onclick="document.getElementById('main-image').src='../../sapem/images/bike2.jpg'">
-<img src="../../sapem/images/bike3.jpg" class="rounded cursor-pointer" onclick="document.getElementById('main-image').src='../../sapem/images/bike3.jpg'">
+<img src="../../sapem/images/sapem-hub-top.png" class="rounded cursor-pointer" onclick="document.getElementById('main-image').src='../../sapem/images/sapem-hub-top.png'">
+<img src="../../sapem/images/sapem-hub-side.png" class="rounded cursor-pointer" onclick="document.getElementById('main-image').src='../../sapem/images/sapem-hub-side.png'">
 </div>
 </div>
 
@@ -87,9 +85,9 @@ body{font-family:"Microsoft Sans Serif", Arial, sans-serif;background:#f5f7fb;}
 <li><strong>Measures:</strong> Vacuum (inHg) from every connected node</li>
 <li><strong>Connects:</strong> Wi-Fi/Ethernet to the cloud, LoRa to your sensor network</li>
 <li><strong>Dashboard:</strong> Live gauge view, interactive sugarbush map, and historical pressure charts for every sensor</li>
-<li><strong>Range:</strong> [LoRa range to nodes, e.g. up to X mile line-of-sight]</li>
-<li><strong>Power:</strong> [power source — PoE / wall adapter / battery backup]</li>
-<li><strong>Setup:</strong> Self-configured by you — claim sensors from the dashboard, no installer required</li>
+<li><strong>Range:</strong> Range to nodes, e.g. ~1 mile (line-of-sight)</li>
+<li><strong>Power:</strong> Wall adapter</li>
+<li><strong>Setup:</strong> See Resources page</li>
 </ul>
 </div>
 <button id="add-cart-btn" onclick="addToCart({id: 'hub', name: 'Receiving Hub', price: 299.99})"
