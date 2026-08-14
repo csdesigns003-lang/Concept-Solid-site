@@ -3,11 +3,10 @@
     "id": "hub",
     "name": "Receiving Hub",
     "price": 299.99,
-    "description": "The central nervous system of your SapEM installation. The Receiving Hub listens for every pressure node and repeater on your line, logs readings continuously, and pushes live vacuum data straight to your SapEM dashboard \u2014 so you can watch your entire operation from your phone instead of walking the woods to check gauges. One hub covers your whole sugarbush, no wiring required.\n\nMeasures: Vacuum (inHg) from every connected node\nConnects: Wi-Fi/Ethernet to the cloud, LoRa to your sensor network\nDashboard: Live gauge view, interactive sugarbush map, and historical pressure charts for every sensor\nRange: [LoRa range to nodes, e.g. up to X mile line-of-sight]\nPower: [power source \u2014 PoE / wall adapter / battery backup]\nSetup: Self-configured by you \u2014 claim sensors from the dashboard, no installer required",
+    "description": "The central nervous system of your SapEM installation. The Receiving Hub listens for every pressure node and repeater on your line, logs readings continuously, and pushes live vacuum data straight to your SapEM dashboard — so you can watch your entire operation from your phone instead of walking the woods to check gauges. One hub covers your whole sugarbush, no wiring required.\n\nMeasures: Vacuum (inHg) from every connected node\nConnects: Wi-Fi/Ethernet to the cloud, LoRa to your sensor network\nDashboard: Live gauge view, interactive sugarbush map, and historical pressure charts for every sensor\nRange: [LoRa range to nodes, e.g. up to X mile line-of-sight]\nPower: [power source — PoE / wall adapter / battery backup]\nSetup: Self-configured by you — claim sensors from the dashboard, no installer required",
     "images": [
-      "sapem/images/bike1.jpg",
-      "sapem/images/bike2.jpg",
-      "sapem/images/bike3.jpg"
+      "images/sapem-hub-top.png",
+      "images/sapem-hub-side.png"
     ],
     "url": "products/hub.html"
   },
@@ -15,10 +14,10 @@
     "id": "single",
     "name": "Single Port Pressure Node",
     "price": 199.99,
-    "description": "A wireless vacuum sensor that clips directly onto a single line, reporting live pressure back to your hub over long-range radio \u2014 no cables, no manual gauge checks. Perfect for monitoring an individual lateral or a smaller run, it gives you the early warning you need the moment a leak or blockage starts costing you sap.\n\nMeasures: Vacuum (inHg), single port\nReports to: Any SapEM Receiving Hub or Repeater in range\nFitting: 5/16\" hose barb inlet \u2014 connects directly to standard sap line\nRange: [expected LoRa range, terrain dependent]\nPower: [battery type and expected battery life]",
+    "description": "A wireless vacuum sensor that clips directly onto a single line, reporting live pressure back to your hub over long-range radio — no cables, no manual gauge checks. Perfect for monitoring an individual lateral or a smaller run, it gives you the early warning you need the moment a leak or blockage starts costing you sap.\n\nMeasures: Vacuum (inHg), single port\nReports to: Any SapEM Receiving Hub or Repeater in range\nFitting: 5/16\" hose barb inlet — connects directly to standard sap line\nRange: [expected LoRa range, terrain dependent]\nPower: [battery type and expected battery life]",
     "images": [
-      "sapem/images/torque1.jpg",
-      "sapem/images/torque2.jpg"
+      "images/sapem-single-top.png",
+      "images/sapem-single-bottom.png"
     ],
     "url": "products/single-port-pressure-node.html"
   },
@@ -26,10 +25,10 @@
     "id": "dual",
     "name": "Double Port Pressure Node",
     "price": 249.99,
-    "description": "Monitor two lines from a single unit. The Double Port Pressure Node reads vacuum at two separate points and reports both back to your hub independently, giving you twice the coverage per install \u2014 ideal for junctions, mainlines, or anywhere you need to compare pressure across two runs without doubling your hardware.\n\nMeasures: Vacuum (inHg), two independent ports\nReports to: Any SapEM Receiving Hub or Repeater in range\nFitting: 5/16\" hose barb inlet on each port \u2014 connects directly to standard sap line\nRange: [expected LoRa range, terrain dependent]\nPower: [battery type and expected battery life]\nBest for: Mainline junctions, comparing vacuum across two zones from one location",
+    "description": "Monitor two lines from a single unit. The Double Port Pressure Node reads vacuum at two separate points and reports both back to your hub independently, giving you twice the coverage per install — ideal for junctions, mainlines, or anywhere you need to compare pressure across two runs without doubling your hardware.\n\nMeasures: Vacuum (inHg), two independent ports\nReports to: Any SapEM Receiving Hub or Repeater in range\nFitting: 5/16\" hose barb inlet on each port — connects directly to standard sap line\nRange: [expected LoRa range, terrain dependent]\nPower: [battery type and expected battery life]\nBest for: Mainline junctions, comparing vacuum across two zones from one location",
     "images": [
-      "sapem/images/torque1.jpg",
-      "sapem/images/torque2.jpg"
+      "images/sapem-dual-top.png",
+      "images/sapem-dual-bottom.png"
     ],
     "url": "products/double-port-pressure-node.html"
   },
@@ -37,10 +36,10 @@
     "id": "single-port-repeater",
     "name": "Single Port Pressure Node With Repeater",
     "price": 249.99,
-    "description": "All the monitoring of the standard single-port node, plus a built-in repeater that extends your network's range. Deploy this at the edge of your coverage area and it relays data from nodes further out back to the hub \u2014 letting you monitor deep into a sugarbush without a dead zone.\n\nMeasures: Vacuum (inHg), single port\nReports to: Any SapEM Receiving Hub in range\nAlso does: Relays data from other nodes beyond direct hub range\nFitting: 5/16\" hose barb inlet \u2014 connects directly to standard sap line\nRange: [node range] to hub, extends network by [repeater range]\nPower: [battery type and expected battery life]\nBest for: Far edges of your sugarbush where you'd otherwise need a separate repeater",
+    "description": "All the monitoring of the standard single-port node, plus a built-in repeater that extends your network's range. Deploy this at the edge of your coverage area and it relays data from nodes further out back to the hub — letting you monitor deep into a sugarbush without a dead zone.\n\nMeasures: Vacuum (inHg), single port\nReports to: Any SapEM Receiving Hub in range\nAlso does: Relays data from other nodes beyond direct hub range\nFitting: 5/16\" hose barb inlet — connects directly to standard sap line\nRange: [node range] to hub, extends network by [repeater range]\nPower: [battery type and expected battery life]\nBest for: Far edges of your sugarbush where you'd otherwise need a separate repeater",
     "images": [
-      "sapem/images/torque1.jpg",
-      "sapem/images/torque2.jpg"
+      "images/sapem-single-top.png",
+      "images/sapem-single-bottom.png"
     ],
     "url": "products/single-port-pressure-node-with-repeater.html"
   },
@@ -48,10 +47,10 @@
     "id": "repeater",
     "name": "Repeater",
     "price": 149.99,
-    "description": "Extends your SapEM network's reach when hills, distance, or dense woods block a direct line of sight to the hub. Place a Repeater between your hub and your farthest-out sensors and it relays their readings the rest of the way \u2014 keeping every corner of your operation connected without needing extra hubs.\n\nFunction: Relays data from out-of-range nodes to your Receiving Hub\nRange extension: [added range per repeater, terrain dependent]\nPower: [battery / solar / wired]\nBest for: Hilly terrain, long lines, or properties larger than a single hub's direct range",
+    "description": "Extends your SapEM network's reach when hills, distance, or dense woods block a direct line of sight to the hub. Place a Repeater between your hub and your farthest-out sensors and it relays their readings the rest of the way — keeping every corner of your operation connected without needing extra hubs.\n\nFunction: Relays data from out-of-range nodes to your Receiving Hub\nRange extension: [added range per repeater, terrain dependent]\nPower: [battery / solar / wired]\nBest for: Hilly terrain, long lines, or properties larger than a single hub's direct range",
     "images": [
-      "sapem/images/torque1.jpg",
-      "sapem/images/torque2.jpg"
+      "images/sapem-repeater-top.png",
+      "images/sapem-repeater-bottom.png"
     ],
     "url": "products/repeater.html"
   }
