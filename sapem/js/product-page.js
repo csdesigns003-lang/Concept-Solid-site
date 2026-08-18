@@ -33,7 +33,8 @@ document.getElementById("add-cart-btn").onclick = function(){
 addToCart({ id: product.id, name: product.name, price: product.price })
 
 }
-
+initReviews(product.id)
 }
 
 loadProduct()
+
