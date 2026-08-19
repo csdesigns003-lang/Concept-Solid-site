@@ -232,10 +232,12 @@ body.map-fs-lock { overflow: hidden !important; position: fixed !important; inse
     <label class="text-sm font-semibold">Select Hub</label>
     <select id="assignHubSelect" class="modal-input mb-4"><option value="">choose hub</option></select>
     <label class="text-sm font-semibold">Action</label>
-    <select id="assignAction" class="modal-input mb-6">
+    <select id="assignAction" class="modal-input mb-2">
       <option value="assign">Assign to this hub</option>
+      <option value="move">Move to this hub (remove from all others)</option>
       <option value="remove">Remove from this hub</option>
     </select>
+    <p class="text-slate-500 text-xs mb-6">"Assign" adds this hub without touching any hub the sensor is already on. "Move" makes this the sensor's only hub.</p>
     <p id="assignError"   class="text-red-400   text-sm mb-4 hidden"></p>
     <p id="assignSuccess" class="text-green-400 text-sm mb-4 hidden"></p>
     <div class="flex gap-3 justify-end">
@@ -1509,9 +1511,12 @@ async function submitAssign() {
   const err=document.getElementById("assignError"), ok=document.getElementById("assignSuccess")
   err.classList.add("hidden"); ok.classList.add("hidden")
   if (!sid||!hid) { err.textContent="Please select both a sensor and a hub."; err.classList.remove("hidden"); return }
-  const success=act==="assign"?await assignSensorToHub(hid,sid):await removeSensorFromHub(hid,sid)
+  let success, msg
+  if (act==="assign")      { success=await assignSensorToHub(hid,sid); msg="Sensor assigned successfully." }
+  else if (act==="move")   { success=await moveSensorToHub(hid,sid);   msg="Sensor moved to the selected hub." }
+  else                     { success=await removeSensorFromHub(hid,sid); msg="Sensor removed from hub." }
   if (!success) return
-  ok.textContent=act==="assign"?"Sensor assigned successfully.":"Sensor removed from hub."; ok.classList.remove("hidden")
+  ok.textContent=msg; ok.classList.remove("hidden")
   for (const h of allHubs) await populateHub(h); await populateUnassigned()
 }
 
