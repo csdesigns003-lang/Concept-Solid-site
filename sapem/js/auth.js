@@ -50,6 +50,7 @@ async function loadUserHubs() {
   const { data, error } = await supabaseClient
     .from("hubs")
     .select("*")
+    .is("removed_at", null)
     .order("assigned_at", { ascending: true })
   if (error) { console.error("Hub load error:", error); return [] }
   return data
@@ -136,6 +137,16 @@ async function claimHub(hubHardwareId, hubName) {
       .update({ hub_name: hubName.trim() })
       .eq("id", hub.id)
     hub.hub_name = hubName.trim()
+  }
+
+  // Clear a prior soft-removal, if any -- claiming (or re-claiming) a hub
+  // through Add Hub is the only way a removed hub should come back.
+  if (hub.removed_at) {
+    await supabaseClient
+      .from("hubs")
+      .update({ removed_at: null })
+      .eq("id", hub.id)
+    hub.removed_at = null
   }
 
   return hub
@@ -240,14 +251,19 @@ async function deleteHub(hubId) {
     .eq("hub_id", hubId)
   if (sensorsError) { alert("Failed to unassign sensors: " + sensorsError.message); return false }
 
-  // Clean up hub-owned rows so nothing is left orphaned/dangling once the
-  // hub row itself is gone.
+  // Clean up hub-owned rows so nothing is left orphaned/dangling.
   await supabaseClient.from("hub_map_lines").delete().eq("hub_id", hubId)
   await supabaseClient.from("sensors_heard").delete().eq("hub_id", hubId)
 
+  // Soft-delete the hub itself rather than deleting the row outright. The
+  // hub hardware/backend appears to recreate or re-touch the hubs row on
+  // its own (e.g. a check-in from the Pi), which made a hard-deleted hub
+  // reappear on the dashboard on its own. Marking it removed and filtering
+  // it out in loadUserHubs() means it stays gone until the user explicitly
+  // re-claims it through Add Hub, which clears removed_at.
   const { error } = await supabaseClient
     .from("hubs")
-    .delete()
+    .update({ removed_at: new Date().toISOString() })
     .eq("id", hubId)
   if (error) { alert("Failed to remove hub: " + error.message); return false }
   return true
