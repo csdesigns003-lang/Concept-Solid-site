@@ -209,6 +209,29 @@ async function removeSensorFromHub(hubId, sensorId) {
   return true
 }
 
+async function deleteHub(hubId) {
+  // Unassign any sensors on this hub first -- deleting these hub_sensors
+  // rows is what makes the sensors fall back into the unassigned bin
+  // (populateUnassigned() treats "not present in hub_sensors" as unassigned).
+  const { error: sensorsError } = await supabaseClient
+    .from("hub_sensors")
+    .delete()
+    .eq("hub_id", hubId)
+  if (sensorsError) { alert("Failed to unassign sensors: " + sensorsError.message); return false }
+
+  // Clean up hub-owned rows so nothing is left orphaned/dangling once the
+  // hub row itself is gone.
+  await supabaseClient.from("hub_map_lines").delete().eq("hub_id", hubId)
+  await supabaseClient.from("sensors_heard").delete().eq("hub_id", hubId)
+
+  const { error } = await supabaseClient
+    .from("hubs")
+    .delete()
+    .eq("id", hubId)
+  if (error) { alert("Failed to remove hub: " + error.message); return false }
+  return true
+}
+
 async function saveHubThreshold(hubId, value) {
   const { error } = await supabaseClient
     .from("hubs")
