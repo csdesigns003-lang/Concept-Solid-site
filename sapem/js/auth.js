@@ -209,6 +209,27 @@ async function removeSensorFromHub(hubId, sensorId) {
   return true
 }
 
+async function moveSensorToHub(hubId, sensorId) {
+  // Detach the sensor from EVERY hub it's currently on (not just one) before
+  // reattaching it to the target hub. assignSensorToHub() alone only inserts
+  // a new link and leaves old ones in place -- since hub_sensors is a
+  // many-to-many table, a sensor can end up counted in more than one hub's
+  // average pressure if you just "assign" it to the new hub without first
+  // removing it from the old one. This makes the sensor exclusively belong
+  // to hubId in a single atomic-feeling step.
+  const { error: clearError } = await supabaseClient
+    .from("hub_sensors")
+    .delete()
+    .eq("sensor_id", sensorId)
+  if (clearError) { alert("Move failed: " + clearError.message); return false }
+
+  const { error } = await supabaseClient
+    .from("hub_sensors")
+    .insert({ hub_id: hubId, sensor_id: sensorId })
+  if (error) { alert("Move failed: " + error.message); return false }
+  return true
+}
+
 async function deleteHub(hubId) {
   // Unassign any sensors on this hub first -- deleting these hub_sensors
   // rows is what makes the sensors fall back into the unassigned bin
