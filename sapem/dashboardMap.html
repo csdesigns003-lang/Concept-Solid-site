@@ -37,6 +37,11 @@ body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
 .btn-green:hover { background: #15803d; }
 .btn-slate { background: #334155; color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; }
 .btn-slate:hover { background: #475569; }
+.btn-red { background: #dc2626; color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; }
+.btn-red:hover { background: #b91c1c; }
+.btn-text-red { background: none; border: none; color: #f87171; font-size: 13px; font-weight: 600; cursor: pointer; padding: 8px 4px; }
+.btn-text-red:hover { color: #ef4444; text-decoration: underline; }
+.btn-text-red:disabled { opacity: 0.6; cursor: default; text-decoration: none; }
 .hub-section { border: 1px solid #334155; border-radius: 14px; padding: 24px; margin-bottom: 32px; }
 .hub-title { font-size: 1.2rem; font-weight: 700; color: #22c55e; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
 .hub-dot { width: 10px; height: 10px; border-radius: 50%; background: #22c55e; display: inline-block; }
@@ -242,12 +247,27 @@ body.map-fs-lock { overflow: hidden !important; position: fixed !important; inse
 
 <div id="editNamesModal" class="modal-backdrop">
   <div class="modal-box">
-    <h2 class="text-xl font-bold mb-6">Edit Names</h2>
-    <div id="editNamesBody"></div>
-    <p id="editNamesError" class="text-red-400 text-sm mt-4 hidden"></p>
-    <div class="flex gap-3 justify-end mt-6">
-      <button onclick="closeModal('editNamesModal')" class="btn-slate">Cancel</button>
-      <button id="editNamesSubmit" onclick="submitEditNames()" class="btn-green">Save</button>
+    <div id="editNamesMainView">
+      <h2 class="text-xl font-bold mb-6">Edit Names</h2>
+      <div id="editNamesBody"></div>
+      <p id="editNamesError" class="text-red-400 text-sm mt-4 hidden"></p>
+      <div class="flex justify-between items-center mt-6">
+        <button id="editNamesRemoveHubBtn" onclick="showRemoveHubConfirm()" class="btn-text-red">Remove Hub</button>
+        <div class="flex gap-3">
+          <button onclick="closeModal('editNamesModal')" class="btn-slate">Cancel</button>
+          <button id="editNamesSubmit" onclick="submitEditNames()" class="btn-green">Save</button>
+        </div>
+      </div>
+    </div>
+    <div id="editNamesRemoveView" class="hidden">
+      <h2 class="text-xl font-bold mb-4 text-red-400">Remove Hub?</h2>
+      <p class="text-slate-300 text-sm mb-3">The hub will be removed from the dashboard.</p>
+      <p class="text-slate-400 text-sm mb-6">Any sensors assigned to this hub will be moved to the unassigned sensors bin.</p>
+      <p id="removeHubError" class="text-red-400 text-sm mb-4 hidden"></p>
+      <div class="flex gap-3 justify-end">
+        <button onclick="hideRemoveHubConfirm()" class="btn-slate">Cancel</button>
+        <button id="removeHubConfirmBtn" onclick="submitRemoveHub()" class="btn-red">Remove Hub</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1522,6 +1542,7 @@ let editingHubId=null
 
 async function openEditModal(hubId) {
   editingHubId=hubId
+  hideRemoveHubConfirm()
   const hub=allHubs.find(h=>h.id===hubId), sensors=await loadSensorsForHub(hubId)
   const body=document.getElementById("editNamesBody"), err=document.getElementById("editNamesError")
   err.classList.add("hidden")
@@ -1557,6 +1578,31 @@ async function submitEditNames() {
   const titleEl=document.querySelector(`#hub-${editingHubId} .hub-title div`)
   if (titleEl) titleEl.innerHTML=`<span class="hub-dot"></span>${hub.hub_name||hub.hub_hardware_id}<span class="text-slate-500 text-xs font-normal ml-2">${hub.hub_hardware_id}</span>`
   await populateHub(hub); populateAssignDropdowns()
+}
+
+function showRemoveHubConfirm() {
+  document.getElementById("removeHubError").classList.add("hidden")
+  document.getElementById("editNamesMainView").classList.add("hidden")
+  document.getElementById("editNamesRemoveView").classList.remove("hidden")
+}
+
+function hideRemoveHubConfirm() {
+  document.getElementById("editNamesRemoveView").classList.add("hidden")
+  document.getElementById("editNamesMainView").classList.remove("hidden")
+}
+
+async function submitRemoveHub() {
+  const btn=document.getElementById("removeHubConfirmBtn"), err=document.getElementById("removeHubError")
+  err.classList.add("hidden"); btn.textContent="Removing..."; btn.disabled=true
+  const ok=await deleteHub(editingHubId)
+  if (!ok) {
+    err.textContent="Failed to remove hub."; err.classList.remove("hidden")
+    btn.textContent="Remove Hub"; btn.disabled=false; return
+  }
+  btn.textContent="Remove Hub"; btn.disabled=false
+  closeModal("editNamesModal")
+  editingHubId=null
+  await loadDashboard()
 }
 
 loadDashboard().then(()=>{ subscribeRealtime(); startPolling() })
