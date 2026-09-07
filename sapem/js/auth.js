@@ -60,6 +60,7 @@ async function loadUserSensors() {
   const { data, error } = await supabaseClient
     .from("sensors")
     .select("*")
+    .order("sort_order", { ascending: true })
   if (error) { console.error("Sensor load error:", error); return [] }
   return data
 }
@@ -196,10 +197,23 @@ async function claimSensor(sensorHardwareId, sensorName) {
 async function loadSensorsForHub(hubId) {
   const { data, error } = await supabaseClient
     .from("hub_sensors")
-    .select("sensor_id, sensors(*)")
+    .select("sensor_id, sort_order, sensors(*)")
     .eq("hub_id", hubId)
+    .order("sort_order", { ascending: true })
   if (error) { console.error("loadSensorsForHub error:", error); return [] }
-  return data.map(row => row.sensors)
+  // Attach the hub-specific sort_order onto each sensor object so the
+  // dashboard's reorder buttons can read/swap it without a second query.
+  return data.map(row => ({ ...row.sensors, _hsSortOrder: row.sort_order }))
+}
+
+async function updateHubSensorSortOrder(hubId, sensorId, sortOrder) {
+  const { error } = await supabaseClient
+    .from("hub_sensors")
+    .update({ sort_order: sortOrder })
+    .eq("hub_id", hubId)
+    .eq("sensor_id", sensorId)
+  if (error) console.error("updateHubSensorSortOrder error:", error)
+  return !error
 }
 
 async function assignSensorToHub(hubId, sensorId) {
@@ -361,5 +375,74 @@ async function loadUserSensorsWithLocation() {
 async function updateMapLineName(lineId, name) {
   const { error } = await supabaseClient.from("hub_map_lines").update({ name }).eq("id", lineId)
   if (error) console.error("updateMapLineName error:", error)
+  return !error
+}
+
+// ── Always-on "flag" labels ────────────────────────────────
+
+async function updateSensorLabelVisible(sensorId, visible) {
+  const { error } = await supabaseClient
+    .from("sensors")
+    .update({ show_label: visible })
+    .eq("id", sensorId)
+  if (error) console.error("updateSensorLabelVisible error:", error)
+  return !error
+}
+
+async function updateMapLineLabelVisible(lineId, visible) {
+  const { error } = await supabaseClient
+    .from("hub_map_lines")
+    .update({ show_label: visible })
+    .eq("id", lineId)
+  if (error) console.error("updateMapLineLabelVisible error:", error)
+  return !error
+}
+
+// ── Freestanding map markers (repeaters, etc.) ─────────────
+
+async function loadMapMarkers(hubId) {
+  const { data, error } = await supabaseClient
+    .from("map_markers")
+    .select("*")
+    .eq("hub_id", hubId)
+  if (error) { console.error("loadMapMarkers error:", error); return [] }
+  return data
+}
+
+async function saveMapMarker(hubId, lat, lng, name, iconType) {
+  const { data: { user } } = await supabaseClient.auth.getUser()
+  const { data, error } = await supabaseClient
+    .from("map_markers")
+    .insert({ hub_id: hubId, user_id: user.id, lat, lng, name: name || "Marker", icon_type: iconType || "repeater" })
+    .select()
+    .single()
+  if (error) { console.error("saveMapMarker error:", error); return null }
+  return data
+}
+
+async function updateMapMarkerPosition(markerId, lat, lng) {
+  const { error } = await supabaseClient
+    .from("map_markers")
+    .update({ lat, lng })
+    .eq("id", markerId)
+  if (error) console.error("updateMapMarkerPosition error:", error)
+  return !error
+}
+
+async function updateMapMarkerName(markerId, name) {
+  const { error } = await supabaseClient
+    .from("map_markers")
+    .update({ name })
+    .eq("id", markerId)
+  if (error) console.error("updateMapMarkerName error:", error)
+  return !error
+}
+
+async function deleteMapMarker(markerId) {
+  const { error } = await supabaseClient
+    .from("map_markers")
+    .delete()
+    .eq("id", markerId)
+  if (error) console.error("deleteMapMarker error:", error)
   return !error
 }
