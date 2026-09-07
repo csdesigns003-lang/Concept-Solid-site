@@ -121,6 +121,10 @@ body.map-fs-lock { overflow: hidden !important; position: fixed !important; inse
 .leaflet-control-layers label { color: #cbd5e1 !important; font-size: 12px !important; }
 .leaflet-control a, .leaflet-control button, .leaflet-bar a { touch-action: manipulation !important; -webkit-tap-highlight-color: transparent; }
 
+/* Always-on "flag" labels for sensors/lines (toggled via "Show name on map") */
+.sapem-flag-label { background: rgba(15,23,42,0.92) !important; color: white !important; border: 1px solid #334155 !important; border-radius: 6px !important; font-size: 11px !important; font-weight: 700 !important; padding: 2px 7px !important; box-shadow: 0 2px 6px rgba(0,0,0,0.5) !important; }
+.sapem-flag-label::before { display: none !important; }
+
 .leaflet-fs-btn { width: 34px; height: 34px; background: rgba(15,23,42,0.92) !important; border: 1px solid #1e293b !important; border-radius: 7px !important; color: #cbd5e1; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.5); transition: all 0.15s; }
 .leaflet-fs-btn:hover { background: #1e293b !important; color: white; }
 /* Put topleft controls (zoom, Lines toggle, edit toolbar) in a row so the
@@ -215,6 +219,7 @@ body.map-fs-lock { overflow: hidden !important; position: fixed !important; inse
     <input id="sensorHardwareId" class="modal-input mb-4" placeholder="e.g. 0042">
     <label class="text-sm font-semibold">Sensor Name <span class="text-slate-400 font-normal">(optional)</span></label>
     <input id="sensorName" class="modal-input mb-6" placeholder="e.g. Line 3 Mainline">
+    <p class="text-slate-500 text-xs mb-4">New sensors won't show any readings right away -- data appears once the sensor reports in next, which can take a few minutes.</p>
     <p id="sensorError" class="text-red-400 text-sm mb-4 hidden"></p>
     <div class="flex gap-3 justify-end">
       <button onclick="closeModal('sensorModal')" class="btn-slate">Cancel</button>
@@ -275,62 +280,35 @@ body.map-fs-lock { overflow: hidden !important; position: fixed !important; inse
   </div>
 </div>
 
+<div id="spotlightModal" class="modal-backdrop">
+  <div class="modal-box" style="max-width:320px;position:relative;">
+    <button onclick="closeModal('spotlightModal')" title="Close"
+      style="position:absolute;top:10px;right:10px;background:none;border:none;color:#64748b;font-size:22px;line-height:1;cursor:pointer;padding:4px 8px;">&times;</button>
+    <h2 id="spotlightName" class="text-lg font-bold mb-4 text-center pr-6">Sensor</h2>
+    <div class="gauge-wrap" style="max-width:220px;"><img src="assets/gauge.png" alt="gauge"><canvas id="spotlight-canvas" width="400" height="400"></canvas></div>
+    <p id="spotlightValue" class="text-2xl font-bold mt-2 text-center">0.00</p>
+    <p class="text-slate-400 text-sm text-center">inHg</p>
+    <p id="spotlightP2Row" class="text-slate-300 text-sm text-center mt-1 hidden"></p>
+    <div class="text-center text-xs text-slate-500 mt-3">
+      <span id="spotlightTemp">--- degF</span> &middot; <span id="spotlightSeen">last seen ---</span>
+    </div>
+  </div>
+</div>
+
 <script src="js/auth.js"></script>
 <script>
 /*
   ================================================================
-  REQUIRED ADDITIONS TO auth.js
-  ----------------------------------------------------------------
-  async function updateHubName(hubId, name) {
-    const { error } = await supabaseClient.from("hubs").update({ hub_name: name }).eq("id", hubId)
-    return !error
-  }
-  async function updateSensorName(sensorId, name) {
-    const { error } = await supabaseClient.from("sensors").update({ sensor_name: name }).eq("id", sensorId)
-    return !error
-  }
-  async function updateSensorLocation(sensorId, lat, lng) {
-    const { error } = await supabaseClient.from("sensors").update({ lat, lng }).eq("id", sensorId)
-    return !error
-  }
-  async function saveMapLine(hubId, lineType, color, name, geojson) {
-    const { data: { user } } = await supabaseClient.auth.getUser()
-    const { data, error } = await supabaseClient.from("hub_map_lines")
-      .insert({ hub_id: hubId, user_id: user.id, line_type: lineType, color, name, geojson })
-      .select().single()
-    return error ? null : data
-  }
-  async function loadMapLines(hubId) {
-    const { data, error } = await supabaseClient.from("hub_map_lines").select("*").eq("hub_id", hubId)
-    return error ? [] : data
-  }
-  async function updateMapLine(lineId, geojson) {
-    const { error } = await supabaseClient.from("hub_map_lines").update({ geojson }).eq("id", lineId)
-    return !error
-  }
-  async function updateMapLineName(lineId, name) {
-    const { error } = await supabaseClient.from("hub_map_lines").update({ name }).eq("id", lineId)
-    return !error
-  }
-  async function deleteMapLine(lineId) {
-    const { error } = await supabaseClient.from("hub_map_lines").delete().eq("id", lineId)
-    return !error
-  }
+  All auth.js functions this file needs (hub/sensor names, sensor
+  location, map lines) are already implemented in auth.js.
 
-  REQUIRED SUPABASE SQL (run once):
-    alter table public.sensors add column lat numeric(10,7) default null;
-    alter table public.sensors add column lng numeric(10,7) default null;
-    create table public.hub_map_lines (
-      id uuid primary key default gen_random_uuid(),
-      hub_id uuid not null references public.hubs(id) on delete cascade,
-      user_id uuid not null references auth.users(id) on delete cascade,
-      name text, line_type text default 'mainline',
-      color text default '#3b82f6', geojson jsonb not null,
-      created_at timestamptz not null default now()
-    );
-    alter table public.hub_map_lines enable row level security;
-    create policy "Users manage own lines" on public.hub_map_lines
-      for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+  NEW for this revision: sensor reordering, always-on map labels, and
+  freestanding map markers need a few more auth.js functions (already
+  added: updateHubSensorSortOrder, updateSensorLabelVisible,
+  updateMapLineLabelVisible, loadMapMarkers, saveMapMarker,
+  updateMapMarkerPosition, updateMapMarkerName, deleteMapMarker) plus
+  one-time Supabase SQL -- see the comment block at the top of auth.js
+  for the exact statements to run.
   ================================================================
 */
 
@@ -358,7 +336,9 @@ function pressureColor(p) {
 }
 
 function weightForType(t) {
-  return t === "mainline" ? 8 : t === "lateral" ? 5 : 3
+  // All line types now render at the same thin weight (previously
+  // mainline/lateral were much thicker) -- colors are still distinct.
+  return 3
 }
 
 function drawNeedle(id, value) {
@@ -458,6 +438,8 @@ function startDrawing(hubId) {
   // clean those up first so they don't fight over the shared panel.
   if (lineSelectState[hubId]) deselectLine(hubId)
   if (placementState) cancelPlacement()
+  if (markerPlaceState) cancelMarkerPlacement()
+  if (freeMarkerMoveState) cancelFreeMarkerMove()
   const active = md.activeLineType, map = md.map
   const state = { points: [], tempLayer: null, vertexMarkers: [], active: true, type: active.type, color: active.color, weight: active.weight }
   lineDrawState[hubId] = state
@@ -497,6 +479,7 @@ async function finishLineDraw(hubId) {
   md.lineCount = (md.lineCount || 0) + 1
   const name = `${state.type} ${md.lineCount}`
   layer._name = name
+  layer._showLabel = false
   layer.bindTooltip(name, { permanent: false })
   attachLineSelectHandler(hubId, layer)
   md.drawnItems.addLayer(layer)
@@ -546,6 +529,10 @@ function updateLineDrawPanel(hubId) {
 const BTN_GREEN = "flex:1;font-size:12px;padding:6px 10px;border-radius:6px;border:none;color:#0f172a;background:#22c55e;font-weight:700;cursor:pointer;"
 const BTN_SLATE = "flex:1;font-size:12px;padding:6px 10px;border-radius:6px;border:1px solid #475569;color:#cbd5e1;background:transparent;font-weight:600;cursor:pointer;"
 const BTN_RED   = "flex:1;font-size:12px;padding:6px 10px;border-radius:6px;border:none;color:white;background:#dc2626;font-weight:700;cursor:pointer;"
+// Half-width variants -- used when a panel needs 4 buttons (the line picker,
+// once the Label toggle was added) so they wrap 2-by-2 instead of squeezing
+// four into one row on a narrow phone screen.
+const halfWidth = s => s.replace("flex:1;", "flex:1 1 46%;")
 
 function showLineActionsPanel(hubId, message, buttons, inputConfig) {
   const md = hubMaps[hubId]; if (!md || !md.editActionsCtrl) return
@@ -620,6 +607,7 @@ function syncLineGeometry(layer, sel, latlngs) {
 function selectLine(hubId, layer) {
   const md = hubMaps[hubId]; if (!md) return
   if (placementState) return // busy repositioning a sensor marker
+  if (markerPlaceState || freeMarkerMoveState) return // busy with a freestanding marker
   if (lineDrawState[hubId] && lineDrawState[hubId].active) return // busy drawing a new line
   const cur = lineSelectState[hubId]
   if (cur && cur.mode !== "picker") return // busy editing/deleting another line -- ignore other taps
@@ -631,12 +619,44 @@ function selectLine(hubId, layer) {
   }).addTo(md.map)
   layer.bringToFront()
   lineSelectState[hubId] = { layer, mode: "picker", highlight }
+  renderLinePickerPanel(hubId)
+}
 
+// Pulled out of selectLine so toggleLineFlag can re-render the same picker
+// panel (with an updated Show/Hide Label button label) without having to
+// fully deselect and reselect the line.
+function renderLinePickerPanel(hubId) {
+  const sel = lineSelectState[hubId]; if (!sel) return
+  const layer = sel.layer
   showLineActionsPanel(hubId, layer._name || "Line", [
-    { label: "Edit",   style: BTN_GREEN, onClick: () => startEditLine(hubId) },
-    { label: "Delete", style: BTN_RED,   onClick: () => startDeleteLine(hubId) },
-    { label: "Cancel", style: BTN_SLATE, onClick: () => deselectLine(hubId) },
+    { label: "Edit",   style: halfWidth(BTN_GREEN), onClick: () => startEditLine(hubId) },
+    { label: layer._showLabel ? "Hide Label" : "Show Label", style: halfWidth(BTN_SLATE), onClick: () => toggleLineFlag(hubId) },
+    { label: "Delete", style: halfWidth(BTN_RED),   onClick: () => startDeleteLine(hubId) },
+    { label: "Cancel", style: halfWidth(BTN_SLATE), onClick: () => deselectLine(hubId) },
   ])
+}
+
+// Applies (or removes) the always-visible label per the line's current
+// _showLabel flag. Hover-only tooltip is the default/off state.
+function applyLineLabelMode(layer) {
+  const name = layer._name || "Line"
+  layer.unbindTooltip()
+  if (layer._showLabel) {
+    layer.bindTooltip(name, { permanent: true, direction: "center", className: "sapem-flag-label" })
+  } else {
+    layer.bindTooltip(name, { permanent: false })
+  }
+}
+
+async function toggleLineFlag(hubId) {
+  const sel = lineSelectState[hubId]; if (!sel) return
+  const layer = sel.layer
+  layer._showLabel = !layer._showLabel
+  if (layer._dbId && typeof updateMapLineLabelVisible === "function") {
+    await updateMapLineLabelVisible(layer._dbId, layer._showLabel)
+  }
+  applyLineLabelMode(layer)
+  renderLinePickerPanel(hubId)
 }
 
 function startEditLine(hubId) {
@@ -829,13 +849,18 @@ function createMarkerIcon(sensorId) {
   })
 }
 
-function addMarkerToMap(hubId, sensor) {
-  const md = hubMaps[hubId]; if (!md || md.markers[sensor.id]) return
-  const name  = sensor.sensor_name || sensor.sensor_hardware_id
-  const marker = L.marker([sensor.lat, sensor.lng], { icon: createMarkerIcon(sensor.id), draggable: false, title: name }).addTo(md.map)
+// Pulled out of addMarkerToMap so a marker created via startPlacement (for a
+// sensor that has no marker yet) also gets a working popup -- previously
+// only addMarkerToMap bound one, and it bails out early whenever a marker
+// object already exists for that sensor id, so a freshly-placed sensor's
+// marker sat there un-tappable until the next full page load rebuilt
+// hubMaps[hubId].markers from scratch.
+function bindSensorPopup(hubId, sensorId, marker) {
+  const sensor = allSensors.find(s => s.id === sensorId)
+  const name = (sensor && (sensor.sensor_name || sensor.sensor_hardware_id)) || "Sensor"
   const popup = () => {
-    const l = latestReadingsCache[sensor.id] || {}
-    const dual = isDualPressure(sensor.id)
+    const l = latestReadingsCache[sensorId] || {}
+    const dual = isDualPressure(sensorId)
     let pressureHtml
     if (dual) {
       const c1 = pressureColor(l.pressure_1), c2 = pressureColor(l.pressure_2)
@@ -847,18 +872,51 @@ function addMarkerToMap(hubId, sensor) {
       const col = pressureColor(l.pressure_1)
       pressureHtml = `<div style="color:${col};font-size:15px;font-weight:600;margin-bottom:4px">${l.pressure_1 != null ? l.pressure_1.toFixed(2) : "---"} inHg</div>`
     }
+    const flagged = !!(sensor && sensor.show_label)
     return `<div style="min-width:160px">
       <div style="font-weight:700;margin-bottom:6px;color:white">${name}</div>
       ${pressureHtml}
       <div style="color:#7dd3fc;font-size:13px;margin-bottom:4px">${l.temperature != null ? l.temperature.toFixed(1) : "---"} degF</div>
       <div style="color:#64748b;font-size:11px;margin-bottom:10px">Last seen ${fmt(l.received_at)}</div>
-      <button onclick="startPlacement('${hubId}','${sensor.id}')"
-        style="background:#334155;border:none;color:#cbd5e1;padding:6px 10px;border-radius:6px;font-size:12px;cursor:pointer;width:100%">
-        Reposition marker</button></div>`
+      <button onclick="startPlacement('${hubId}','${sensorId}')"
+        style="background:#334155;border:none;color:#cbd5e1;padding:6px 10px;border-radius:6px;font-size:12px;cursor:pointer;width:100%;margin-bottom:6px">
+        Reposition marker</button>
+      <button onclick="toggleSensorFlag('${sensorId}')"
+        style="background:${flagged?"#334155":"transparent"};border:1px solid #475569;color:#cbd5e1;padding:6px 10px;border-radius:6px;font-size:12px;cursor:pointer;width:100%">
+        ${flagged ? "Hide" : "Show"} name on map</button></div>`
   }
   marker.bindPopup(popup, { maxWidth: 220 })
   marker.on("click", () => marker.setPopupContent(popup()))
+}
+
+function refreshSensorFlagLabel(hubId, sensorId) {
+  const md = hubMaps[hubId]; if (!md) return
+  const marker = md.markers[sensorId]; if (!marker) return
+  const sensor = allSensors.find(s => s.id === sensorId)
+  const name = (sensor && (sensor.sensor_name || sensor.sensor_hardware_id)) || "Sensor"
+  marker.unbindTooltip()
+  if (sensor && sensor.show_label) {
+    marker.bindTooltip(name, { permanent: true, direction: "top", offset: [0, -10], className: "sapem-flag-label" })
+  }
+}
+
+async function toggleSensorFlag(sensorId) {
+  const sensor = allSensors.find(s => s.id === sensorId); if (!sensor) return
+  const next = !sensor.show_label
+  if (typeof updateSensorLabelVisible === "function") await updateSensorLabelVisible(sensorId, next)
+  sensor.show_label = next
+  refreshSensorFlagLabel(SHARED_KEY, sensorId)
+  const md = hubMaps[SHARED_KEY]
+  if (md && md.markers[sensorId]) md.markers[sensorId].closePopup()
+}
+
+function addMarkerToMap(hubId, sensor) {
+  const md = hubMaps[hubId]; if (!md || md.markers[sensor.id]) return
+  const name  = sensor.sensor_name || sensor.sensor_hardware_id
+  const marker = L.marker([sensor.lat, sensor.lng], { icon: createMarkerIcon(sensor.id), draggable: false, title: name }).addTo(md.map)
+  bindSensorPopup(hubId, sensor.id, marker)
   md.markers[sensor.id] = marker
+  if (sensor.show_label) refreshSensorFlagLabel(hubId, sensor.id)
 }
 
 function updateHubMapMarkers(hubId) {
@@ -890,6 +948,8 @@ function startPlacement(hubId, sensorId) {
   if (lineSelectState[hubId]) deselectLine(hubId)
   if (lineDrawState[hubId] && lineDrawState[hubId].active) return
   if (placementState) cancelPlacement()
+  if (markerPlaceState) cancelMarkerPlacement()
+  if (freeMarkerMoveState) cancelFreeMarkerMove()
   md.map.closePopup()
   const sensor = allSensors.find(s => s.id === sensorId)
   if (!sensor) return
@@ -904,6 +964,7 @@ function startPlacement(hubId, sensorId) {
       icon: createMarkerIcon(sensorId), draggable: false, title: sensor.sensor_name || sensor.sensor_hardware_id
     }).addTo(md.map)
     md.markers[sensorId] = marker
+    bindSensorPopup(hubId, sensorId, marker)   // fix: this marker previously had no popup until a full reload
   }
 
   const onMapClick = e => marker.setLatLng(e.latlng)
@@ -960,6 +1021,146 @@ function endPlacement() {
   if (md) md.map.off("click", ps.onMapClick)
   hideLineActionsPanel(ps.hubId)
   placementState = null
+}
+
+// ── Freestanding map markers (repeaters, etc. -- not tied to a sensor) ────
+
+function freeMarkerIcon() {
+  return L.divIcon({
+    className: "",
+    html: `<div style="width:16px;height:16px;transform:rotate(45deg);background:#f472b6;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.5);"></div>`,
+    iconSize: [16,16], iconAnchor: [8,8], popupAnchor: [0,-10],
+  })
+}
+
+function addMapMarkerToMap(hubId, m) {
+  const md = hubMaps[hubId]; if (!md || md.freeMarkers[m.id]) return
+  const marker = L.marker([m.lat, m.lng], { icon: freeMarkerIcon(), draggable: false, title: m.name }).addTo(md.map)
+  const popup = () => {
+    const cur = (md.freeMarkerData && md.freeMarkerData[m.id]) || m
+    return `<div style="min-width:150px">
+      <div style="font-weight:700;margin-bottom:8px;color:white">${cur.name}</div>
+      <button onclick="startFreeMarkerMove('${hubId}','${m.id}')"
+        style="background:#334155;border:none;color:#cbd5e1;padding:6px 10px;border-radius:6px;font-size:12px;cursor:pointer;width:100%;margin-bottom:6px">
+        Reposition</button>
+      <button onclick="deleteFreeMarker('${hubId}','${m.id}')"
+        style="background:none;border:1px solid #dc2626;color:#f87171;padding:6px 10px;border-radius:6px;font-size:12px;cursor:pointer;width:100%">
+        Delete</button></div>`
+  }
+  marker.bindPopup(popup, { maxWidth: 200 })
+  marker.on("click", () => marker.setPopupContent(popup()))
+  md.freeMarkers[m.id] = marker
+  md.freeMarkerData[m.id] = m
+}
+
+let markerPlaceState = null
+
+function startMarkerPlacement(hubId) {
+  const md = hubMaps[hubId]; if (!md) return
+  if (lineSelectState[hubId]) deselectLine(hubId)
+  if (lineDrawState[hubId] && lineDrawState[hubId].active) return
+  if (placementState) cancelPlacement()
+  if (freeMarkerMoveState) cancelFreeMarkerMove()
+  if (markerPlaceState) cancelMarkerPlacement()
+  md.map.closePopup()
+  const marker = L.marker(md.map.getCenter(), { icon: freeMarkerIcon(), draggable: false }).addTo(md.map)
+  const onMapClick = e => marker.setLatLng(e.latlng)
+  md.map.on("click", onMapClick)
+  markerPlaceState = { hubId, marker, onMapClick }
+  showLineActionsPanel(hubId, "Tap the map to place the marker", [
+    { label: "Next",   style: BTN_GREEN, onClick: promptMarkerName },
+    { label: "Cancel", style: BTN_SLATE, onClick: cancelMarkerPlacement },
+  ])
+}
+
+function promptMarkerName() {
+  const ps = markerPlaceState; if (!ps) return
+  const md = hubMaps[ps.hubId]
+  md.map.off("click", ps.onMapClick)
+  showLineActionsPanel(ps.hubId, "Name this marker (e.g. \"Repeater\")", [
+    { label: "Save",   style: BTN_GREEN, onClick: saveMarkerPlacement },
+    { label: "Cancel", style: BTN_SLATE, onClick: cancelMarkerPlacement },
+  ], { placeholder: "Marker name" })
+}
+
+async function saveMarkerPlacement() {
+  const ps = markerPlaceState; if (!ps) return
+  const md = hubMaps[ps.hubId]
+  const typed = md.editActionsCtrl.getContainer()._input.value.trim()
+  const name = typed || "Marker"
+  const { lat, lng } = ps.marker.getLatLng()
+  // Shared map: a new marker still needs one owning hub_id for the database
+  // row, same rule as finishLineDraw uses for new lines.
+  const targetHubId = ps.hubId === SHARED_KEY ? (md.currentLineHub || (allHubs[0] && allHubs[0].id)) : ps.hubId
+  let saved = null
+  if (typeof saveMapMarker === "function") saved = await saveMapMarker(targetHubId, lat, lng, name, "repeater")
+  ps.marker.remove()
+  hideLineActionsPanel(ps.hubId)
+  markerPlaceState = null
+  if (saved) { addMapMarkerToMap(ps.hubId, saved); showToast(`${name} placed`, { green: true }) }
+  else showToast("Failed to save marker -- check your connection")
+}
+
+function cancelMarkerPlacement() {
+  const ps = markerPlaceState; if (!ps) return
+  const md = hubMaps[ps.hubId]
+  if (md) md.map.off("click", ps.onMapClick)
+  ps.marker.remove()
+  hideLineActionsPanel(ps.hubId)
+  markerPlaceState = null
+}
+
+let freeMarkerMoveState = null
+
+function startFreeMarkerMove(hubId, markerId) {
+  const md = hubMaps[hubId]; if (!md) return
+  if (lineSelectState[hubId]) deselectLine(hubId)
+  if (lineDrawState[hubId] && lineDrawState[hubId].active) return
+  if (placementState) cancelPlacement()
+  if (markerPlaceState) cancelMarkerPlacement()
+  if (freeMarkerMoveState) cancelFreeMarkerMove()
+  md.map.closePopup()
+  const marker = md.freeMarkers[markerId]; if (!marker) return
+  const original = marker.getLatLng()
+  const onMapClick = e => marker.setLatLng(e.latlng)
+  md.map.on("click", onMapClick)
+  freeMarkerMoveState = { hubId, markerId, marker, original, onMapClick }
+  showLineActionsPanel(hubId, "Tap the map to reposition", [
+    { label: "Save",   style: BTN_GREEN, onClick: saveFreeMarkerMove },
+    { label: "Cancel", style: BTN_SLATE, onClick: cancelFreeMarkerMove },
+  ])
+}
+
+async function saveFreeMarkerMove() {
+  const ps = freeMarkerMoveState; if (!ps) return
+  const { lat, lng } = ps.marker.getLatLng()
+  if (typeof updateMapMarkerPosition === "function") await updateMapMarkerPosition(ps.markerId, lat, lng)
+  const md = hubMaps[ps.hubId]
+  if (md && md.freeMarkerData[ps.markerId]) { md.freeMarkerData[ps.markerId].lat = lat; md.freeMarkerData[ps.markerId].lng = lng }
+  endFreeMarkerMove()
+  showToast("Marker position saved", { green: true })
+}
+
+function cancelFreeMarkerMove() {
+  const ps = freeMarkerMoveState; if (!ps) return
+  ps.marker.setLatLng(ps.original)
+  endFreeMarkerMove()
+}
+
+function endFreeMarkerMove() {
+  const ps = freeMarkerMoveState; if (!ps) return
+  const md = hubMaps[ps.hubId]
+  if (md) md.map.off("click", ps.onMapClick)
+  hideLineActionsPanel(ps.hubId)
+  freeMarkerMoveState = null
+}
+
+async function deleteFreeMarker(hubId, markerId) {
+  const md = hubMaps[hubId]; if (!md) return
+  if (typeof deleteMapMarker === "function") await deleteMapMarker(markerId)
+  const marker = md.freeMarkers[markerId]
+  if (marker) { marker.remove(); delete md.freeMarkers[markerId] }
+  delete md.freeMarkerData[markerId]
 }
 
 // The native browser Fullscreen API is intentionally never used here. On an
@@ -1087,8 +1288,8 @@ async function initHubMap(hubId) {
       L.DomEvent.on(hubSelect,"change",() => { if (hubMaps[SHARED_KEY]) hubMaps[SHARED_KEY].currentLineHub = hubSelect.value })
     }
 
-    ;[{type:"mainline",color:"#3b82f6",weight:8,label:"Mainline"},
-      {type:"lateral", color:"#22c55e",weight:5,label:"Lateral"},
+    ;[{type:"mainline",color:"#3b82f6",weight:3,label:"Mainline"},
+      {type:"lateral", color:"#22c55e",weight:3,label:"Lateral"},
       {type:"dropline",color:"#94a3b8",weight:3,label:"Dropline"}].forEach(lt => {
       const b = L.DomUtil.create("button","",panel)
       b.id = `lt-${lt.type}-${hubId}`; b.textContent = lt.label
@@ -1105,6 +1306,15 @@ async function initHubMap(hubId) {
     drawBtn.style.cssText = "font-size:12px;padding:6px 10px;border-radius:6px;border:none;color:#0f172a;background:#22c55e;font-weight:700;cursor:pointer;"
     L.DomEvent.on(drawBtn,"click",L.DomEvent.stopPropagation)
     L.DomEvent.on(drawBtn,"click",() => { startDrawing(hubId); isOpen=false; panel.style.display="none" })
+
+    // Freestanding marker -- for things like a plain repeater that has no
+    // sensor row of its own, so it can't go through the sensor "Place"
+    // flow. Drops a distinct (pink diamond) pin anywhere on the map.
+    const markerBtn = L.DomUtil.create("button","",panel)
+    markerBtn.textContent = "+ Add Marker"
+    markerBtn.style.cssText = "font-size:12px;padding:6px 10px;border-radius:6px;border:1px solid #f472b6;color:#f472b6;background:transparent;font-weight:600;cursor:pointer;text-align:left;"
+    L.DomEvent.on(markerBtn,"click",L.DomEvent.stopPropagation)
+    L.DomEvent.on(markerBtn,"click",() => { startMarkerPlacement(hubId); isOpen=false; panel.style.display="none" })
 
     let isOpen = false
     L.DomEvent.on(toggle,"click",L.DomEvent.stopPropagation)
@@ -1134,7 +1344,7 @@ async function initHubMap(hubId) {
     // 3 for the initial Edit/Delete/Cancel picker, 3 for Undo/Finish/Cancel
     // while drawing) via showLineActionsPanel
     const actionsBtnRow = L.DomUtil.create("div","",actionsPanel)
-    actionsBtnRow.style.cssText = "display:flex;gap:6px;"
+    actionsBtnRow.style.cssText = "display:flex;flex-wrap:wrap;gap:6px;"
     L.DomEvent.on(actionsBtnRow,"click",L.DomEvent.stopPropagation)
 
     wrap._panel = actionsPanel; wrap._msg = actionsMsg; wrap._input = actionsInput; wrap._btnRow = actionsBtnRow
@@ -1158,8 +1368,8 @@ async function initHubMap(hubId) {
   map.addLayer(drawnItems)
 
   hubMaps[hubId] = {
-    map, markers: {},
-    activeLineType: { type: "mainline", color: "#3b82f6", weight: 5 },
+    map, markers: {}, freeMarkers: {}, freeMarkerData: {},
+    activeLineType: { type: "mainline", color: "#3b82f6", weight: 3 },
     drawnItems, lineCount: 0, editActionsCtrl,
     currentLineHub: hubId === SHARED_KEY ? (allHubs[0] && allHubs[0].id) : hubId
   }
@@ -1194,9 +1404,10 @@ async function initHubMap(hubId) {
             const layer = geo.getLayers()[0]
             const pts = layer && layer.getLatLngs ? layer.getLatLngs() : null
             if (!pts || pts.length < 2) { console.warn("Skipping line with invalid geometry:", line.id); continue }
-            layer.bindTooltip(line.name || line.line_type, { permanent: false })
             layer._dbId = line.id
             layer._name = line.name || line.line_type
+            layer._showLabel = !!line.show_label
+            applyLineLabelMode(layer)
             attachLineSelectHandler(hubId, layer)
             drawnItems.addLayer(layer)
             totalLines++
@@ -1207,6 +1418,21 @@ async function initHubMap(hubId) {
       hubMaps[hubId].lineCount = totalLines
     }
   } catch(e) { console.warn("loadMapLines not available yet:", e) }
+
+  // Load freestanding map markers (e.g. repeaters that don't have their own
+  // sensor row) -- same per-hub loop/merge pattern as lines above.
+  try {
+    if (typeof loadMapMarkers === "function") {
+      const hubIdsToLoad = hubId === SHARED_KEY ? allHubs.map(h => h.id) : [hubId]
+      for (const hid of hubIdsToLoad) {
+        const markers = await loadMapMarkers(hid)
+        for (const m of markers) {
+          try { addMapMarkerToMap(hubId, m) }
+          catch(markerErr) { console.warn("Failed to render map marker, skipping:", m.id, markerErr) }
+        }
+      }
+    }
+  } catch(e) { console.warn("loadMapMarkers not available yet:", e) }
 
   // Tapping empty map background dismisses the Edit/Delete/Cancel picker
   // (but not once the user is actively mid-Edit or mid-Delete -- only Save
@@ -1315,16 +1541,57 @@ function renderHubSection(hub) {
 // Builds one sensor row's cell contents. Pulled out so both first build and
 // every refresh reuse it -- we update a row's innerHTML in place instead of
 // wiping the whole table, which is what caused the visible flash on refresh.
-function sensorRowHTML(sensor, latest, low) {
+function sensorRowHTML(sensor, latest, low, hubId, isFirst, isLast) {
   const p1=latest?.pressure_1??null, p2=latest?.pressure_2??null
   const temp=latest?.temperature??null, rssi=latest?.signal_strength??null
+  // Up/down reorder buttons -- disabled at the ends of the list. Stops
+  // propagation so tapping them doesn't also trigger the row's spotlight
+  // click handler.
+  const reorder = hubId ? `
+    <span style="display:inline-flex;flex-direction:column;margin-right:8px;vertical-align:middle;">
+      <button onclick="event.stopPropagation();moveSensorRow('${hubId}','${sensor.id}','up')" ${isFirst?"disabled":""}
+        style="background:none;border:none;color:${isFirst?"#334155":"#64748b"};cursor:${isFirst?"default":"pointer"};padding:0;line-height:0.8;font-size:11px;">&#9650;</button>
+      <button onclick="event.stopPropagation();moveSensorRow('${hubId}','${sensor.id}','down')" ${isLast?"disabled":""}
+        style="background:none;border:none;color:${isLast?"#334155":"#64748b"};cursor:${isLast?"default":"pointer"};padding:0;line-height:0.8;font-size:11px;">&#9660;</button>
+    </span>` : ""
   return `
-    <td class="py-2 ${low?"text-amber-400 font-semibold":""}">${low?"WARNING ":""}${sensor.sensor_name||sensor.sensor_hardware_id}</td>
+    <td class="py-2 ${low?"text-amber-400 font-semibold":""}">${reorder}${low?"WARNING ":""}${sensor.sensor_name||sensor.sensor_hardware_id}</td>
     <td class="text-center ${low?"text-amber-400 font-semibold":""}">${p1!=null?p1.toFixed(2):"---"}</td>
     <td class="text-center">${p2!=null?p2.toFixed(2):"---"}</td>
     <td class="text-center">${temp!=null?temp.toFixed(1):"---"}</td>
     <td class="text-center">${rssiBars(rssi)}</td>
     <td class="text-center text-slate-400">${fmt(latest?.received_at)}</td>`
+}
+
+// ── Tap a sensor row to spotlight its gauge in a small popup ───────────────
+function openSpotlight(sensorId) {
+  const sensor = allSensors.find(s => s.id === sensorId); if (!sensor) return
+  const l = latestReadingsCache[sensorId] || {}
+  document.getElementById("spotlightName").textContent = sensor.sensor_name || sensor.sensor_hardware_id
+  document.getElementById("spotlightValue").textContent = l.pressure_1 != null ? l.pressure_1.toFixed(2) : "---"
+  drawNeedle("spotlight-canvas", l.pressure_1 ?? 0)
+  const p2Row = document.getElementById("spotlightP2Row")
+  if (l.pressure_2 != null) { p2Row.textContent = `P2: ${l.pressure_2.toFixed(2)} inHg`; p2Row.classList.remove("hidden") }
+  else p2Row.classList.add("hidden")
+  document.getElementById("spotlightTemp").textContent = `${l.temperature != null ? l.temperature.toFixed(1) : "---"} degF`
+  document.getElementById("spotlightSeen").textContent = `last seen ${fmt(l.received_at)}`
+  openModal("spotlightModal")
+}
+
+// ── Sensor row reordering (persists per-hub via hub_sensors.sort_order) ────
+async function moveSensorRow(hubId, sensorId, direction) {
+  const list = hubSensorsCache[hubId]; if (!list) return
+  const idx = list.findIndex(s => s.id === sensorId); if (idx < 0) return
+  const swapIdx = direction === "up" ? idx - 1 : idx + 1
+  if (swapIdx < 0 || swapIdx >= list.length) return
+  if (typeof updateHubSensorSortOrder !== "function") { console.warn("updateHubSensorSortOrder is not defined -- add it to auth.js"); return }
+  const a = list[idx], b = list[swapIdx]
+  await Promise.all([
+    updateHubSensorSortOrder(hubId, a.id, b._hsSortOrder),
+    updateHubSensorSortOrder(hubId, b.id, a._hsSortOrder),
+  ])
+  const hub = allHubs.find(h => h.id === hubId)
+  if (hub) await populateHub(hub)
 }
 
 async function populateHub(hub) {
@@ -1373,15 +1640,17 @@ async function populateHub(hub) {
   // on an already-attached row just reorders it, so this keeps existing DOM
   // nodes alive and only rewrites cell content, eliminating the blank-frame
   // flash that a full innerHTML="" + rebuild caused every refresh.
-  for (const {sensor,latest} of rows) {
+  rows.forEach(({sensor,latest}, i) => {
     const rowId = `row-${sensor.id}`
     const low = lowIds.has(sensor.id)
     let tr = document.getElementById(rowId)
     if (!tr) { tr = document.createElement("tr"); tr.id = rowId }
     tr.className = `border-b border-slate-700 ${low?"bg-amber-900/30":""}`
-    tr.innerHTML = sensorRowHTML(sensor, latest, low)
+    tr.style.cursor = "pointer"
+    tr.innerHTML = sensorRowHTML(sensor, latest, low, hub.id, i===0, i===rows.length-1)
+    tr.onclick = () => openSpotlight(sensor.id)
     tableEl.appendChild(tr)
-  }
+  })
   const wantedIds = new Set(rows.map(r => `row-${r.sensor.id}`))
   Array.from(tableEl.children).forEach(tr => { if (tr.id && !wantedIds.has(tr.id)) tr.remove() })
 
@@ -1467,6 +1736,12 @@ async function loadDashboard() {
   empty.classList.add("hidden"); document.getElementById("hubsContainer").innerHTML=""
   if (sharedSection) sharedSection.classList.remove("hidden")
   for (const h of allHubs) { renderHubSection(h); await populateHub(h) }
+  // Same double-rAF wait switchTab() uses -- gives the browser a chance to
+  // actually paint the shared map section's hidden->visible change before
+  // Leaflet measures #map-shared, so it doesn't init against a stale/zero
+  // size (root cause of the map sometimes not appearing / needing a hard
+  // refresh on first sign-in).
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))
   await initHubMap(SHARED_KEY)
   updateUnplacedBar(SHARED_KEY)
   await populateUnassigned(); populateAssignDropdowns()
@@ -1536,10 +1811,33 @@ function startPolling() {
   setInterval(async()=>{for(const h of allHubs) await populateHub(h); await populateUnassigned()}, 60000)
 }
 
+// Reconciles the shared map's sensor markers against current data --
+// populateHub()/updateHubMapMarkers() only recolor markers that already
+// exist, they never add a marker for a sensor placed elsewhere/another
+// session, or remove one for a sensor that's been unplaced/deleted. This
+// closes that gap so "Refresh" actually catches up the whole map, not just
+// marker colors.
+function refreshSharedMapMarkers() {
+  const md = hubMaps[SHARED_KEY]; if (!md) return
+  const sensors = sensorsForKey(SHARED_KEY)
+  const liveIds = new Set()
+  for (const s of sensors) {
+    if (!s.lat || !s.lng) continue
+    liveIds.add(s.id)
+    if (!md.markers[s.id]) addMarkerToMap(SHARED_KEY, s)
+    else md.markers[s.id].setLatLng([s.lat, s.lng])
+  }
+  for (const [sid, marker] of Object.entries(md.markers)) {
+    if (!liveIds.has(sid)) { marker.remove(); delete md.markers[sid] }
+  }
+  md.map.invalidateSize()
+}
+
 async function refreshDashboard() {
   const btn=document.getElementById("refreshBtn")
   btn.textContent="Refreshing..."; btn.disabled=true; btn.style.opacity="0.6"
   for(const h of allHubs) await populateHub(h); await populateUnassigned()
+  refreshSharedMapMarkers()
   btn.textContent="Updated"; btn.style.opacity="1"
   setTimeout(()=>{btn.textContent="Refresh";btn.disabled=false},2000)
 }
