@@ -398,6 +398,15 @@ async function updateMapLineLabelVisible(lineId, visible) {
   return !error
 }
 
+async function updateMapMarkerLabelVisible(markerId, visible) {
+  const { error } = await supabaseClient
+    .from("map_markers")
+    .update({ show_label: visible })
+    .eq("id", markerId)
+  if (error) console.error("updateMapMarkerLabelVisible error:", error)
+  return !error
+}
+
 // ── Freestanding map markers (repeaters, etc.) ─────────────
 
 async function loadMapMarkers(hubId) {
