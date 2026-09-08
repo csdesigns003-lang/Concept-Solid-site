@@ -124,6 +124,7 @@ body.map-fs-lock { overflow: hidden !important; position: fixed !important; inse
 /* Always-on "flag" labels for sensors/lines (toggled via "Show name on map") */
 .sapem-flag-label { background: rgba(15,23,42,0.92) !important; color: white !important; border: 1px solid #334155 !important; border-radius: 6px !important; font-size: 11px !important; font-weight: 700 !important; padding: 2px 7px !important; box-shadow: 0 2px 6px rgba(0,0,0,0.5) !important; }
 .sapem-flag-label::before { display: none !important; }
+.row-grab-handle:active { cursor: grabbing !important; color: #cbd5e1 !important; }
 
 .leaflet-fs-btn { width: 34px; height: 34px; background: rgba(15,23,42,0.92) !important; border: 1px solid #1e293b !important; border-radius: 7px !important; color: #cbd5e1; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.5); transition: all 0.15s; }
 .leaflet-fs-btn:hover { background: #1e293b !important; color: white; }
@@ -1025,7 +1026,17 @@ function endPlacement() {
 
 // ── Freestanding map markers (repeaters, etc. -- not tied to a sensor) ────
 
-function freeMarkerIcon() {
+function freeMarkerIcon(type) {
+  if (type === "flag") {
+    return L.divIcon({
+      className: "",
+      html: `<div style="position:relative;width:18px;height:26px;">
+        <div style="position:absolute;left:1px;top:4px;width:2px;height:22px;background:#cbd5e1;"></div>
+        <div style="position:absolute;left:3px;top:4px;width:0;height:0;border-style:solid;border-width:6px 0 6px 13px;border-color:transparent transparent transparent #f97316;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.6));"></div>
+      </div>`,
+      iconSize: [18,26], iconAnchor: [2,26], popupAnchor: [4,-24],
+    })
+  }
   return L.divIcon({
     className: "",
     html: `<div style="width:16px;height:16px;transform:rotate(45deg);background:#f472b6;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.5);"></div>`,
@@ -1035,11 +1046,12 @@ function freeMarkerIcon() {
 
 function addMapMarkerToMap(hubId, m) {
   const md = hubMaps[hubId]; if (!md || md.freeMarkers[m.id]) return
-  const marker = L.marker([m.lat, m.lng], { icon: freeMarkerIcon(), draggable: false, title: m.name }).addTo(md.map)
+  const marker = L.marker([m.lat, m.lng], { icon: freeMarkerIcon(m.icon_type), draggable: false, title: m.name }).addTo(md.map)
   const popup = () => {
     const cur = (md.freeMarkerData && md.freeMarkerData[m.id]) || m
     return `<div style="min-width:150px">
-      <div style="font-weight:700;margin-bottom:8px;color:white">${cur.name}</div>
+      <div style="font-weight:700;margin-bottom:2px;color:white">${cur.name}</div>
+      <div style="color:#64748b;font-size:11px;margin-bottom:8px;text-transform:capitalize">${cur.icon_type || "marker"}</div>
       <button onclick="startFreeMarkerMove('${hubId}','${m.id}')"
         style="background:#334155;border:none;color:#cbd5e1;padding:6px 10px;border-radius:6px;font-size:12px;cursor:pointer;width:100%;margin-bottom:6px">
         Reposition</button>
@@ -1063,37 +1075,48 @@ function startMarkerPlacement(hubId) {
   if (freeMarkerMoveState) cancelFreeMarkerMove()
   if (markerPlaceState) cancelMarkerPlacement()
   md.map.closePopup()
-  const marker = L.marker(md.map.getCenter(), { icon: freeMarkerIcon(), draggable: false }).addTo(md.map)
+  const marker = L.marker(md.map.getCenter(), { icon: freeMarkerIcon(null), draggable: false }).addTo(md.map)
   const onMapClick = e => marker.setLatLng(e.latlng)
   md.map.on("click", onMapClick)
-  markerPlaceState = { hubId, marker, onMapClick }
+  markerPlaceState = { hubId, marker, onMapClick, type: null }
   showLineActionsPanel(hubId, "Tap the map to place the marker", [
-    { label: "Next",   style: BTN_GREEN, onClick: promptMarkerName },
+    { label: "Next",   style: BTN_GREEN, onClick: promptMarkerType },
     { label: "Cancel", style: BTN_SLATE, onClick: cancelMarkerPlacement },
   ])
 }
 
-function promptMarkerName() {
+function promptMarkerType() {
   const ps = markerPlaceState; if (!ps) return
   const md = hubMaps[ps.hubId]
   md.map.off("click", ps.onMapClick)
-  showLineActionsPanel(ps.hubId, "Name this marker (e.g. \"Repeater\")", [
+  showLineActionsPanel(ps.hubId, "What kind of marker is this?", [
+    { label: "Repeater",    style: halfWidth(BTN_SLATE), onClick: () => promptMarkerName("repeater", "Repeater") },
+    { label: "Flag / Note", style: halfWidth(BTN_SLATE), onClick: () => promptMarkerName("flag", "Note") },
+    { label: "Cancel",      style: BTN_SLATE,            onClick: cancelMarkerPlacement },
+  ])
+}
+
+function promptMarkerName(type, defaultName) {
+  const ps = markerPlaceState; if (!ps) return
+  ps.type = type
+  ps.marker.setIcon(freeMarkerIcon(type))
+  showLineActionsPanel(ps.hubId, "Name this marker (e.g. \"Tree down\")", [
     { label: "Save",   style: BTN_GREEN, onClick: saveMarkerPlacement },
     { label: "Cancel", style: BTN_SLATE, onClick: cancelMarkerPlacement },
-  ], { placeholder: "Marker name" })
+  ], { placeholder: "Marker name", value: defaultName })
 }
 
 async function saveMarkerPlacement() {
   const ps = markerPlaceState; if (!ps) return
   const md = hubMaps[ps.hubId]
   const typed = md.editActionsCtrl.getContainer()._input.value.trim()
-  const name = typed || "Marker"
+  const name = typed || (ps.type === "flag" ? "Note" : "Repeater")
   const { lat, lng } = ps.marker.getLatLng()
   // Shared map: a new marker still needs one owning hub_id for the database
   // row, same rule as finishLineDraw uses for new lines.
   const targetHubId = ps.hubId === SHARED_KEY ? (md.currentLineHub || (allHubs[0] && allHubs[0].id)) : ps.hubId
   let saved = null
-  if (typeof saveMapMarker === "function") saved = await saveMapMarker(targetHubId, lat, lng, name, "repeater")
+  if (typeof saveMapMarker === "function") saved = await saveMapMarker(targetHubId, lat, lng, name, ps.type || "repeater")
   ps.marker.remove()
   hideLineActionsPanel(ps.hubId)
   markerPlaceState = null
@@ -1262,6 +1285,17 @@ async function initHubMap(hubId) {
     toggle.style.cssText = "width:auto !important;padding:0 10px !important;font-size:12px !important;font-weight:600 !important;white-space:nowrap;"
     toggle.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:4px"><path d="M3 17l4-4 4 4 4-8 4 4"/></svg>Lines`
 
+    // Always-visible top-level button (previously "+ Add Marker" was buried
+    // one level inside the Lines panel and easy to miss) -- one tap starts
+    // placement directly, for things like a plain repeater or a "tree down"
+    // note that isn't tied to a sensor.
+    const markerToggle = L.DomUtil.create("button", "leaflet-fs-btn", wrap)
+    markerToggle.title = "Drop a marker (repeater, note, etc.)"
+    markerToggle.style.cssText = "width:auto !important;padding:0 10px !important;font-size:12px !important;font-weight:600 !important;white-space:nowrap;color:#f472b6 !important;"
+    markerToggle.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:4px"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Marker`
+    L.DomEvent.on(markerToggle,"click",L.DomEvent.stopPropagation)
+    L.DomEvent.on(markerToggle,"click",() => { isOpen=false; panel.style.display="none"; startMarkerPlacement(hubId) })
+
     const panel = L.DomUtil.create("div","",wrap)
     panel.style.cssText = "display:none;flex-direction:column;gap:6px;background:rgba(15,23,42,0.95);border:1px solid #1e293b;border-radius:10px;padding:10px;backdrop-filter:blur(8px);box-shadow:0 2px 12px rgba(0,0,0,0.6);min-width:130px;"
 
@@ -1306,15 +1340,6 @@ async function initHubMap(hubId) {
     drawBtn.style.cssText = "font-size:12px;padding:6px 10px;border-radius:6px;border:none;color:#0f172a;background:#22c55e;font-weight:700;cursor:pointer;"
     L.DomEvent.on(drawBtn,"click",L.DomEvent.stopPropagation)
     L.DomEvent.on(drawBtn,"click",() => { startDrawing(hubId); isOpen=false; panel.style.display="none" })
-
-    // Freestanding marker -- for things like a plain repeater that has no
-    // sensor row of its own, so it can't go through the sensor "Place"
-    // flow. Drops a distinct (pink diamond) pin anywhere on the map.
-    const markerBtn = L.DomUtil.create("button","",panel)
-    markerBtn.textContent = "+ Add Marker"
-    markerBtn.style.cssText = "font-size:12px;padding:6px 10px;border-radius:6px;border:1px solid #f472b6;color:#f472b6;background:transparent;font-weight:600;cursor:pointer;text-align:left;"
-    L.DomEvent.on(markerBtn,"click",L.DomEvent.stopPropagation)
-    L.DomEvent.on(markerBtn,"click",() => { startMarkerPlacement(hubId); isOpen=false; panel.style.display="none" })
 
     let isOpen = false
     L.DomEvent.on(toggle,"click",L.DomEvent.stopPropagation)
@@ -1541,21 +1566,24 @@ function renderHubSection(hub) {
 // Builds one sensor row's cell contents. Pulled out so both first build and
 // every refresh reuse it -- we update a row's innerHTML in place instead of
 // wiping the whole table, which is what caused the visible flash on refresh.
-function sensorRowHTML(sensor, latest, low, hubId, isFirst, isLast) {
+function sensorRowHTML(sensor, latest, low, hubId) {
   const p1=latest?.pressure_1??null, p2=latest?.pressure_2??null
   const temp=latest?.temperature??null, rssi=latest?.signal_strength??null
-  // Up/down reorder buttons -- disabled at the ends of the list. Stops
-  // propagation so tapping them doesn't also trigger the row's spotlight
-  // click handler.
-  const reorder = hubId ? `
-    <span style="display:inline-flex;flex-direction:column;margin-right:8px;vertical-align:middle;">
-      <button onclick="event.stopPropagation();moveSensorRow('${hubId}','${sensor.id}','up')" ${isFirst?"disabled":""}
-        style="background:none;border:none;color:${isFirst?"#334155":"#64748b"};cursor:${isFirst?"default":"pointer"};padding:0;line-height:0.8;font-size:11px;">&#9650;</button>
-      <button onclick="event.stopPropagation();moveSensorRow('${hubId}','${sensor.id}','down')" ${isLast?"disabled":""}
-        style="background:none;border:none;color:${isLast?"#334155":"#64748b"};cursor:${isLast?"default":"pointer"};padding:0;line-height:0.8;font-size:11px;">&#9660;</button>
+  // Grab handle for drag-to-reorder -- replaces the old up/down arrow
+  // buttons, which were too small a target to hit reliably on a phone.
+  // touch-action:none stops the page from scrolling while a drag is in
+  // progress on this handle.
+  const handle = hubId ? `
+    <span class="row-grab-handle" title="Drag to reorder" data-sensor-id="${sensor.id}"
+      style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;margin-right:4px;vertical-align:middle;cursor:grab;touch-action:none;color:#64748b;-webkit-user-select:none;user-select:none;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="pointer-events:none;">
+        <circle cx="8" cy="6" r="2"/><circle cx="16" cy="6" r="2"/>
+        <circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/>
+        <circle cx="8" cy="18" r="2"/><circle cx="16" cy="18" r="2"/>
+      </svg>
     </span>` : ""
   return `
-    <td class="py-2 ${low?"text-amber-400 font-semibold":""}">${reorder}${low?"WARNING ":""}${sensor.sensor_name||sensor.sensor_hardware_id}</td>
+    <td class="py-2 ${low?"text-amber-400 font-semibold":""}">${handle}${low?"WARNING ":""}${sensor.sensor_name||sensor.sensor_hardware_id}</td>
     <td class="text-center ${low?"text-amber-400 font-semibold":""}">${p1!=null?p1.toFixed(2):"---"}</td>
     <td class="text-center">${p2!=null?p2.toFixed(2):"---"}</td>
     <td class="text-center">${temp!=null?temp.toFixed(1):"---"}</td>
@@ -1578,26 +1606,98 @@ function openSpotlight(sensorId) {
   openModal("spotlightModal")
 }
 
-// ── Sensor row reordering (persists per-hub via hub_sensors.sort_order) ────
-async function moveSensorRow(hubId, sensorId, direction) {
-  const list = hubSensorsCache[hubId]; if (!list) return
-  const idx = list.findIndex(s => s.id === sensorId); if (idx < 0) return
-  const swapIdx = direction === "up" ? idx - 1 : idx + 1
-  if (swapIdx < 0 || swapIdx >= list.length) return
-  if (typeof updateHubSensorSortOrder !== "function") { console.warn("updateHubSensorSortOrder is not defined -- add it to auth.js"); return }
-  const a = list[idx], b = list[swapIdx]
-  await Promise.all([
-    updateHubSensorSortOrder(hubId, a.id, b._hsSortOrder),
-    updateHubSensorSortOrder(hubId, b.id, a._hsSortOrder),
-  ])
-  const hub = allHubs.find(h => h.id === hubId)
-  if (hub) await populateHub(hub)
+// ── Sensor row reordering: drag-and-drop via Pointer Events (works for
+// mouse AND touch, unlike native HTML5 drag/drop which iOS/Android browsers
+// handle inconsistently) -- persists per-hub via hub_sensors.sort_order.
+// One listener set per table, attached once and reused across re-renders.
+let rowDragCtx = null
+
+function initRowDrag(tableEl, hubId) {
+  if (tableEl._dragInit) return
+  tableEl._dragInit = true
+
+  tableEl.addEventListener("pointerdown", e => {
+    const handle = e.target.closest(".row-grab-handle")
+    if (!handle || rowDragCtx) return
+    const tr = handle.closest("tr")
+    if (!tr || !tr.id || !tr.id.startsWith("row-")) return
+    e.preventDefault()
+    try { handle.setPointerCapture(e.pointerId) } catch(err) {}
+    rowDragCtx = {
+      tableEl, hubId, tr, pointerId: e.pointerId,
+      startClientY: e.clientY, rowHeight: tr.getBoundingClientRect().height
+    }
+    tr.style.position = "relative"
+    tr.style.zIndex = "30"
+    tr.style.background = "#1e293b"
+    tr.style.boxShadow = "0 6px 18px rgba(0,0,0,0.55)"
+    tr.style.willChange = "transform"
+  })
+
+  tableEl.addEventListener("pointermove", e => {
+    const ctx = rowDragCtx
+    if (!ctx || ctx.pointerId !== e.pointerId || ctx.tableEl !== tableEl) return
+    e.preventDefault()
+    let dy = e.clientY - ctx.startClientY
+    ctx.tr.style.transform = `translateY(${dy}px)`
+
+    // Swap with whichever sibling row the dragged row has now been pulled
+    // past the midpoint of -- this is the classic "reorderable list" trick:
+    // move the DOM node immediately, then shift the drag's reference point
+    // by one row-height so the visual motion stays continuous (no jump).
+    const next = ctx.tr.nextElementSibling
+    if (next && next.id && next.id.startsWith("row-")) {
+      const dragMid = ctx.tr.offsetTop + dy + ctx.rowHeight/2
+      if (dragMid > next.offsetTop + next.offsetHeight/2) {
+        ctx.tableEl.insertBefore(next, ctx.tr)
+        ctx.startClientY += ctx.rowHeight
+        ctx.tr.style.transform = `translateY(${e.clientY - ctx.startClientY}px)`
+      }
+    }
+    const prev = ctx.tr.previousElementSibling
+    if (prev && prev.id && prev.id.startsWith("row-")) {
+      const dragMid2 = ctx.tr.offsetTop + (e.clientY - ctx.startClientY) + ctx.rowHeight/2
+      if (dragMid2 < prev.offsetTop + prev.offsetHeight/2) {
+        ctx.tableEl.insertBefore(ctx.tr, prev)
+        ctx.startClientY -= ctx.rowHeight
+        ctx.tr.style.transform = `translateY(${e.clientY - ctx.startClientY}px)`
+      }
+    }
+  })
+
+  const finishDrag = async e => {
+    const ctx = rowDragCtx
+    if (!ctx || ctx.pointerId !== e.pointerId || ctx.tableEl !== tableEl) return
+    const { tr, hubId } = ctx
+    tr.style.position = ""; tr.style.zIndex = ""; tr.style.background = ""
+    tr.style.boxShadow = ""; tr.style.transform = ""; tr.style.willChange = ""
+    rowDragCtx = null
+
+    // Give every row in this hub's table a fresh, evenly-spaced sort_order
+    // matching its current (post-drag) DOM position, and persist it.
+    const list = hubSensorsCache[hubId] || []
+    const rowsNow = Array.from(tableEl.querySelectorAll("tr[id^='row-']"))
+    const updates = []
+    rowsNow.forEach((r, i) => {
+      const sid = r.id.slice(4)
+      const sensor = list.find(s => s.id === sid)
+      const newOrder = (i + 1) * 1000
+      if (sensor && sensor._hsSortOrder !== newOrder) {
+        sensor._hsSortOrder = newOrder
+        if (typeof updateHubSensorSortOrder === "function") updates.push(updateHubSensorSortOrder(hubId, sid, newOrder))
+      }
+    })
+    if (updates.length) await Promise.all(updates)
+  }
+  tableEl.addEventListener("pointerup", finishDrag)
+  tableEl.addEventListener("pointercancel", finishDrag)
 }
 
 async function populateHub(hub) {
   const sensors = await loadSensorsForHub(hub.id)
   const tableEl = document.getElementById(`table-${hub.id}`)
   if (!tableEl) return
+  initRowDrag(tableEl, hub.id)
   hubSensorsCache[hub.id] = sensors
   if (sensors.length === 0) {
     if (!tableEl.querySelector(".empty-row")) {
@@ -1642,13 +1742,18 @@ async function populateHub(hub) {
   // flash that a full innerHTML="" + rebuild caused every refresh.
   rows.forEach(({sensor,latest}, i) => {
     const rowId = `row-${sensor.id}`
+    // Skip the row currently mid-drag entirely (not just the re-append) --
+    // replacing its innerHTML would destroy the grab handle that has active
+    // pointer capture and abort the user's in-progress drag. It'll pick up
+    // the latest data on the next render after the drag finishes.
+    if (rowDragCtx && rowDragCtx.tr && rowDragCtx.tr.id === rowId) return
     const low = lowIds.has(sensor.id)
     let tr = document.getElementById(rowId)
     if (!tr) { tr = document.createElement("tr"); tr.id = rowId }
     tr.className = `border-b border-slate-700 ${low?"bg-amber-900/30":""}`
     tr.style.cursor = "pointer"
-    tr.innerHTML = sensorRowHTML(sensor, latest, low, hub.id, i===0, i===rows.length-1)
-    tr.onclick = () => openSpotlight(sensor.id)
+    tr.innerHTML = sensorRowHTML(sensor, latest, low, hub.id)
+    tr.onclick = (e) => { if (e.target.closest(".row-grab-handle")) return; openSpotlight(sensor.id) }
     tableEl.appendChild(tr)
   })
   const wantedIds = new Set(rows.map(r => `row-${r.sensor.id}`))
