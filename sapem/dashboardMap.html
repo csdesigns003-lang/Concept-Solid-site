@@ -954,6 +954,31 @@ function updateUnplacedBar(hubId) {
       Place ${s.sensor_name || s.sensor_hardware_id}</button>`).join("")
 }
 
+// Moves an in-progress placement marker to the phone's current GPS
+// position. Used by sensor placement, freestanding marker placement, and
+// freestanding marker move -- in every case the map-click listener set up
+// by the caller is left active, so the user can still tap the map to
+// nudge/override the spot afterward, and Save/Cancel behave exactly as
+// before.
+function placeMarkerAtMyLocation(hubId, marker) {
+  if (!navigator.geolocation) { showToast("Geolocation not supported by this browser"); return }
+  const md = hubMaps[hubId]
+  showToast("Getting your location...")
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      const { latitude, longitude } = pos.coords
+      marker.setLatLng([latitude, longitude])
+      if (md && md.map) md.map.panTo([latitude, longitude])
+      showToast("Moved to your location -- tap map to adjust", { green: true })
+    },
+    err => {
+      const msg = err && err.code === 1 ? "Location permission denied" : "Couldn't get your location"
+      showToast(msg)
+    },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+  )
+}
+
 function startPlacement(hubId, sensorId) {
   const md = hubMaps[hubId]; if (!md) return
   // Don't hijack the shared panel out from under an in-progress line edit --
@@ -986,8 +1011,9 @@ function startPlacement(hubId, sensorId) {
   placementState = { hubId, sensorId, marker, hadLocation, originalLatLng, createdNew, onMapClick }
 
   showLineActionsPanel(hubId, "Tap the map to reposition", [
-    { label: "Save",   style: BTN_GREEN, onClick: savePlacement },
-    { label: "Cancel", style: BTN_SLATE, onClick: cancelPlacement },
+    { label: "Save",        style: BTN_GREEN, onClick: savePlacement },
+    { label: "My Location", style: BTN_SLATE, onClick: () => placeMarkerAtMyLocation(hubId, marker) },
+    { label: "Cancel",      style: BTN_SLATE, onClick: cancelPlacement },
   ])
 }
 
@@ -1121,8 +1147,9 @@ function startMarkerPlacement(hubId) {
   md.map.on("click", onMapClick)
   markerPlaceState = { hubId, marker, onMapClick, type: null }
   showLineActionsPanel(hubId, "Tap the map to place the marker", [
-    { label: "Next",   style: BTN_GREEN, onClick: promptMarkerType },
-    { label: "Cancel", style: BTN_SLATE, onClick: cancelMarkerPlacement },
+    { label: "Next",        style: BTN_GREEN, onClick: promptMarkerType },
+    { label: "My Location", style: BTN_SLATE, onClick: () => placeMarkerAtMyLocation(hubId, marker) },
+    { label: "Cancel",      style: BTN_SLATE, onClick: cancelMarkerPlacement },
   ])
 }
 
@@ -1190,8 +1217,9 @@ function startFreeMarkerMove(hubId, markerId) {
   md.map.on("click", onMapClick)
   freeMarkerMoveState = { hubId, markerId, marker, original, onMapClick }
   showLineActionsPanel(hubId, "Tap the map to reposition", [
-    { label: "Save",   style: BTN_GREEN, onClick: saveFreeMarkerMove },
-    { label: "Cancel", style: BTN_SLATE, onClick: cancelFreeMarkerMove },
+    { label: "Save",        style: BTN_GREEN, onClick: saveFreeMarkerMove },
+    { label: "My Location", style: BTN_SLATE, onClick: () => placeMarkerAtMyLocation(hubId, marker) },
+    { label: "Cancel",      style: BTN_SLATE, onClick: cancelFreeMarkerMove },
   ])
 }
 
