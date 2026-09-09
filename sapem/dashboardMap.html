@@ -1076,9 +1076,21 @@ function freeMarkerIcon(type) {
       iconSize: [18,26], iconAnchor: [2,26], popupAnchor: [4,-24],
     })
   }
+  if (type === "hub") {
+    // Same square shape as the repeater diamond below, just turned back to
+    // 0deg (no rotation) so it reads as a standard upright square, in gray.
+    return L.divIcon({
+      className: "",
+      html: `<div style="width:16px;height:16px;background:#94a3b8;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.5);"></div>`,
+      iconSize: [16,16], iconAnchor: [8,8], popupAnchor: [0,-10],
+    })
+  }
+  // Repeater (and any other/legacy marker type) -- square rotated 45deg into
+  // a diamond. Cyan so it stands out from the green/red/amber/orange already
+  // used elsewhere on the map, while still fitting the dark theme.
   return L.divIcon({
     className: "",
-    html: `<div style="width:16px;height:16px;transform:rotate(45deg);background:#f472b6;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.5);"></div>`,
+    html: `<div style="width:16px;height:16px;transform:rotate(45deg);background:#22d3ee;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.5);"></div>`,
     iconSize: [16,16], iconAnchor: [8,8], popupAnchor: [0,-10],
   })
 }
