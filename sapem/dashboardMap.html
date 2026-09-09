@@ -127,11 +127,13 @@ body.map-fs-lock { overflow: hidden !important; position: fixed !important; inse
 .row-grab-handle:active { cursor: grabbing !important; color: #cbd5e1 !important; }
 
 /* Sensor table layout -- fixed column widths, single-line ellipsis-
-   truncated name (this is the original look -- reverted back to it after
-   trying a wrapping version). The grab handle is pulled out of the name
-   column entirely via absolute positioning so it never competes with the
-   name for space -- it sits in the hub card's own padding gutter, just
-   inside the card's border, to the left of the table. */
+   truncated name. The grab handle is pulled out of the name column
+   entirely via absolute positioning so it never competes with the name
+   for space -- it sits in the hub card's own padding gutter, just inside
+   the card's border, to the left of the table. Column widths (in the
+   colgroups below) are narrower on the name column than the actual
+   sensor names need, freeing space for Signal/Last Seen so their
+   headers don't wrap into each other; widths sum to a clean 100%. */
 .sensor-table { table-layout: fixed; width: 100%; }
 .sensor-table .cell-name-text { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 
@@ -174,8 +176,8 @@ body.map-fs-lock { overflow: hidden !important; position: fixed !important; inse
     <div class="hub-title"><span class="hub-dot" style="background:#94a3b8"></span>Unassigned Sensors</div>
     <table class="w-full text-sm sensor-table">
       <colgroup>
-        <col style="width:34%"><col style="width:15%"><col style="width:15%">
-        <col style="width:15%"><col style="width:11%"><col style="width:15%">
+        <col style="width:24%"><col style="width:15%"><col style="width:15%">
+        <col style="width:15%"><col style="width:13%"><col style="width:18%">
       </colgroup>
       <thead class="text-slate-400 border-b border-slate-700">
         <tr>
@@ -1631,8 +1633,8 @@ function renderHubSection(hub) {
       </div>
       <table class="w-full text-sm sensor-table">
         <colgroup>
-          <col style="width:34%"><col style="width:15%"><col style="width:15%">
-          <col style="width:15%"><col style="width:11%"><col style="width:15%">
+          <col style="width:24%"><col style="width:15%"><col style="width:15%">
+          <col style="width:15%"><col style="width:13%"><col style="width:18%">
         </colgroup>
         <thead class="text-slate-400 border-b border-slate-700">
           <tr><th class="py-2 text-left">Sensor</th><th class="text-center">P1 (inHg)</th>
