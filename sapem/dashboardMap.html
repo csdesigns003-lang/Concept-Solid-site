@@ -136,6 +136,7 @@ body.map-fs-lock { overflow: hidden !important; position: fixed !important; inse
    headers don't wrap into each other; widths sum to a clean 100%. */
 .sensor-table { table-layout: fixed; width: 100%; }
 .sensor-table .cell-name-text { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.sensor-table th .th-unit { font-size: 10px; font-weight: 500; opacity: 0.8; }
 
 .leaflet-fs-btn { width: 34px; height: 34px; background: rgba(15,23,42,0.92) !important; border: 1px solid #1e293b !important; border-radius: 7px !important; color: #cbd5e1; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.5); transition: all 0.15s; }
 .leaflet-fs-btn:hover { background: #1e293b !important; color: white; }
@@ -176,14 +177,14 @@ body.map-fs-lock { overflow: hidden !important; position: fixed !important; inse
     <div class="hub-title"><span class="hub-dot" style="background:#94a3b8"></span>Unassigned Sensors</div>
     <table class="w-full text-sm sensor-table">
       <colgroup>
-        <col style="width:24%"><col style="width:15%"><col style="width:15%">
-        <col style="width:15%"><col style="width:13%"><col style="width:18%">
+        <col style="width:28%"><col style="width:15%"><col style="width:15%">
+        <col style="width:15%"><col style="width:9%"><col style="width:18%">
       </colgroup>
       <thead class="text-slate-400 border-b border-slate-700">
         <tr>
-          <th class="py-2 text-left">Sensor</th><th class="text-center">P1 (inHg)</th>
-          <th class="text-center">P2 (inHg)</th><th class="text-center">Temp (degF)</th>
-          <th class="text-center">Signal</th><th class="text-center">Last Seen</th>
+          <th class="py-2 text-left">Sensor</th><th class="text-center">P1 <span class="th-unit">(inHg)</span></th>
+          <th class="text-center">P2 <span class="th-unit">(inHg)</span></th><th class="text-center">Temp <span class="th-unit">(degF)</span></th>
+          <th class="text-center">Sig</th><th class="text-center">Last Seen</th>
         </tr>
       </thead>
       <tbody id="unassignedTable"></tbody>
@@ -1633,13 +1634,13 @@ function renderHubSection(hub) {
       </div>
       <table class="w-full text-sm sensor-table">
         <colgroup>
-          <col style="width:24%"><col style="width:15%"><col style="width:15%">
-          <col style="width:15%"><col style="width:13%"><col style="width:18%">
+          <col style="width:28%"><col style="width:15%"><col style="width:15%">
+          <col style="width:15%"><col style="width:9%"><col style="width:18%">
         </colgroup>
         <thead class="text-slate-400 border-b border-slate-700">
-          <tr><th class="py-2 text-left">Sensor</th><th class="text-center">P1 (inHg)</th>
-          <th class="text-center">P2 (inHg)</th><th class="text-center">Temp (degF)</th>
-          <th class="text-center">Signal</th><th class="text-center">Last Seen</th></tr>
+          <tr><th class="py-2 text-left">Sensor</th><th class="text-center">P1 <span class="th-unit">(inHg)</span></th>
+          <th class="text-center">P2 <span class="th-unit">(inHg)</span></th><th class="text-center">Temp <span class="th-unit">(degF)</span></th>
+          <th class="text-center">Sig</th><th class="text-center">Last Seen</th></tr>
         </thead>
         <tbody id="${tbId}"></tbody>
       </table>
