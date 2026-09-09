@@ -126,18 +126,14 @@ body.map-fs-lock { overflow: hidden !important; position: fixed !important; inse
 .sapem-flag-label::before { display: none !important; }
 .row-grab-handle:active { cursor: grabbing !important; color: #cbd5e1 !important; }
 
-/* Sensor table layout -- fixed column widths (previously summed to 105%,
-   which is what was squeezing "Signal"/"Last Seen" together in the
-   header -- now sums to a clean 100%). Sensor names now wrap onto a
-   second line instead of being ellipsis-truncated, so the full name is
-   visible; the grab handle is flex-shrink:0 and sized down a bit so it
-   eats less of that width. Header labels get a slightly smaller,
-   non-wrapping font so "Signal" and "Last Seen" always render as a
-   single line each instead of wrapping and visually colliding. */
+/* Sensor table layout -- fixed column widths, single-line ellipsis-
+   truncated name (this is the original look -- reverted back to it after
+   trying a wrapping version). The grab handle is pulled out of the name
+   column entirely via absolute positioning so it never competes with the
+   name for space -- it sits in the hub card's own padding gutter, just
+   inside the card's border, to the left of the table. */
 .sensor-table { table-layout: fixed; width: 100%; }
-.sensor-table th { font-size: 10.5px; font-weight: 600; white-space: nowrap; padding-left: 2px; padding-right: 2px; }
-.sensor-table .cell-name { display: flex; align-items: center; gap: 4px; min-width: 0; }
-.sensor-table .cell-name-text { flex: 1 1 auto; min-width: 0; overflow: visible; text-overflow: clip; white-space: normal; word-break: break-word; line-height: 1.3; }
+.sensor-table .cell-name-text { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 
 .leaflet-fs-btn { width: 34px; height: 34px; background: rgba(15,23,42,0.92) !important; border: 1px solid #1e293b !important; border-radius: 7px !important; color: #cbd5e1; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.5); transition: all 0.15s; }
 .leaflet-fs-btn:hover { background: #1e293b !important; color: white; }
@@ -178,8 +174,8 @@ body.map-fs-lock { overflow: hidden !important; position: fixed !important; inse
     <div class="hub-title"><span class="hub-dot" style="background:#94a3b8"></span>Unassigned Sensors</div>
     <table class="w-full text-sm sensor-table">
       <colgroup>
-        <col style="width:30%"><col style="width:14%"><col style="width:14%">
-        <col style="width:14%"><col style="width:12%"><col style="width:16%">
+        <col style="width:34%"><col style="width:15%"><col style="width:15%">
+        <col style="width:15%"><col style="width:11%"><col style="width:15%">
       </colgroup>
       <thead class="text-slate-400 border-b border-slate-700">
         <tr>
@@ -1067,7 +1063,7 @@ function endPlacement() {
   placementState = null
 }
 
-// ── Freestanding map markers (repeaters, etc. -- not tied to a sensor) ────
+// ── Freestanding map markers (hubs, repeaters, flags/notes -- not tied to a sensor) ────
 
 function freeMarkerIcon(type) {
   if (type === "flag") {
@@ -1164,8 +1160,9 @@ function promptMarkerType() {
   md.map.off("click", ps.onMapClick)
   showLineActionsPanel(ps.hubId, "What kind of marker is this?", [
     { label: "Repeater",    style: halfWidth(BTN_SLATE), onClick: () => promptMarkerName("repeater", "Repeater") },
+    { label: "Hub",         style: halfWidth(BTN_SLATE), onClick: () => promptMarkerName("hub", "Hub") },
     { label: "Flag / Note", style: halfWidth(BTN_SLATE), onClick: () => promptMarkerName("flag", "Note") },
-    { label: "Cancel",      style: BTN_SLATE,            onClick: cancelMarkerPlacement },
+    { label: "Cancel",      style: halfWidth(BTN_SLATE), onClick: cancelMarkerPlacement },
   ])
 }
 
@@ -1173,7 +1170,7 @@ function promptMarkerName(type, defaultName) {
   const ps = markerPlaceState; if (!ps) return
   ps.type = type
   ps.marker.setIcon(freeMarkerIcon(type))
-  showLineActionsPanel(ps.hubId, "Name this marker (e.g. \"Tree down\")", [
+  showLineActionsPanel(ps.hubId, "Name this marker (e.g. \"Back Field\")", [
     { label: "Save",   style: BTN_GREEN, onClick: saveMarkerPlacement },
     { label: "Cancel", style: BTN_SLATE, onClick: cancelMarkerPlacement },
   ], { placeholder: "Marker name", value: defaultName })
@@ -1183,7 +1180,7 @@ async function saveMarkerPlacement() {
   const ps = markerPlaceState; if (!ps) return
   const md = hubMaps[ps.hubId]
   const typed = md.editActionsCtrl.getContainer()._input.value.trim()
-  const name = typed || (ps.type === "flag" ? "Note" : "Repeater")
+  const name = typed || (ps.type === "flag" ? "Note" : ps.type === "hub" ? "Hub" : "Repeater")
   const { lat, lng } = ps.marker.getLatLng()
   // Shared map: a new marker still needs one owning hub_id for the database
   // row, same rule as finishLineDraw uses for new lines.
@@ -1361,10 +1358,10 @@ async function initHubMap(hubId) {
 
     // Always-visible top-level button (previously "+ Add Marker" was buried
     // one level inside the Lines panel and easy to miss) -- one tap starts
-    // placement directly, for things like a plain repeater or a "tree down"
-    // note that isn't tied to a sensor.
+    // placement directly, for things like a hub, repeater, or flagged note
+    // that isn't tied to a sensor.
     const markerToggle = L.DomUtil.create("button", "leaflet-fs-btn", wrap)
-    markerToggle.title = "Drop a marker (repeater, note, etc.)"
+    markerToggle.title = "Drop a marker (hub, repeater, note, etc.)"
     markerToggle.style.cssText = "width:auto !important;padding:0 10px !important;font-size:12px !important;font-weight:600 !important;white-space:nowrap;color:#f472b6 !important;"
     markerToggle.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:4px"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Marker`
     L.DomEvent.on(markerToggle,"click",L.DomEvent.stopPropagation)
@@ -1622,8 +1619,8 @@ function renderHubSection(hub) {
       </div>
       <table class="w-full text-sm sensor-table">
         <colgroup>
-          <col style="width:30%"><col style="width:14%"><col style="width:14%">
-          <col style="width:14%"><col style="width:12%"><col style="width:16%">
+          <col style="width:34%"><col style="width:15%"><col style="width:15%">
+          <col style="width:15%"><col style="width:11%"><col style="width:15%">
         </colgroup>
         <thead class="text-slate-400 border-b border-slate-700">
           <tr><th class="py-2 text-left">Sensor</th><th class="text-center">P1 (inHg)</th>
@@ -1650,10 +1647,12 @@ function sensorRowHTML(sensor, latest, low, hubId) {
   // Grab handle for drag-to-reorder -- replaces the old up/down arrow
   // buttons, which were too small a target to hit reliably on a phone.
   // touch-action:none stops the page from scrolling while a drag is in
-  // progress on this handle.
+  // progress on this handle. Positioned absolute so it sits outside the
+  // table itself, in the hub card's left padding gutter (just inside the
+  // card's border) instead of eating into the name column's width.
   const handle = hubId ? `
     <span class="row-grab-handle" title="Drag to reorder" data-sensor-id="${sensor.id}"
-      style="display:inline-flex;flex-shrink:0;align-items:center;justify-content:center;width:24px;height:24px;margin-right:2px;vertical-align:middle;cursor:grab;touch-action:none;color:#64748b;-webkit-user-select:none;user-select:none;">
+      style="position:absolute;left:-22px;top:50%;transform:translateY(-50%);display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;cursor:grab;touch-action:none;color:#64748b;-webkit-user-select:none;user-select:none;">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="pointer-events:none;">
         <circle cx="8" cy="6" r="2"/><circle cx="16" cy="6" r="2"/>
         <circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/>
@@ -1661,8 +1660,8 @@ function sensorRowHTML(sensor, latest, low, hubId) {
       </svg>
     </span>` : ""
   return `
-    <td class="py-2 ${low?"text-amber-400 font-semibold":""}">
-      <div class="cell-name">${handle}<span class="cell-name-text">${low?"WARNING ":""}${sensor.sensor_name||sensor.sensor_hardware_id}</span></div>
+    <td class="py-2 ${low?"text-amber-400 font-semibold":""}" style="position:relative;">
+      ${handle}<span class="cell-name-text">${sensor.sensor_name||sensor.sensor_hardware_id}</span>
     </td>
     <td class="text-center ${low?"text-amber-400 font-semibold":""}">${p1!=null?p1.toFixed(2):"---"}</td>
     <td class="text-center">${p2!=null?p2.toFixed(2):"---"}</td>
