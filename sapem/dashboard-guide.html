@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>SapEM Dashboard Guide | Populating Your Sap Vacuum Monitoring Dashboard</title>
+<meta name="description" content="Complete walkthrough of the SapEM dashboard — from powering on the hub to adding sensors, naming things, and mapping your whole sugarbush.">
+<link rel="icon" href="/images/favicon/sapem-favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon/sapem-favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/images/favicon/sapem-favicon-192.png">
+<link rel="apple-touch-icon-precomposed" sizes="180x180" href="/images/favicon/sapem-apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/sapem-apple-touch-icon.png">
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+
+body{
+font-family:"Microsoft Sans Serif", Arial, sans-serif;
+background:#f0fdf4;
+}
+
+.step-card{
+background:#ffffff;
+border:1px solid #dcfce7;
+border-radius:0.85rem;
+padding:1.1rem 1.35rem;
+box-shadow:0 3px 10px rgba(0,0,0,0.05);
+display:flex;
+gap:1rem;
+align-items:flex-start;
+}
+
+.step-num{
+display:inline-flex;
+align-items:center;
+justify-content:center;
+width:2rem;
+height:2rem;
+border-radius:9999px;
+background:#22c55e;
+color:white;
+font-weight:700;
+font-size:0.95rem;
+flex-shrink:0;
+}
+
+.section-block{
+background:#ecfdf5;
+border-radius:1.25rem;
+padding:2rem;
+margin-bottom:2.5rem;
+box-shadow:0 6px 18px rgba(0,0,0,0.06);
+}
+
+.section-icon{
+display:inline-flex;
+align-items:center;
+justify-content:center;
+width:3rem;
+height:3rem;
+border-radius:9999px;
+background:#22c55e;
+color:white;
+font-weight:800;
+font-size:1.4rem;
+flex-shrink:0;
+}
+
+.note-card{
+background:#fffbeb;
+border:1px solid #fde68a;
+border-radius:0.85rem;
+padding:1.1rem 1.35rem;
+}
+
+.led-diagram{
+flex-shrink:0;
+}
+
+.sub-step{
+background:#f8fafc;
+border:1px solid #e2e8f0;
+border-radius:0.65rem;
+padding:0.85rem 1.1rem;
+margin-top:0.6rem;
+}
+
+.legend-chip{
+display:flex;
+align-items:center;
+gap:0.6rem;
+background:#ffffff;
+border:1px solid #dcfce7;
+border-radius:0.65rem;
+padding:0.6rem 0.9rem;
+font-size:0.92rem;
+color:#374151;
+}
+
+.legend-dot{
+width:14px;
+height:14px;
+border-radius:9999px;
+flex-shrink:0;
+}
+
+.legend-diamond{
+width:13px;
+height:13px;
+transform:rotate(45deg);
+flex-shrink:0;
+}
+
+.legend-square{
+width:13px;
+height:13px;
+flex-shrink:0;
+}
+
+.legend-line{
+width:24px;
+height:4px;
+border-radius:9999px;
+flex-shrink:0;
+}
+
+.toc a{
+color:#166534;
+text-decoration:underline;
+}
+
+</style>
+
+</head>
+
+<body class="flex flex-col min-h-screen">
+<main class="flex-grow">
+
+<!-- HEADER -->
+
+<header class="bg-white/90 backdrop-blur shadow sticky top-0 z-50">
+
+<div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+
+<!-- LEFT NAV (Desktop) -->
+<div class="hidden md:flex space-x-6 text-lg">
+
+<a href="products.html" class="hover:text-[#006400]">
+Products
+</a>
+
+<a href="resources.html" class="hover:text-[#006400]">
+Resources
+</a>
+
+</div>
+
+
+<!-- LOGO -->
+<a href="index.html"
+class="flex items-center gap-3 hover:opacity-90">
+
+<img src="../images/sapemlogo.png"
+class="h-10 md:h-12">
+
+<span class="text-2xl md:text-4xl font-extrabold tracking-tight">
+SapEM Systems
+</span>
+
+</a>
+
+
+
+<!-- RIGHT NAV (Desktop) -->
+
+<div class="hidden md:flex items-center space-x-6">
+
+<a href="../index.html"
+class="text-gray-700 hover:text-[#006400]">
+
+Concept Solid
+
+</a>
+
+<a href="login.html"
+class="text-[#006400] font-bold hover:opacity-75">
+
+Login
+
+</a>
+
+<a href="../cart.html"
+class="font-semibold">
+
+Cart (<span class="cart-count">0</span>)
+
+</a>
+
+</div>
+
+
+<!-- MOBILE MENU BUTTON -->
+
+<button onclick="toggleMenu()" class="md:hidden text-3xl">
+
+☰
+
+</button>
+
+</div>
+
+
+<!-- MOBILE DROPDOWN -->
+
+<div id="mobileMenu" class="hidden md:hidden bg-white border-t">
+
+<a href="products.html" class="block px-6 py-4 border-b">
+Products
+</a>
+
+<a href="resources.html" class="block px-6 py-4 border-b">
+Resources
+</a>
+
+<a href="../index.html" class="block px-6 py-4 border-b">
+Concept Solid
+</a>
+
+<a href="login.html" class="block px-6 py-4 border-b">
+Login
+</a>
+
+<a href="../cart.html" class="block px-6 py-4">
+Cart
+</a>
+
+</div>
+
+</header>
+</header>
+
+
+<!-- CONTENT -->
+
+<section class="max-w-4xl mx-auto px-6 py-24">
+
+<h1 class="text-5xl font-bold mb-4">
+SapEM Dashboard Guide
+</h1>
+
+<p class="text-gray-700 mb-6 text-lg">
+A complete, start-to-finish walkthrough of setting up your dashboard — from powering on
+the hub to placing every sensor, repeater, and tubing line on your map.
+</p>
+
+<div class="section-block" style="margin-bottom:2.5rem;padding:1.5rem 2rem;">
+<p class="font-bold mb-2 text-gray-800">On this page</p>
+<ul class="toc list-disc list-inside space-y-1 text-gray-700">
+<li><a href="#hub">1. Set Up the Receiving Hub</a></li>
+<li><a href="#account">2. Create Your SapEM Account</a></li>
+<li><a href="#connect-hub">3. Connect the Hub to Your Account</a></li>
+<li><a href="#sensors">4. Add and Assign Sensors</a></li>
+<li><a href="#reading">5. Reading Your Dashboard</a></li>
+<li><a href="#naming">6. Renaming Things and Removing a Hub</a></li>
+<li><a href="#reorder">7. Reordering Sensors in a Hub</a></li>
+<li><a href="#map">8. Populating the Map</a></li>
+<li><a href="#legend">9. Map Icon &amp; Line Legend</a></li>
+</ul>
+</div>
+
+
+<!-- SECTION 1 -->
+<div class="section-block" id="hub">
+
+<div class="flex items-center gap-4 mb-6">
+<span class="section-icon">1</span>
+<h2 class="text-2xl font-bold">
+Set Up the Receiving Hub
+</h2>
+</div>
+
+<div class="space-y-3">
+
+<div class="step-card">
+<span class="step-num">1</span>
+<p class="text-gray-700">Install the antenna.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">2</span>
+<p class="text-gray-700">Plug in the HDMI cable to the board (either port) and desired display device.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">3</span>
+<p class="text-gray-700">Plug in powerblock and turn the switch on (if your version has one).</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">4</span>
+<p class="text-gray-700">Plug in ethernet (recommended). If not using ethernet connect the hub to WiFi by clicking the WiFi symbol in the top right corner (mouse not included, can be installed in any USB port).</p>
+</div>
+
+</div>
+</div>
+
+
+<!-- SECTION 2 -->
+<div class="section-block" id="account">
+
+<div class="flex items-center gap-4 mb-6">
+<span class="section-icon">2</span>
+<h2 class="text-2xl font-bold">
+Create Your SapEM Account
+</h2>
+</div>
+
+<div class="space-y-3">
+
+<div class="step-card">
+<span class="step-num">1</span>
+<p class="text-gray-700">On any device (besides the hub) go to www.concept-solid.com/sapem and click Login in the top right corner.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">2</span>
+<p class="text-gray-700">Click Create Account.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">3</span>
+<p class="text-gray-700">Follow directions on screen. Once completed, login to your dashboard.</p>
+</div>
+
+</div>
+</div>
+
+
+<!-- SECTION 3 -->
+<div class="section-block" id="connect-hub">
+
+<div class="flex items-center gap-4 mb-6">
+<span class="section-icon">3</span>
+<h2 class="text-2xl font-bold">
+Connect the Hub to Your Account
+</h2>
+</div>
+
+<div class="space-y-3">
+
+<div class="step-card">
+<span class="step-num">1</span>
+<p class="text-gray-700">Make sure the hub is powered on and wait about 5 minutes to let it finish booting and connecting to the network.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">2</span>
+<p class="text-gray-700">On your dashboard, press the green "+ Add Hub" button in the top row.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">3</span>
+<p class="text-gray-700">In the "Add Receiving Hub" window, enter the <strong>Hub Hardware ID</strong> printed on the inside of the hub enclosure, and optionally give it a <strong>Hub Name</strong> (e.g. "North Sugarbush"). The name can be changed anytime.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">4</span>
+<p class="text-gray-700">Press "Add Hub." The dashboard will refresh and a new section for that hub will appear with its gauge, stats, and sensor table.</p>
+</div>
+
+</div>
+</div>
+
+
+<!-- SECTION 4 -->
+<div class="section-block" id="sensors">
+
+<div class="flex items-center gap-4 mb-6">
+<span class="section-icon">4</span>
+<h2 class="text-2xl font-bold">
+Add and Assign Sensors
+</h2>
+</div>
+
+<div class="space-y-3 mb-8">
+
+<div class="step-card">
+<span class="step-num">1</span>
+<p class="text-gray-700">Install the antenna on the sensor.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">2</span>
+<p class="text-gray-700">Power on the sensor by pressing the metal button on the side of the enclosure. Do the first binding close to the hub.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">3</span>
+<p class="text-gray-700">Wait about 30 seconds, then on the dashboard press the green "+ Add Sensor" button.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">4</span>
+<p class="text-gray-700">In the "Add Sensor Node" window, enter the 4-digit <strong>Sensor Serial Number</strong> printed inside the sensor enclosure, and optionally a <strong>Sensor Name</strong>. Press "Add Sensor." A brand-new sensor won't show readings immediately — data appears once it reports in, which can take a few minutes.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">5</span>
+<p class="text-gray-700">Press the "Assign Sensor" button at the top of the dashboard. Choose the sensor under <strong>Select Sensor</strong>, the hub under <strong>Select Hub</strong>, and pick an <strong>Action</strong>:</p>
+</div>
+
+<div class="sub-step">
+<p class="text-gray-700 mb-2"><strong>Assign to this hub</strong> — adds the sensor to the chosen hub without removing it from any other hub it's already on. Use this for a sensor that reports to more than one hub.</p>
+<p class="text-gray-700 mb-2"><strong>Move to this hub</strong> — makes the chosen hub the sensor's <em>only</em> hub, removing it from every other hub first.</p>
+<p class="text-gray-700">Remove from this hub — unassigns the sensor from the chosen hub only.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">6</span>
+<p class="text-gray-700">Press "Apply." A sensor with no hub at all sits under the "Unassigned Sensors" table near the top of the dashboard until it's assigned.</p>
+</div>
+
+</div>
+
+<div class="space-y-4">
+<div class="note-card">
+<p class="text-gray-800">Wait 30 seconds before powering on the next sensor to let each one finish binding to the hub before you start the next.</p>
+</div>
+</div>
+
+<h3 class="text-lg font-bold mb-4 text-gray-800">
+Notes
+</h3>
+
+<div class="space-y-4">
+
+<div class="note-card flex flex-col sm:flex-row items-center sm:items-stretch gap-5">
+
+<img src="../images/charging-port.jpg"
+alt="SapEM sensor board showing the USB-C charging port"
+class="w-32 h-32 sm:w-28 sm:h-28 object-cover rounded-lg shadow-md flex-shrink-0">
+
+<div class="flex-1">
+<p class="text-gray-800">
+It is recommended to charge all sensors fully before deploying for a season. The charging
+port for sensors is found in the bottom right corner of the circuit
+board inside the box (USB‑C cable included with every hub). While
+charging, the small indicator light in the top right on the board glows
+<strong class="text-red-600">red</strong>. Once the battery is
+fully charged, that same light switches to
+<strong class="text-blue-600">blue</strong>.
+</p>
+</div>
+
+<div class="led-diagram mx-auto sm:mx-0">
+<svg width="150" height="90" viewBox="0 0 150 90" xmlns="http://www.w3.org/2000/svg">
+
+<rect x="2" y="10" width="60" height="70" rx="8" fill="#0f172a"/>
+<circle cx="32" cy="35" r="9" fill="#ef4444"/>
+<text x="32" y="66" text-anchor="middle" fill="#e2e8f0" font-size="9" font-family="Arial, sans-serif">Charging</text>
+
+<polygon points="70,38 70,52 86,45" fill="#22c55e"/>
+
+<rect x="88" y="10" width="60" height="70" rx="8" fill="#0f172a"/>
+<circle cx="118" cy="35" r="9" fill="#3b82f6"/>
+<text x="118" y="66" text-anchor="middle" fill="#e2e8f0" font-size="8.5" font-family="Arial, sans-serif">Fully Charged</text>
+
+</svg>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- SECTION 5 -->
+<div class="section-block" id="reading">
+
+<div class="flex items-center gap-4 mb-6">
+<span class="section-icon">5</span>
+<h2 class="text-2xl font-bold">
+Reading Your Dashboard
+</h2>
+</div>
+
+<div class="space-y-3">
+
+<div class="step-card">
+<span class="step-num">1</span>
+<p class="text-gray-700">Each hub gets its own card on the dashboard showing a live vacuum <strong>gauge</strong>, and <strong>Hub Stats</strong>: sensors on that hub, average temperature, average pressure, and when data was last received.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">2</span>
+<p class="text-gray-700">Under Hub Stats you can set an <strong>alert threshold</strong> — enter a percentage and any sensor reading that far below the hub's average pressure is flagged in a "Low pressure sensors" list and highlighted amber in the table.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">3</span>
+<p class="text-gray-700">Below that, each hub's sensor table lists every assigned sensor with its live P1/P2 pressure, temperature, signal strength, and last-seen time.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">4</span>
+<p class="text-gray-700">Tap any sensor's row (not the drag handle) to open a "spotlight" popup with just that sensor's gauge and readings — handy for checking one line at a glance. Tap the X, or tap outside the popup, to close it.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">5</span>
+<p class="text-gray-700">Press "&#8635; Refresh" at the top anytime to pull the latest readings and reconcile the map without reloading the page.</p>
+</div>
+
+</div>
+</div>
+
+
+<!-- SECTION 6 -->
+<div class="section-block" id="naming">
+
+<div class="flex items-center gap-4 mb-6">
+<span class="section-icon">6</span>
+<h2 class="text-2xl font-bold">
+Renaming Things and Removing a Hub
+</h2>
+</div>
+
+<div class="space-y-3">
+
+<div class="step-card">
+<span class="step-num">1</span>
+<p class="text-gray-700">Press the small pencil icon next to a hub's name to open "Edit Names."</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">2</span>
+<p class="text-gray-700">Change the <strong>Hub Name</strong> at the top, and rename any of that hub's sensors in the list below it (each shows its serial number for reference). Press "Save" to apply all the changes at once.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">3</span>
+<p class="text-gray-700">To remove a hub entirely, press "Remove Hub" in that same window, then confirm. Any sensors assigned to it move to the "Unassigned Sensors" table rather than being deleted — reassign them to another hub whenever you like.</p>
+</div>
+
+</div>
+
+<div class="space-y-4 mt-4">
+<div class="note-card">
+<p class="text-gray-800">
+Removing a hub takes it off the dashboard completely. To bring it back later, use "+ Add Hub" again with the same Hub Hardware ID.
+</p>
+</div>
+</div>
+</div>
+
+
+<!-- SECTION 7 -->
+<div class="section-block" id="reorder">
+
+<div class="flex items-center gap-4 mb-6">
+<span class="section-icon">7</span>
+<h2 class="text-2xl font-bold">
+Reordering Sensors in a Hub
+</h2>
+</div>
+
+<div class="space-y-3">
+
+<div class="step-card">
+<span class="step-num">1</span>
+<p class="text-gray-700">Each sensor row has a small grab handle (three pairs of dots) just to the left of its name.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">2</span>
+<p class="text-gray-700">Press and hold the handle, then drag the row up or down to the position you want — this works with a mouse or a finger on a phone.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">3</span>
+<p class="text-gray-700">Release to drop it in place. The new order is saved automatically for that hub and stays that way across refreshes.</p>
+</div>
+
+</div>
+</div>
+
+
+<!-- SECTION 8 -->
+<div class="section-block" id="map">
+
+<div class="flex items-center gap-4 mb-6">
+<span class="section-icon">8</span>
+<h2 class="text-2xl font-bold">
+Populating the Map
+</h2>
+</div>
+
+<p class="text-gray-700 mb-6">
+Scroll to the bottom of the dashboard to find the shared "Map" section — every hub and
+sensor you've added shows up here together on one satellite map of your sugarbush.
+</p>
+
+<h3 class="text-lg font-bold mb-3 text-gray-800">8a. Placing a Sensor</h3>
+<div class="space-y-3 mb-6">
+
+<div class="step-card">
+<span class="step-num">1</span>
+<p class="text-gray-700">Any sensor without a map position yet shows up in a "Not yet placed on map" bar right above the map, with a "Place [sensor name]" button for each one.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">2</span>
+<p class="text-gray-700">Press that button (or, for a sensor already on the map, tap its dot and choose "Reposition marker" from the popup). A marker appears at the map's center and the map switches to placement mode: "Tap the map to reposition."</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">3</span>
+<p class="text-gray-700">Tap the spot on the map where that sensor actually sits, or press "My Location" to jump the marker to your phone's current GPS position (then fine-tune with a tap if needed).</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">4</span>
+<p class="text-gray-700">Press "Save" to lock in the position, or "Cancel" to back out. Saved sensors show as a colored dot on the map — the color reflects that sensor's current pressure reading.</p>
+</div>
+
+</div>
+
+<h3 class="text-lg font-bold mb-3 text-gray-800">8b. Adding Hubs, Repeaters, and Notes</h3>
+<p class="text-gray-700 mb-4">
+Use freestanding markers for anything on the map that isn't a sensor — the hub itself, a
+signal repeater, or a plain note like "tree down."
+</p>
+<div class="space-y-3 mb-6">
+
+<div class="step-card">
+<span class="step-num">1</span>
+<p class="text-gray-700">In the top-left corner of the map, press the pink "Marker" button.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">2</span>
+<p class="text-gray-700">Tap the map to place it (or use "My Location"), then press "Next."</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">3</span>
+<p class="text-gray-700">Choose what kind of marker it is — <strong>Repeater</strong>, <strong>Hub</strong>, or <strong>Flag / Note</strong> — each gets its own icon on the map.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">4</span>
+<p class="text-gray-700">Type a name (e.g. "Back Field Repeater") and press "Save."</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">5</span>
+<p class="text-gray-700">Tap any freestanding marker later to Reposition, toggle its name label, or Delete it from its popup.</p>
+</div>
+
+</div>
+
+<h3 class="text-lg font-bold mb-3 text-gray-800">8c. Drawing Sap Tubing Lines</h3>
+<div class="space-y-3 mb-6">
+
+<div class="step-card">
+<span class="step-num">1</span>
+<p class="text-gray-700">Press the "Lines" button (top-left of the map) to open the line panel.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">2</span>
+<p class="text-gray-700">If you have more than one hub, choose which hub the new line belongs to from the "Hub for new lines" dropdown.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">3</span>
+<p class="text-gray-700">Pick a line type: <strong>Mainline</strong>, <strong>Lateral</strong>, or <strong>Dropline</strong>.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">4</span>
+<p class="text-gray-700">Press "+ Draw Line," then tap the map once for each point along the tubing run. A running count shows how many points you've placed.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">5</span>
+<p class="text-gray-700">Press "Undo" to remove the last point, or "Finish" once you have at least two points to save the line (it's auto-named, e.g. "mainline 1"). "Cancel" discards the whole line.</p>
+</div>
+
+</div>
+
+<h3 class="text-lg font-bold mb-3 text-gray-800">8d. Editing, Labeling, and Deleting Lines</h3>
+<div class="space-y-3 mb-6">
+
+<div class="step-card">
+<span class="step-num">1</span>
+<p class="text-gray-700">Tap anywhere on an existing line to select it. A small panel appears with Edit, Show/Hide Label, Delete, and Cancel.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">2</span>
+<p class="text-gray-700"><strong>Edit</strong> lets you drag any point to reshape the line, and drag or tap one of the small faded dots between points to add a new bend point there. You can also rename the line in the text field. Press "Save" or "Cancel."</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">3</span>
+<p class="text-gray-700"><strong>Show/Hide Label</strong> keeps the line's name always visible on the map instead of only on tap.</p>
+</div>
+
+<div class="step-card">
+<span class="step-num">4</span>
+<p class="text-gray-700"><strong>Delete</strong> asks for confirmation, then removes the line permanently.</p>
+</div>
+
+</div>
+
+<div class="space-y-4">
+<div class="note-card">
+<p class="text-gray-800">
+Sensor markers, freestanding markers, and lines each have their own "Show/Hide name (or label) on map" toggle — turn it on for anything you want visible at a glance without tapping it first.
+</p>
+</div>
+</div>
+</div>
+
+
+<!-- SECTION 9 -->
+<div class="section-block" id="legend">
+
+<div class="flex items-center gap-4 mb-6">
+<span class="section-icon">9</span>
+<h2 class="text-2xl font-bold">
+Map Icon &amp; Line Legend
+</h2>
+</div>
+
+<div class="grid sm:grid-cols-2 gap-3 mb-6">
+
+<div class="legend-chip"><span class="legend-dot" style="background:#22c55e"></span>Sensor — good pressure</div>
+<div class="legend-chip"><span class="legend-dot" style="background:#f59e0b"></span>Sensor — low pressure</div>
+<div class="legend-chip"><span class="legend-dot" style="background:#ef4444"></span>Sensor — critical / no reading</div>
+<div class="legend-chip"><span class="legend-square" style="background:#94a3b8"></span>Hub marker</div>
+<div class="legend-chip"><span class="legend-diamond" style="background:#22d3ee"></span>Repeater marker</div>
+<div class="legend-chip">&#128204; Flag / Note marker</div>
+<div class="legend-chip"><span class="legend-line" style="background:#3b82f6"></span>Mainline</div>
+<div class="legend-chip"><span class="legend-line" style="background:#22c55e"></span>Lateral</div>
+<div class="legend-chip"><span class="legend-line" style="background:#94a3b8"></span>Dropline</div>
+
+</div>
+
+<p class="text-gray-600 text-sm">
+Exact pressure-color thresholds may be tuned over time — the shapes (circle = sensor,
+square = hub, diamond = repeater, flag = note) are what stay consistent.
+</p>
+
+</div>
+
+</section>
+
+<!-- FOOTER -->
+
+<footer class="bg-gray-900 text-gray-300 py-16">
+
+<div class="max-w-7xl mx-auto px-6 grid md:grid-cols-3 gap-10">
+
+<div>
+
+<h3 class="text-xl font-bold mb-4">
+
+SapEM Systems
+
+</h3>
+
+<p>
+
+Simple wireless monitoring for maple sap systems so producers can track vacuum pressure without the high cost of traditional systems.
+
+</p>
+
+</div>
+
+<div>
+
+<h3 class="font-semibold mb-3">
+
+Contact
+
+</h3>
+
+<p>Email: sapemsystems@concept-solid.com</p>
+
+
+</div>
+
+<div>
+
+<h3 class="font-semibold mb-3">
+
+Links
+
+</h3>
+
+<p><a href="products.html">Products</a></p>
+<p><a href="resources.html">Resources</a></p>
+<p><a href="../index.html">Concept Solid</a></p>
+
+</div>
+
+</div>
+
+</footer>
+
+<script>
+function toggleMenu(){
+  const menu = document.getElementById("mobileMenu");
+  menu.classList.toggle("hidden");
+}
+</script>
+  
+</body>
+</html>
