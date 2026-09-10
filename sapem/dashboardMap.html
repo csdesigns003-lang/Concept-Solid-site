@@ -184,7 +184,7 @@ body.map-fs-lock { overflow: hidden !important; position: fixed !important; inse
         <tr>
           <th class="py-2 text-left">Sensor</th><th class="text-center">P1 <span class="th-unit">(inHg)</span></th>
           <th class="text-center">P2 <span class="th-unit">(inHg)</span></th><th class="text-center">Temp <span class="th-unit">(degF)</span></th>
-          <th class="text-center">SIG</th><th class="text-center">Last Seen</th>
+          <th class="text-center">Sig</th><th class="text-center">Last Seen</th>
         </tr>
       </thead>
       <tbody id="unassignedTable"></tbody>
@@ -385,7 +385,7 @@ async function logout() {
 }
 
 let allHubs = [], allSensors = [], hubTabs = {}, hubMaps = {}
-let hubSensorsCache = {}, latestReadingsCache = {}, placementState = null
+let hubSensorsCache = {}, latestReadingsCache = {}, hubLastSeenCache = {}, placementState = null
 
 // SHARED_KEY is the constant "hubId" used to key the one consolidated map
 // (hubMaps[SHARED_KEY], lineDrawState[SHARED_KEY], lineSelectState[SHARED_KEY],
@@ -1640,7 +1640,7 @@ function renderHubSection(hub) {
         <thead class="text-slate-400 border-b border-slate-700">
           <tr><th class="py-2 text-left">Sensor</th><th class="text-center">P1 <span class="th-unit">(inHg)</span></th>
           <th class="text-center">P2 <span class="th-unit">(inHg)</span></th><th class="text-center">Temp <span class="th-unit">(degF)</span></th>
-          <th class="text-center">SIG</th><th class="text-center">Last Seen</th></tr>
+          <th class="text-center">Sig</th><th class="text-center">Last Seen</th></tr>
         </thead>
         <tbody id="${tbId}"></tbody>
       </table>
@@ -1682,7 +1682,7 @@ function sensorRowHTML(sensor, latest, low, hubId) {
     <td class="text-center">${p2!=null?p2.toFixed(2):"---"}</td>
     <td class="text-center">${temp!=null?temp.toFixed(1):"---"}</td>
     <td class="text-center">${rssiBars(rssi)}</td>
-    <td class="text-center text-slate-400">${fmt(latest?.received_at)}</td>`
+    <td class="text-center text-slate-400 cell-lastseen">${fmt(latest?.received_at)}</td>`
 }
 
 // ── Tap a sensor row to spotlight its gauge in a small popup ───────────────
@@ -1875,6 +1875,7 @@ async function populateHub(hub, changedSensorIds) {
   document.getElementById(`avgtemp-${hub.id}`).textContent  = avgT!=null?avgT.toFixed(1):"---"
   document.getElementById(`avgpres-${hub.id}`).textContent  = avgP!=null?avgP.toFixed(2):"---"
   document.getElementById(`lastseen-${hub.id}`).textContent = fmt(lastT)
+  hubLastSeenCache[hub.id] = lastT
   document.getElementById(`gval-${hub.id}`).textContent     = avgP!=null?avgP.toFixed(2):"---"
   drawNeedle(`gauge-canvas-${hub.id}`, avgP??0)
   updateLowList(hub.id, rows, lowIds)
@@ -1918,6 +1919,7 @@ async function populateUnassigned() {
   const wantedIds = new Set()
   for (const s of sensors) {
     const r=await loadLatestReadings(s.id), l=r[0]||null
+    latestReadingsCache[s.id] = l
     const p1=l?.pressure_1??null,p2=l?.pressure_2??null,t=l?.temperature??null
     const rowId = `unassigned-row-${s.id}`; wantedIds.add(rowId)
     let tr = document.getElementById(rowId)
@@ -1928,7 +1930,7 @@ async function populateUnassigned() {
       <td class="text-center">${p2!=null?p2.toFixed(2):"---"}</td>
       <td class="text-center">${t!=null?t.toFixed(1):"---"}</td>
       <td class="text-center">${rssiBars(l?.signal_strength)}</td>
-      <td class="text-center text-slate-400">${fmt(l?.received_at)}</td>`
+      <td class="text-center text-slate-400 cell-lastseen">${fmt(l?.received_at)}</td>`
     tbl.appendChild(tr)
   }
   Array.from(tbl.children).forEach(tr => { if (tr.id && !wantedIds.has(tr.id)) tr.remove() })
@@ -2058,6 +2060,67 @@ function subscribeRealtime() {
     }).subscribe()
 }
 
+// Lightweight polling fallback -- NOT the old 60s full-hub sweep. Each tick
+// is a single indexed range query asking "any readings since my last
+// check?" (sensor_id, received_at only). On a quiet cycle -- the normal
+// case -- that returns zero rows and nothing else happens: no hub queries,
+// no reading fetches, no re-render. Only when it actually finds new rows
+// does it feed them through the same findHubForSensor/queueHubRefresh path
+// the realtime handler uses, so a burst of rows still coalesces into one
+// populateHub() call per affected hub instead of one call per row.
+// This exists as a safety net alongside subscribeRealtime() -- if realtime
+// is working, this fires and finds nothing almost every cycle.
+const LIGHT_POLL_MS = 45000
+let _lastPollAt = null
+
+async function lightPoll() {
+  const cutoff = _lastPollAt
+  const { data, error } = await supabaseClient
+    .from("sensor_readings")
+    .select("sensor_id, received_at")
+    .gt("received_at", cutoff)
+    .order("received_at", { ascending: true })
+  if (error) { console.error("lightPoll error:", error); return }
+  if (!data || data.length === 0) return
+  for (const row of data) {
+    if (row.received_at > _lastPollAt) _lastPollAt = row.received_at
+    const hub = await findHubForSensor(row.sensor_id)
+    if (hub) queueHubRefresh(hub, row.sensor_id)
+    else await populateUnassigned()
+  }
+}
+
+function startLightPolling() {
+  _lastPollAt = new Date().toISOString()
+  setInterval(lightPoll, LIGHT_POLL_MS)
+}
+
+// Pure UI clock -- ticks the "Last Seen" text up (0 m -> 1 m -> 2 m...) for
+// every hub and sensor row, purely by recomputing fmt() on timestamps
+// already sitting in latestReadingsCache/hubLastSeenCache. Zero database
+// calls: this is what makes elapsed time visibly advance for a QUIET
+// sensor/hub between actual data updates, which neither subscribeRealtime()
+// nor lightPoll() do on their own -- both only re-render when new data
+// actually arrives, so a silent sensor's "Last Seen" would otherwise stay
+// frozen at whatever it read the last time real data came in.
+const LIVE_CLOCK_TICK_MS = 30000
+
+function tickLiveClocks() {
+  for (const hub of allHubs) {
+    const el = document.getElementById(`lastseen-${hub.id}`)
+    if (el) el.textContent = fmt(hubLastSeenCache[hub.id])
+  }
+  for (const sensor of allSensors) {
+    const tr = document.getElementById(`row-${sensor.id}`) || document.getElementById(`unassigned-row-${sensor.id}`)
+    const cell = tr?.querySelector(".cell-lastseen")
+    if (cell) cell.textContent = fmt(latestReadingsCache[sensor.id]?.received_at)
+  }
+}
+
+function startLiveClockTicker() {
+  setInterval(tickLiveClocks, LIVE_CLOCK_TICK_MS)
+}
+
 // Reconciles the shared map's sensor markers against current data --
 // populateHub()/updateHubMapMarkers() only recolor markers that already
 // exist, they never add a marker for a sensor placed elsewhere/another
@@ -2156,11 +2219,11 @@ async function submitRemoveHub() {
   await loadDashboard()
 }
 
-// Polling removed -- subscribeRealtime() (postgres_changes over the
-// existing websocket) is now the only refresh path for new readings.
-// It fully replaces the old setInterval sweep, which re-fetched every
-// hub every 60s whether or not anything had actually changed.
-loadDashboard().then(()=>{ subscribeRealtime() })
+// Polling removed as a full sweep -- subscribeRealtime() (postgres_changes
+// over the existing websocket) handles instant updates, and startLightPolling()
+// runs alongside it as a cheap safety net (a single near-empty query on a
+// quiet cycle, not a full re-fetch of every hub).
+loadDashboard().then(()=>{ subscribeRealtime(); startLightPolling(); startLiveClockTicker() })
 </script>
 </body>
 </html>
