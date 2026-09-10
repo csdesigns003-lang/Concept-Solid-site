@@ -184,7 +184,7 @@ body.map-fs-lock { overflow: hidden !important; position: fixed !important; inse
         <tr>
           <th class="py-2 text-left">Sensor</th><th class="text-center">P1 <span class="th-unit">(inHg)</span></th>
           <th class="text-center">P2 <span class="th-unit">(inHg)</span></th><th class="text-center">Temp <span class="th-unit">(degF)</span></th>
-          <th class="text-center">SIG</th><th class="text-center">Last Seen</th>
+          <th class="text-center">Sig</th><th class="text-center">Last Seen</th>
         </tr>
       </thead>
       <tbody id="unassignedTable"></tbody>
@@ -1640,7 +1640,7 @@ function renderHubSection(hub) {
         <thead class="text-slate-400 border-b border-slate-700">
           <tr><th class="py-2 text-left">Sensor</th><th class="text-center">P1 <span class="th-unit">(inHg)</span></th>
           <th class="text-center">P2 <span class="th-unit">(inHg)</span></th><th class="text-center">Temp <span class="th-unit">(degF)</span></th>
-          <th class="text-center">SIG</th><th class="text-center">Last Seen</th></tr>
+          <th class="text-center">Sig</th><th class="text-center">Last Seen</th></tr>
         </thead>
         <tbody id="${tbId}"></tbody>
       </table>
@@ -1787,7 +1787,17 @@ function initRowDrag(tableEl, hubId) {
   tableEl.addEventListener("pointercancel", finishDrag)
 }
 
-async function populateHub(hub) {
+// changedSensorIds (optional Set<string>): when provided, only these
+// sensors' latest readings are re-fetched from Supabase -- every other
+// sensor on the hub reuses its cached value from latestReadingsCache
+// instead of triggering another network read. Called with no second
+// argument (full refresh) from loadDashboard(), the manual Refresh button,
+// and structural changes (assign/move/remove sensor, threshold edits),
+// where every sensor's row genuinely needs a fresh read. The realtime
+// subscription below always passes the specific sensor(s) that changed,
+// since a single new reading previously triggered a full re-fetch of every
+// sensor on that hub for no reason.
+async function populateHub(hub, changedSensorIds) {
   const sensors = await loadSensorsForHub(hub.id)
   const tableEl = document.getElementById(`table-${hub.id}`)
   if (!tableEl) return
@@ -1808,10 +1818,18 @@ async function populateHub(hub) {
   let pSum=0,pCnt=0,tSum=0,tCnt=0,lastT=null
   const rows = []
   for (const sensor of sensors) {
-    const readings = await loadLatestReadings(sensor.id)
-    const latest   = readings[0] || null
-    rows.push({sensor,readings,latest})
-    if (latest) latestReadingsCache[sensor.id] = latest
+    // Only hit the network for sensors that actually changed (or that we've
+    // never fetched before). Everything else reuses its cached last reading.
+    const needsFetch = !changedSensorIds || changedSensorIds.has(sensor.id) || !(sensor.id in latestReadingsCache)
+    let latest
+    if (needsFetch) {
+      const readings = await loadLatestReadings(sensor.id)
+      latest = readings[0] || null
+      latestReadingsCache[sensor.id] = latest
+    } else {
+      latest = latestReadingsCache[sensor.id] || null
+    }
+    rows.push({sensor,latest})
     if (latest?.pressure_1 != null)  { pSum += latest.pressure_1; pCnt++ }
     if (latest?.pressure_2 != null)  { pSum += latest.pressure_2; pCnt++ }
     if (latest?.temperature != null)  { tSum += latest.temperature; tCnt++ }
@@ -1995,19 +2013,49 @@ async function submitAssign() {
   for (const h of allHubs) await populateHub(h); await populateUnassigned()
 }
 
+// Debounce window for coalescing a burst of INSERT events (e.g. a single
+// batched upload flush from a hub inserting several sensors' readings at
+// once -- postgres_changes fires one event PER ROW, not once per batch).
+// Without this, N readings landing together would trigger N separate
+// populateHub() calls for the same hub in quick succession.
+const REALTIME_DEBOUNCE_MS = 300
+const _realtimeDebounce = {} // hubId -> { timer, sensorIds: Set<string> }
+
+// In-memory lookup using the sensor lists populateHub() already cached --
+// no network call. Falls back to the original per-hub query only on an
+// actual cache miss (e.g. a sensor was assigned to a hub in another tab/
+// session and this tab's cache hasn't caught up yet), which should be rare.
+async function findHubForSensor(sensorId) {
+  let hub = allHubs.find(h => (hubSensorsCache[h.id]||[]).some(s => s.id===sensorId))
+  if (hub) return hub
+  for (const h of allHubs) {
+    const s = await loadSensorsForHub(h.id)
+    hubSensorsCache[h.id] = s
+    if (s.find(x=>x.id===sensorId)) return h
+  }
+  return null
+}
+
+function queueHubRefresh(hub, sensorId) {
+  let entry = _realtimeDebounce[hub.id]
+  if (!entry) entry = _realtimeDebounce[hub.id] = { timer:null, sensorIds:new Set() }
+  entry.sensorIds.add(sensorId)
+  clearTimeout(entry.timer)
+  entry.timer = setTimeout(async () => {
+    const ids = entry.sensorIds
+    delete _realtimeDebounce[hub.id]
+    await populateHub(hub, ids)
+  }, REALTIME_DEBOUNCE_MS)
+}
+
 function subscribeRealtime() {
   supabaseClient.channel("readings-stream").on("postgres_changes",
     {event:"INSERT",schema:"public",table:"sensor_readings"}, async payload => {
-      for (const h of allHubs) {
-        const s=await loadSensorsForHub(h.id)
-        if (s.find(x=>x.id===payload.new.sensor_id)) { await populateHub(h); break }
-      }
-      await populateUnassigned()
+      const sensorId = payload.new.sensor_id
+      const hub = await findHubForSensor(sensorId)
+      if (hub) queueHubRefresh(hub, sensorId)
+      else await populateUnassigned() // genuinely-unassigned sensor's first reading
     }).subscribe()
-}
-
-function startPolling() {
-  setInterval(async()=>{for(const h of allHubs) await populateHub(h); await populateUnassigned()}, 60000)
 }
 
 // Reconciles the shared map's sensor markers against current data --
@@ -2108,7 +2156,11 @@ async function submitRemoveHub() {
   await loadDashboard()
 }
 
-loadDashboard().then(()=>{ subscribeRealtime(); startPolling() })
+// Polling removed -- subscribeRealtime() (postgres_changes over the
+// existing websocket) is now the only refresh path for new readings.
+// It fully replaces the old setInterval sweep, which re-fetched every
+// hub every 60s whether or not anything had actually changed.
+loadDashboard().then(()=>{ subscribeRealtime() })
 </script>
 </body>
 </html>
