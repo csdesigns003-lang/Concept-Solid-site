@@ -1,24 +1,46 @@
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
 // ADD TO CART (FIXED STRUCTURE)
-function addToCart(product) {
+function addToCart(product, qty) {
+
+qty = Math.max(1, parseInt(qty, 10) || 1);
 
 let existing = cart.find(item => item.id === product.id);
 
 if (existing) {
-  existing.qty += 1;
+  existing.qty += qty;
 } else {
   cart.push({
     id: product.id,
     name: product.name,
     price: product.price,
-    qty: 1
+    qty: qty
   });
 }
 
 localStorage.setItem("cart", JSON.stringify(cart));
 
 updateCartCount();
+}
+
+// QUANTITY SELECTOR HELPERS (product pages)
+function changeQty(delta) {
+let input = document.getElementById("qty-input");
+if (!input) return;
+let val = Math.max(1, (parseInt(input.value, 10) || 1) + delta);
+input.value = val;
+}
+
+function clampQty() {
+let input = document.getElementById("qty-input");
+if (!input) return;
+input.value = Math.max(1, parseInt(input.value, 10) || 1);
+}
+
+function getQty() {
+let input = document.getElementById("qty-input");
+if (!input) return 1;
+return Math.max(1, parseInt(input.value, 10) || 1);
 }
 
 // CART COUNT
