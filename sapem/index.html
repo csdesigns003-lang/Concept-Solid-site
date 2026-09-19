@@ -360,6 +360,92 @@ Users view sensor data from the connected web app.
   </div>
 </section>
 
+<!-- ================= GAUGE ACCURACY ================= -->
+<!--
+  TODO (Cameron): replace the src below on the "Analog Gauge" image with a real
+  photo of a physical/mechanical vacuum gauge (ideally shot next to a SapEM
+  sensor on the same line, for a true side-by-side comparison).
+  Suggested path: ../images/sapem-analog-gauge.jpg
+-->
+<section class="bg-gray-100 py-16">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="bg-white border border-green-200 rounded-2xl shadow-sm overflow-hidden">
+      <div class="grid md:grid-cols-2 gap-8 items-center p-6 md:p-8">
+
+        <!-- Message -->
+        <div>
+          <div class="mb-5">
+            <span class="inline-block text-sm font-semibold text-[#006400] uppercase tracking-wide mb-1">
+              Accuracy
+            </span>
+
+            <h2 class="text-3xl md:text-4xl font-bold">
+              As Accurate As the Gauge on Your Line
+            </h2>
+          </div>
+
+          <p class="text-lg text-gray-600 leading-relaxed mb-5">
+            SapEM tracks true vacuum pressure within ±0.5 inHg — the same
+            number you'd see on the line.
+          </p>
+        </div>
+
+        <!-- SIDE-BY-SIDE GAUGE COMPARISON -->
+        <div class="bg-gray-50 rounded-xl border border-gray-200 p-4 md:p-5">
+          <div class="grid grid-cols-2 gap-3 md:gap-4">
+
+            <!-- Analog gauge -->
+            <div class="bg-white rounded-xl border border-gray-300 overflow-hidden">
+              <div class="bg-gray-700 text-white text-center px-3 py-3">
+                <h3 class="text-sm md:text-base font-bold">Analog Gauge</h3>
+                <p class="text-xs opacity-90 mt-1">On the line</p>
+              </div>
+              <div class="p-3 md:p-4">
+                <img
+                  src="../images/sapem-analog-gauge.jpg"
+                  alt="Traditional mechanical analog vacuum gauge"
+                  class="w-full h-32 md:h-36 object-cover rounded-lg border border-gray-100"
+                >
+              </div>
+            </div>
+
+            <!-- SapEM digital gauge -->
+            <div class="bg-white rounded-xl border-2 border-[#006400] overflow-hidden">
+              <div class="bg-[#006400] text-white text-center px-3 py-3">
+                <h3 class="text-sm md:text-base font-bold">SapEM Gauge</h3>
+                <p class="text-xs opacity-90 mt-1">On your dashboard</p>
+              </div>
+              <div class="p-3 md:p-4">
+                <img
+                  src="../images/sapem-dashboard-gauge.png"
+                  alt="SapEM digital dashboard gauge showing the same reading"
+                  class="w-full h-32 md:h-36 object-contain bg-[#1a2233] rounded-lg border border-gray-100"
+                >
+              </div>
+            </div>
+
+          </div>
+
+          <!--
+            TODO (Cameron): confirm the real accuracy spec (sensor datasheet /
+            bench-test result) before publishing, then swap it in below.
+          -->
+          <div class="mt-4 rounded-lg bg-green-50 border border-green-100 p-3 text-center">
+            <p class="text-xs text-gray-600">
+              Typical accuracy vs. calibrated analog gauge
+            </p>
+
+            <p class="text-2xl md:text-3xl font-bold text-[#006400]">
+              ±0.5 inHg
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ================= THE VALUE OF MONITORING ================= -->
 <section class="bg-gray-100 py-16">
   <div class="max-w-6xl mx-auto px-6">
