@@ -77,6 +77,9 @@ body{font-family:"Microsoft Sans Serif", Arial, sans-serif;background:#f0fdf4;}
 </div>
 
 <div>
+<a href="../products.html" class="inline-flex items-center gap-1 text-green-700 font-semibold hover:text-green-800 mb-4">
+&larr; Back to Sensors
+</a>
 <h1 class="text-4xl font-bold mb-4">Receiving Hub</h1>
 <p class="text-2xl text-green-700 font-semibold mb-6">$299.99</p>
 <div class="mb-10">
@@ -90,7 +93,15 @@ body{font-family:"Microsoft Sans Serif", Arial, sans-serif;background:#f0fdf4;}
 <li><strong>Setup:</strong> See Resources page</li>
 </ul>
 </div>
-<button id="add-cart-btn" onclick="addToCart({id: 'hub', name: 'Receiving Hub', price: 299.99})"
+<div class="flex items-center gap-4 mb-6">
+<span class="font-semibold text-gray-700">Quantity:</span>
+<div class="flex items-center border rounded">
+<button type="button" onclick="changeQty(-1)" class="px-4 py-2 text-xl leading-none hover:bg-gray-100">&minus;</button>
+<input type="number" id="qty-input" value="1" min="1" onchange="clampQty()" class="w-16 text-center border-x py-2 focus:outline-none">
+<button type="button" onclick="changeQty(1)" class="px-4 py-2 text-xl leading-none hover:bg-gray-100">+</button>
+</div>
+</div>
+<button id="add-cart-btn" onclick="addToCart({id: 'hub', name: 'Receiving Hub', price: 299.99}, getQty())"
 class="w-full bg-green-700 text-white py-4 text-xl rounded hover:bg-green-800">
 Add to Cart
 </button>
